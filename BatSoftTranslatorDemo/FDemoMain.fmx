@@ -1,0 +1,53 @@
+object frmDemoMain: TfrmDemoMain
+  Left = 0
+  Top = 0
+  Caption = 'Translator Demo'
+  ClientHeight = 145
+  ClientWidth = 273
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object butSave: TButton
+    Position.X = 16.000000000000000000
+    Position.Y = 16.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    Text = 'Save translation...'
+    OnClick = butSaveClick
+  end
+  object butLoad: TButton
+    Position.X = 144.000000000000000000
+    Position.Y = 16.000000000000000000
+    Size.Width = 113.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Text = 'Load translation...'
+    OnClick = butLoadClick
+  end
+  object butOpenForms: TButton
+    Position.X = 16.000000000000000000
+    Position.Y = 96.000000000000000000
+    Size.Width = 241.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 2
+    Text = 'Open forms'
+    OnClick = butOpenFormsClick
+  end
+  object OpenDialog: TOpenDialog
+    DefaultExt = '*.json'
+    Filter = 'JSon|*.json|Any|*.*'
+    Left = 184
+    Top = 40
+  end
+  object SaveDialog: TSaveDialog
+    DefaultExt = '*.json'
+    Filter = 'JSon|*.json|Any|*.*'
+    Left = 64
+    Top = 40
+  end
+end

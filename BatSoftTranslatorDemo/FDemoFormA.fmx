@@ -1,0 +1,61 @@
+object frmDemoA: TfrmDemoA
+  Left = 0
+  Top = 0
+  Caption = 'frmDemoA'
+  ClientHeight = 371
+  ClientWidth = 641
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  inline frameDemo1: TframeDemo
+    Size.Width = 320.000000000000000000
+    Size.Height = 240.000000000000000000
+    Size.PlatformDefault = False
+    inherited GroupBox1: TGroupBox
+      inherited Button1: TButton
+        TabOrder = 1
+      end
+      inherited Button2: TButton
+        TabOrder = 2
+      end
+      inherited Edit1: TEdit
+        TabOrder = 3
+      end
+      inherited ComboBox1: TComboBox
+        TabOrder = 4
+      end
+    end
+  end
+  inline frameDemo2: TframeDemo
+    Position.X = 320.000000000000000000
+    Size.Width = 320.000000000000000000
+    Size.Height = 240.000000000000000000
+    Size.PlatformDefault = False
+    inherited GroupBox1: TGroupBox
+      inherited Button1: TButton
+        TabOrder = 1
+      end
+      inherited Button2: TButton
+        TabOrder = 2
+      end
+      inherited Edit1: TEdit
+        TabOrder = 3
+      end
+      inherited ComboBox1: TComboBox
+        TabOrder = 4
+      end
+    end
+  end
+  object Label1: TLabel
+    Position.X = 112.000000000000000000
+    Position.Y = 256.000000000000000000
+    Text = 'Label1'
+  end
+  object Button1: TButton
+    Position.X = 16.000000000000000000
+    Position.Y = 256.000000000000000000
+    TabOrder = 1
+    Text = 'Button1'
+  end
+end

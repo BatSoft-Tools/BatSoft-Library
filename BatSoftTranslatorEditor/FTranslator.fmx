@@ -1,0 +1,30 @@
+object frmTranslator: TfrmTranslator
+  Left = 0
+  Top = 0
+  Caption = 'BatSoft Translator editor'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object layEditors: TLayout
+    Align = Client
+    Size.Width = 640.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+  end
+  object MainMenu: TMainMenu
+    Left = 64
+    Top = 80
+    object miOpen: TMenuItem
+      Text = 'miOpen'
+      OnClick = miOpenClick
+    end
+  end
+  object OpenDialog: TOpenDialog
+    Left = 64
+    Top = 136
+  end
+end

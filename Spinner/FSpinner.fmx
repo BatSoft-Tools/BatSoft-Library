@@ -1,0 +1,66 @@
+object frmSpinner: TfrmSpinner
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 615
+  ClientWidth = 360
+  Visible = True
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 3
+  object Panel1: TPanel
+    Align = Top
+    Size.Width = 360.000000000000000000
+    Size.Height = 73.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    object butClose: TButton
+      Position.X = 16.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 48.000000000000000000
+      Size.Height = 48.000000000000000000
+      Size.PlatformDefault = False
+      StyleLookup = 'trashtoolbuttonbordered'
+      TabOrder = 0
+      Text = 'butClose'
+      OnClick = butCloseClick
+    end
+    object edCount: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 1
+      Cursor = crIBeam
+      Max = 100000.000000000000000000
+      Value = 1000.000000000000000000
+      Position.X = 112.000000000000000000
+      Position.Y = 8.000000000000000000
+      Size.Width = 137.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = edCountChange
+    end
+    object edHeight: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 2
+      Cursor = crIBeam
+      Value = 22.000000000000000000
+      Position.X = 112.000000000000000000
+      Position.Y = 32.000000000000000000
+      Size.Width = 137.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = edHeightChange
+    end
+  end
+  object ScrollBox: TVertScrollBox
+    Align = Bottom
+    Position.Y = 487.000000000000000000
+    Size.Width = 360.000000000000000000
+    Size.Height = 128.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Visible = False
+  end
+end

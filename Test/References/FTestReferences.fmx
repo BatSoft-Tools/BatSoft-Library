@@ -1,0 +1,28 @@
+object frmTestReferences: TfrmTestReferences
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object frmCreateThing: TButton
+    Position.X = 72.000000000000000000
+    Position.Y = 56.000000000000000000
+    Size.Width = 121.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'frmCreateThing'
+    OnClick = frmCreateThingClick
+  end
+  object frmReleaseThing: TButton
+    Position.X = 72.000000000000000000
+    Position.Y = 88.000000000000000000
+    Size.Width = 121.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'frmReleaseThing'
+  end
+end

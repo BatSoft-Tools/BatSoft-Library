@@ -1,0 +1,185 @@
+object frmTestSpinners: TfrmTestSpinners
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object ListSpinner1: TListSpinner
+    PopupMenu = PopupMenu1
+    Position.X = 57.000000000000000000
+    Position.Y = 57.000000000000000000
+    Size.Width = 152.000000000000000000
+    Size.Height = 288.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    ItemCount = 100
+    OnObtainItem = ListSpinner1ObtainItem
+    OnItemIndexChange = ListSpinner1ItemIndexChange
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 288
+    Top = 16
+    object MenuItem1: TMenuItem
+      Text = 'MenuItem1'
+    end
+    object MenuItem2: TMenuItem
+      Text = 'MenuItem2'
+    end
+    object MenuItem3: TMenuItem
+      Text = 'MenuItem3'
+    end
+  end
+  object edItemCount: TSpinBox
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 5
+    Cursor = crIBeam
+    Max = 1000000000.000000000000000000
+    Value = 100.000000000000000000
+    Position.X = 464.000000000000000000
+    Position.Y = 48.000000000000000000
+    OnChange = edItemCountChange
+    object Label1: TLabel
+      Position.X = -72.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 73.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'ItemCount'
+      TabOrder = 0
+    end
+  end
+  object edItemHeight: TSpinBox
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 4
+    Cursor = crIBeam
+    Max = 1000.000000000000000000
+    Value = 20.000000000000000000
+    Position.X = 464.000000000000000000
+    Position.Y = 80.000000000000000000
+    OnChange = edItemHeightChange
+    object Label2: TLabel
+      Position.X = -72.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 65.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'ItemHeight'
+      TabOrder = 0
+    end
+  end
+  object edItemIndex: TSpinBox
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 3
+    Cursor = crIBeam
+    Min = -1.000000000000000000
+    Max = 1000000000.000000000000000000
+    Value = -1.000000000000000000
+    Position.X = 464.000000000000000000
+    Position.Y = 112.000000000000000000
+    OnChange = edItemIndexChange
+    object Label3: TLabel
+      Position.X = -72.000000000000000000
+      Position.Y = 4.000000000000000000
+      Size.Width = 65.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'ItemIndex'
+      TabOrder = 0
+    end
+  end
+  object Rectangle1: TRectangle
+    Position.X = 208.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 50.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object Rectangle2: TRectangle
+    Position.X = 8.000000000000000000
+    Position.Y = 344.000000000000000000
+    Size.Width = 50.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object ListSpinner2: TListSpinner
+    Position.X = 312.000000000000000000
+    Position.Y = 160.000000000000000000
+    Size.Width = 313.000000000000000000
+    Size.Height = 297.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 8
+    ItemCount = 256
+    ItemHeight = 120
+    OnObtainItem = ListSpinner2ObtainItem
+  end
+  object butShowListControls: TButton
+    Position.X = 392.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 169.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 9
+    Text = 'Show List Controls'
+    OnClick = butShowListControlsClick
+  end
+  object butCompare1: TButton
+    Position.X = 272.000000000000000000
+    Position.Y = 168.000000000000000000
+    TabOrder = 13
+    Text = 'butCompare1'
+    OnClick = butCompare1Click
+  end
+  object Edit1: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    TabOrder = 16
+    Position.X = 496.000000000000000000
+    Position.Y = 152.000000000000000000
+    Visible = False
+  end
+  object Button1: TButton
+    Position.X = 272.000000000000000000
+    Position.Y = 104.000000000000000000
+    TabOrder = 18
+    Text = 'Button1'
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Position.X = 272.000000000000000000
+    Position.Y = 136.000000000000000000
+    TabOrder = 19
+    Text = 'Button2'
+    OnClick = Button2Click
+  end
+  object butCompare2: TButton
+    Position.X = 272.000000000000000000
+    Position.Y = 200.000000000000000000
+    TabOrder = 12
+    Text = 'butCompare2'
+    OnClick = butCompare2Click
+  end
+  object butCopy: TButton
+    Position.X = 272.000000000000000000
+    Position.Y = 232.000000000000000000
+    TabOrder = 22
+    Text = 'butCopy'
+    OnClick = butCopyClick
+  end
+  object butRestore: TButton
+    Position.X = 272.000000000000000000
+    Position.Y = 264.000000000000000000
+    TabOrder = 24
+    Text = 'butRestore'
+    OnClick = butRestoreClick
+  end
+  object butChangeClass: TButton
+    Position.X = 272.000000000000000000
+    Position.Y = 72.000000000000000000
+    TabOrder = 25
+    Text = 'butChangeClass'
+    OnClick = butChangeClassClick
+  end
+end

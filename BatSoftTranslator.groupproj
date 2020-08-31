@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{63948030-3ECF-4981-B885-9B1551B40717}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="BatSoftTranslatorDemo\BatSoftTranslatorDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="BatSoftTranslatorDemo">
+        <MSBuild Projects="BatSoftTranslatorDemo\BatSoftTranslatorDemo.dproj"/>
+    </Target>
+    <Target Name="BatSoftTranslatorDemo:Clean">
+        <MSBuild Projects="BatSoftTranslatorDemo\BatSoftTranslatorDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BatSoftTranslatorDemo:Make">
+        <MSBuild Projects="BatSoftTranslatorDemo\BatSoftTranslatorDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="BatSoftTranslatorEditor">
+        <MSBuild Projects="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj"/>
+    </Target>
+    <Target Name="BatSoftTranslatorEditor:Clean">
+        <MSBuild Projects="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BatSoftTranslatorEditor:Make">
+        <MSBuild Projects="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="BatSoftTranslatorDemo;BatSoftTranslatorEditor"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="BatSoftTranslatorDemo:Clean;BatSoftTranslatorEditor:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="BatSoftTranslatorDemo:Make;BatSoftTranslatorEditor:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

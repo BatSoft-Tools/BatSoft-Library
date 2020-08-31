@@ -1,0 +1,58 @@
+object frmEditor: TfrmEditor
+  Left = 0
+  Top = 0
+  Caption = 'Editor'
+  ClientHeight = 480
+  ClientWidth = 282
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  inline frameEditor: TframeEditor
+    Align = Client
+    Size.Width = 282.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    inherited panFile: TGroupBox
+      Size.Width = 282.000000000000000000
+      inherited edFile: TEdit
+        Size.Width = 106.000000000000000000
+      end
+      inherited butSave: TButton
+        Position.X = 122.000000000000000000
+      end
+      inherited butCopy: TButton
+        Position.X = 202.000000000000000000
+      end
+    end
+    inherited Layout1: TLayout
+      Size.Width = 282.000000000000000000
+      Size.Height = 426.000000000000000000
+      inherited panStruc: TGroupBox
+        Size.Width = 282.000000000000000000
+        Size.Height = 355.000000000000000000
+        inherited treStruc: TTreeView
+          Size.Width = 266.000000000000000000
+          Size.Height = 323.000000000000000000
+          Viewport.Width = 262.000000000000000000
+          Viewport.Height = 319.000000000000000000
+        end
+      end
+      inherited Layout2: TLayout
+        Size.Width = 282.000000000000000000
+        inherited panValue: TGroupBox
+          Size.Width = 170.000000000000000000
+          inherited labValue: TLabel
+            Size.Width = 154.000000000000000000
+          end
+          inherited edValue: TEdit
+            Size.Width = 154.000000000000000000
+          end
+        end
+        inherited panNode: TGroupBox
+          Position.X = 170.000000000000000000
+        end
+      end
+    end
+  end
+end

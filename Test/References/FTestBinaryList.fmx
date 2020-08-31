@@ -1,0 +1,121 @@
+object frmTestBinaryList: TfrmTestBinaryList
+  Left = 0
+  Top = 0
+  Caption = 'frmTestBinaryList'
+  ClientHeight = 321
+  ClientWidth = 297
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object butAdd: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    Text = 'butAdd'
+    OnClick = butAddClick
+  end
+  object grpDuplicates: TGroupBox
+    Padding.Left = 8.000000000000000000
+    Padding.Top = 24.000000000000000000
+    Position.X = 184.000000000000000000
+    Position.Y = 8.000000000000000000
+    Size.Width = 105.000000000000000000
+    Size.Height = 97.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'grpDuplicates'
+    object chkAccept: TRadioButton
+      Tag = 1
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 43.000000000000000000
+      Size.Width = 97.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'chkAccept'
+      OnChange = chkChange
+    end
+    object chkError: TRadioButton
+      Tag = 2
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 62.000000000000000000
+      Size.Width = 97.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'chkError'
+      OnChange = chkChange
+    end
+    object chkIgnore: TRadioButton
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 24.000000000000000000
+      Size.Width = 97.000000000000000000
+      Size.Height = 19.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'chkIgnore'
+      OnChange = chkChange
+    end
+  end
+  object edValue: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    Position.X = 8.000000000000000000
+    Position.Y = 104.000000000000000000
+    Size.Width = 169.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object memValues: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Position.X = 8.000000000000000000
+    Position.Y = 136.000000000000000000
+    Size.Width = 169.000000000000000000
+    Size.Height = 177.000000000000000000
+    Size.PlatformDefault = False
+    Viewport.Width = 165.000000000000000000
+    Viewport.Height = 173.000000000000000000
+  end
+  object butDelete: TButton
+    Position.X = 96.000000000000000000
+    Position.Y = 40.000000000000000000
+    Text = 'butDelete'
+    OnClick = butDeleteClick
+  end
+  object butIndexOf: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 72.000000000000000000
+    Text = 'butIndexOf'
+    OnClick = butIndexOfClick
+  end
+  object butRemove: TButton
+    Position.X = 8.000000000000000000
+    Position.Y = 40.000000000000000000
+    Text = 'butRemove'
+    OnClick = butRemoveClick
+  end
+  object edIndex: TSpinBox
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    Cursor = crIBeam
+    Min = -10000.000000000000000000
+    Max = 10000.000000000000000000
+    Position.X = 96.000000000000000000
+    Position.Y = 72.000000000000000000
+    Size.Width = 81.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object butClear: TButton
+    Position.X = 96.000000000000000000
+    Position.Y = 8.000000000000000000
+    Text = 'butClear'
+    OnClick = butClearClick
+  end
+  object butPopulate: TButton
+    Position.X = 192.000000000000000000
+    Position.Y = 104.000000000000000000
+    Text = 'butPopulate'
+    OnClick = butPopulateClick
+  end
+end

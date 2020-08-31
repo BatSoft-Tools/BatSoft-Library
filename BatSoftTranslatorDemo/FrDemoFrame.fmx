@@ -1,0 +1,41 @@
+object frameDemo: TframeDemo
+  Size.Width = 320.000000000000000000
+  Size.Height = 240.000000000000000000
+  Size.PlatformDefault = False
+  object GroupBox1: TGroupBox
+    Align = Client
+    Size.Width = 320.000000000000000000
+    Size.Height = 240.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'GroupBox1'
+    TabOrder = 0
+    object Button1: TButton
+      Position.X = 16.000000000000000000
+      Position.Y = 24.000000000000000000
+      TabOrder = 0
+      Text = 'Button1'
+    end
+    object Button2: TButton
+      Position.X = 120.000000000000000000
+      Position.Y = 24.000000000000000000
+      TabOrder = 1
+      Text = 'Button2'
+    end
+    object Edit1: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      TabOrder = 2
+      Position.X = 16.000000000000000000
+      Position.Y = 56.000000000000000000
+    end
+    object ComboBox1: TComboBox
+      Items.Strings = (
+        'Option A'
+        'Option B'
+        'Option C')
+      ItemIndex = 0
+      Position.X = 16.000000000000000000
+      Position.Y = 88.000000000000000000
+      TabOrder = 3
+    end
+  end
+end

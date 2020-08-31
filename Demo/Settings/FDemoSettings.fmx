@@ -1,0 +1,68 @@
+object frmDemoSettings: TfrmDemoSettings
+  Left = 0
+  Top = 0
+  Caption = 'Form1'
+  ClientHeight = 320
+  ClientWidth = 370
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object butSave: TButton
+    Position.X = 24.000000000000000000
+    Position.Y = 16.000000000000000000
+    TabOrder = 0
+    Text = 'butSave'
+    OnClick = butSaveClick
+  end
+  object butLoad: TButton
+    Position.X = 136.000000000000000000
+    Position.Y = 16.000000000000000000
+    TabOrder = 1
+    Text = 'butLoad'
+    OnClick = butLoadClick
+  end
+  object chkClearValues: TCheckBox
+    IsChecked = True
+    Position.X = 136.000000000000000000
+    Position.Y = 48.000000000000000000
+    TabOrder = 4
+    Text = 'Clear values'
+  end
+  object butInit1: TButton
+    Position.X = 24.000000000000000000
+    Position.Y = 104.000000000000000000
+    TabOrder = 5
+    Text = 'butInit1'
+    OnClick = butInit1Click
+  end
+  object Button1: TButton
+    Position.X = 24.000000000000000000
+    Position.Y = 160.000000000000000000
+    TabOrder = 6
+    Text = 'Button1'
+    OnClick = Button1Click
+  end
+  object butInit0: TButton
+    Position.X = 24.000000000000000000
+    Position.Y = 72.000000000000000000
+    TabOrder = 8
+    Text = 'butInit0'
+    OnClick = butInit0Click
+  end
+  object OpenDialog: TOpenDialog
+    Left = 160
+    Top = 48
+  end
+  object SaveDialog: TSaveDialog
+    Left = 56
+    Top = 48
+  end
+  object Button2: TButton
+    Position.X = 24.000000000000000000
+    Position.Y = 192.000000000000000000
+    TabOrder = 12
+    Text = 'Button2'
+    OnClick = Button2Click
+  end
+end
