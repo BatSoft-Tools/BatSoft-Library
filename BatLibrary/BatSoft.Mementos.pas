@@ -193,7 +193,7 @@ begin
               Field.AsInstance.MetaclassType.InheritsFrom(TStrings)
 end;
 
-function GetMementoStrsAsStr(const Field: TRttiField; const Memento: TObject): string;
+function GetMementoStrsAsStr(const Field: TRttiField; const Memento: TObject): string; overload;
 var
   StrBackup: PString;
 begin
@@ -281,28 +281,28 @@ procedure CopyFieldsToMemento(const Originator, Memento: TObject);
 var
   Fields: TArray<TRttiField>;
   Field: TRttiField;
-  ValOrigin, ValBackup: TValue;
+  ValOriginator, ValMemento: TValue;
 begin
   Fields := GetFields(Originator.ClassType);
   for Field in Fields do
     begin
-      ValOrigin := Field.GetValue(Originator);
+      ValOriginator := Field.GetValue(Originator);
       //  Special backup for TStrings objects
       if  IsMementoStrs(Field.FieldType)  then
         begin
-          SetMementoStrsAsStr(Field, Memento, GetOriginatorStrsAsStr(ValOrigin));
+          SetMementoStrsAsStr(Field, Memento, GetOriginatorStrsAsStr(ValOriginator));
           Continue;
         end;
       //  Might do deep backup
-      if IsDeepField(Field) and not ValOrigin.IsEmpty then
+      if IsDeepField(Field) and not ValOriginator.IsEmpty then
         begin
-          ValBackup := ObtainMemento(ValOrigin.AsObject.ClassType);
-          Field.SetValue(Memento, ValBackup);
-          CopyFieldsToMemento(ValOrigin.AsObject, ValBackup.AsObject);
+          ValMemento := ObtainMemento(ValOriginator.AsObject.ClassType);
+          Field.SetValue(Memento, ValMemento);
+          CopyFieldsToMemento(ValOriginator.AsObject, ValMemento.AsObject);
         end
       //  Regular direct backup
       else
-        Field.SetValue(Memento, ValOrigin);
+        Field.SetValue(Memento, ValOriginator);
     end;
 end;
 
@@ -310,25 +310,25 @@ procedure CopyFieldsToOriginator(const Memento, Originator: TObject);
 var
   Fields: TArray<TRttiField>;
   Field: TRttiField;
-  ValOrigin, ValBackup: TValue;
+  ValOriginator, ValMemento: TValue;
 begin
   Fields := GetFields(Originator.ClassType);
   for Field in Fields do
     begin
-      ValOrigin := Field.GetValue(Originator);
+      ValOriginator := Field.GetValue(Originator);
       //  Special restore for TStrings objects
       if  IsMementoStrs(Field.FieldType)  then
         begin
-          SetOriginatorStrsAsStr(ValOrigin, GetMementoStrsAsStr(Field, Memento));
+          SetOriginatorStrsAsStr(ValOriginator, GetMementoStrsAsStr(Field, Memento));
           Continue;
         end;
       //  Might do deep restore
-      ValBackup := Field.GetValue(Memento);
-      if IsDeepField(Field) and not ValOrigin.IsEmpty and not ValBackup.IsEmpty then
-        CopyFieldsToOriginator(ValBackup.AsObject, ValOrigin.AsObject)
+      ValMemento := Field.GetValue(Memento);
+      if IsDeepField(Field) and not ValOriginator.IsEmpty and not ValMemento.IsEmpty then
+        CopyFieldsToOriginator(ValMemento.AsObject, ValOriginator.AsObject)
       //  Regular direct restore
       else
-        Field.SetValue(Originator, ValBackup);
+        Field.SetValue(Originator, ValMemento);
     end;
 end;
 
@@ -341,29 +341,29 @@ function HasFieldChanges(const ClassTyp: TClass; const Originator, Memento: TObj
 var
   Fields: TArray<TRttiField>;
   Field: TRttiField;
-  ValOrigin, ValBackup: TValue;
+  ValOriginator, ValMemento: TValue;
 begin
   Result := False;
   Fields := GetFields(ClassTyp);
   for Field in Fields do
     begin
       //  Compare TStrings
-      ValOrigin := Field.GetValue(Originator);
+      ValOriginator := Field.GetValue(Originator);
       if  IsMementoStrs(Field.FieldType)  then
         begin
-          ValOrigin := TValue.From(GetOriginatorStrsAsStr(ValOrigin));
-          ValBackup := TValue.From(GetMementoStrsAsStr(Field, Memento));
-          if  SameValue(ValOrigin, ValBackup) then
+          ValOriginator := TValue.From(GetOriginatorStrsAsStr(ValOriginator));
+          ValMemento := TValue.From(GetMementoStrsAsStr(Field, Memento));
+          if  SameValue(ValOriginator, ValMemento) then
             Continue
           else
             Exit(True);
         end;
       //  Deep comparison
-      ValBackup := Field.GetValue(Memento);
-      if  IsDeepField(Field) and not ValOrigin.IsEmpty and not ValBackup.IsEmpty  then
-        Exit(HasFieldChanges(ValOrigin.AsObject.ClassType, ValOrigin.AsObject, ValBackup.AsObject));
+      ValMemento := Field.GetValue(Memento);
+      if  IsDeepField(Field) and not ValOriginator.IsEmpty and not ValMemento.IsEmpty  then
+        Exit(HasFieldChanges(ValOriginator.AsObject.ClassType, ValOriginator.AsObject, ValMemento.AsObject));
       //  Plain comparison
-      if not SameValue(ValOrigin, ValBackup) then
+      if not SameValue(ValOriginator, ValMemento) then
         Exit(True)
     end;
 end;
@@ -425,35 +425,6 @@ begin
 end;
 
 function HasPropertyChanges(const ClassTyp: TClass; const Originator, Memento: TObject): Boolean;
-//var
-//  Fields: TArray<TRttiProperty>;
-//  Field: TRttiProperty;
-//  ValOrigin, ValBackup: TValue;
-//begin
-//  Result := False;
-//  Fields := GetProperties(ClassTyp);
-//  for Field in Fields do
-//    begin
-//      //  Compare TStrings
-//      ValOrigin := Field.GetValue(Originator);
-//      if  IsMementoStrs(Field.PropertyType)  then
-//        begin
-//          ValOrigin := TValue.From(GetOriginatorStrsAsStr(ValOrigin));
-//          ValBackup := TValue.From(GetMementoStrsAsStr(Field, Memento));
-//          if  SameValue(ValOrigin, ValBackup) then
-//            Continue
-//          else
-//            Exit(True);
-//        end;
-//      //  Deep comparison
-//      ValBackup := Field.GetValue(Memento);
-//      if  IsDeepField(Field) and not ValOrigin.IsEmpty and not ValBackup.IsEmpty  then
-//        Exit(HasFieldChanges(ValOrigin.AsObject.ClassType, ValOrigin.AsObject, ValBackup.AsObject));
-//      //  Plain comparison
-//      if not SameValue(ValOrigin, ValBackup) then
-//        Exit(True)
-//    end;
-//end;
 var
   Fields: TArray<TRttiProperty>;
   Field: TRttiProperty;
@@ -470,7 +441,7 @@ begin
     end;
 end;
 
-procedure ListPropertyChanges(const ClassTyp: TClass; const Obj, Memento: TObject; const Changes: TChanges);
+procedure ListPropertyChanges(const ClassTyp: TClass; const Originator, Memento: TObject; const Changes: TChanges);
 var
   Fields: TArray<TRttiProperty>;
   Field: TRttiProperty;
@@ -481,7 +452,7 @@ begin
   for Field in Fields do
     begin
       Change.Name     := Field.Name;
-      Change.Original := Field.GetValue(Obj);
+      Change.Original := Field.GetValue(Originator);
       Change.Backup   := Field.GetValue(Memento);
       if not SameValue(Change.Original, Change.Backup) then
         Changes.Add(Change);
