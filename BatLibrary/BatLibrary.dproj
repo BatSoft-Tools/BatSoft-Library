@@ -107,12 +107,10 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
-        <DCCReference Include="fmx.dcp"/>
         <DCCReference Include="BatSoft.Settings.pas"/>
         <DCCReference Include="BatSoft.Settings.JSON.pas"/>
         <DCCReference Include="BatSoft.Classes.pas"/>
         <DCCReference Include="BatSoft.Settings.Ini.pas"/>
-        <DCCReference Include="BatSoft.Translator.pas"/>
         <DCCReference Include="BatSoft.Settings.Base.pas"/>
         <DCCReference Include="BatSoft.Mementos.pas"/>
         <DCCReference Include="BatSoft.Observer.Base.pas"/>

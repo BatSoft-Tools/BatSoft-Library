@@ -17,8 +17,7 @@ uses
   TestObserverManaged in 'TestObserverManaged.pas',
   TestObserverManual in 'TestObserverManual.pas',
   TestBinaryList in 'TestBinaryList.pas',
-  TestMementos in 'TestMementos.pas',
-  BatSoft.Mementos in '..\..\BatLibrary\BatSoft.Mementos.pas';
+  TestMementos in 'TestMementos.pas';
 
 {$IFNDEF TESTINSIGHT}
 var

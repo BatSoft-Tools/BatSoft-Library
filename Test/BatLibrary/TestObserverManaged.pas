@@ -473,5 +473,6 @@ end;
 initialization
   TDUnitX.RegisterTestFixture(TTestObserverManualSingle);
   TDUnitX.RegisterTestFixture(TTestObserverManualMultiple);
+  TDUnitX.RegisterTestFixture(TTestObserverManualFlow);
 
 end.

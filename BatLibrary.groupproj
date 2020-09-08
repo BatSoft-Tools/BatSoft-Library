@@ -6,13 +6,13 @@
         <Projects Include="BatLibrary\BatLibrary.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="BatLibraryFMX\BatLibraryFMX.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="BatStreamNet\BatStreamNet.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="BatControls\BatControls.dproj">
-            <Dependencies/>
-        </Projects>
-        <Projects Include="BatLibraryTest\BatLibraryTest.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="Test\Settings\TestSettings.dproj">
@@ -50,6 +50,15 @@
     <Target Name="BatLibrary:Make">
         <MSBuild Projects="BatLibrary\BatLibrary.dproj" Targets="Make"/>
     </Target>
+    <Target Name="BatLibraryFMX">
+        <MSBuild Projects="BatLibraryFMX\BatLibraryFMX.dproj"/>
+    </Target>
+    <Target Name="BatLibraryFMX:Clean">
+        <MSBuild Projects="BatLibraryFMX\BatLibraryFMX.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BatLibraryFMX:Make">
+        <MSBuild Projects="BatLibraryFMX\BatLibraryFMX.dproj" Targets="Make"/>
+    </Target>
     <Target Name="BatStreamNet">
         <MSBuild Projects="BatStreamNet\BatStreamNet.dproj"/>
     </Target>
@@ -67,15 +76,6 @@
     </Target>
     <Target Name="BatControls:Make">
         <MSBuild Projects="BatControls\BatControls.dproj" Targets="Make"/>
-    </Target>
-    <Target Name="BatLibraryTest">
-        <MSBuild Projects="BatLibraryTest\BatLibraryTest.dproj"/>
-    </Target>
-    <Target Name="BatLibraryTest:Clean">
-        <MSBuild Projects="BatLibraryTest\BatLibraryTest.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="BatLibraryTest:Make">
-        <MSBuild Projects="BatLibraryTest\BatLibraryTest.dproj" Targets="Make"/>
     </Target>
     <Target Name="TestSettings">
         <MSBuild Projects="Test\Settings\TestSettings.dproj"/>
@@ -132,13 +132,13 @@
         <MSBuild Projects="Test\BatLibrary\TestBatLibrary.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="BatLibrary;BatStreamNet;BatControls;BatLibraryTest;TestSettings;DemoSettings;TestControls;DemoMementos;TestReferences;TestBatLibrary"/>
+        <CallTarget Targets="BatLibrary;BatLibraryFMX;BatStreamNet;BatControls;TestSettings;DemoSettings;TestControls;DemoMementos;TestReferences;TestBatLibrary"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="BatLibrary:Clean;BatStreamNet:Clean;BatControls:Clean;BatLibraryTest:Clean;TestSettings:Clean;DemoSettings:Clean;TestControls:Clean;DemoMementos:Clean;TestReferences:Clean;TestBatLibrary:Clean"/>
+        <CallTarget Targets="BatLibrary:Clean;BatLibraryFMX:Clean;BatStreamNet:Clean;BatControls:Clean;TestSettings:Clean;DemoSettings:Clean;TestControls:Clean;DemoMementos:Clean;TestReferences:Clean;TestBatLibrary:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="BatLibrary:Make;BatStreamNet:Make;BatControls:Make;BatLibraryTest:Make;TestSettings:Make;DemoSettings:Make;TestControls:Make;DemoMementos:Make;TestReferences:Make;TestBatLibrary:Make"/>
+        <CallTarget Targets="BatLibrary:Make;BatLibraryFMX:Make;BatStreamNet:Make;BatControls:Make;TestSettings:Make;DemoSettings:Make;TestControls:Make;DemoMementos:Make;TestReferences:Make;TestBatLibrary:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

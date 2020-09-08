@@ -28,15 +28,13 @@ package BatLibrary;
 {$IMPLICITBUILD ON}
 
 requires
-  rtl,
-  fmx;
+  rtl;
 
 contains
   BatSoft.Settings in 'BatSoft.Settings.pas',
   BatSoft.Settings.JSON in 'BatSoft.Settings.JSON.pas',
   BatSoft.Classes in 'BatSoft.Classes.pas',
   BatSoft.Settings.Ini in 'BatSoft.Settings.Ini.pas',
-  BatSoft.Translator in 'BatSoft.Translator.pas',
   BatSoft.Settings.Base in 'BatSoft.Settings.Base.pas',
   BatSoft.Mementos in 'BatSoft.Mementos.pas',
   BatSoft.Observer.Base in 'BatSoft.Observer.Base.pas',
@@ -44,3 +42,4 @@ contains
   BatSoft.Observer.Managed in 'BatSoft.Observer.Managed.pas';
 
 end.
+
