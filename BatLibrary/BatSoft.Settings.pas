@@ -336,6 +336,7 @@ begin
   //  Determine data type of items
   ObjectList  := TSettingsList<T>(NewInstance);
   try
+    ElemType  := T;
     ElemType  := ObjectList.ItemType;
   finally
     ObjectList.Free;

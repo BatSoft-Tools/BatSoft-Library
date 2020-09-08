@@ -60,7 +60,7 @@ implementation
 {$R *.fmx}
 
 uses
-  RTTI, FListControls, BatSoft.Mementos, Delphi.Mocks.Helpers, FMX.Text;
+  RTTI, FListControls, BatSoft.Mementos, FMX.Text;
 
 var
   Ctx: TRttiContext;
@@ -276,7 +276,7 @@ begin
           and not SameText(Field.Name, 'fControl')
       then
         begin
-          SrcObj  := Field.GetValue(Obj).AsPointer;
+          SrcObj  := Field.GetValue(Obj).AsObject;
           if  Assigned(SrcObj) then
             Field.SetValue(Result, CloneObject(Field.GetValue(Obj).AsObject, Path + '.' + Field.Name))
           else

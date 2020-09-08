@@ -7,8 +7,7 @@ uses
   Bat.Spinners in '..\..\BatControls\Bat.Spinners.pas',
   FListControls in 'FListControls.pas' {frmListControls},
   FrComplexListItem in 'FrComplexListItem.pas' {frameComplexListItem: TFrame},
-  BatSoft.Mementos in '..\..\BatLibrary\BatSoft.Mementos.pas',
-  Delphi.Mocks.Helpers in '..\..\BatLibrary\Delphi.Mocks.Helpers.pas';
+  BatSoft.Mementos in '..\..\BatLibrary\BatSoft.Mementos.pas';
 
 {$R *.res}
 

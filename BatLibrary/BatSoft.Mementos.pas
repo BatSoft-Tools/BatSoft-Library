@@ -1,5 +1,25 @@
 unit BatSoft.Mementos;
 
+///  This unit contains four implementations of the Memento pattern:
+///   - TBackupFields
+///   - TBackupProperties
+///   - TVersionsFields
+///   - TVersionsProperties
+///  The <Backup> classes hold only one backup of the originator, whereas
+///  the <Versions> classes enable a multiple-version history of changes.
+///  The <Fields> classes back up the originator's field values. Better use these.
+///  The <Properties> classes back up the property values. Not advisable
+///
+///  NOTE:  I'd advise NOT using the Properties classes because of potentially
+///         unknown consequenses when calling property getters and setters.
+///
+///  This implementation will compare the contents of records and arrays,
+///  but NOT what they point to (such as string contents).
+///
+///  TChanges.ToString will not show *what* changes there are in records and arrays,
+///  only *that* there are changes. If you would like more detail, then ask at:
+///     peter@batsoft.com.au
+
 interface
 
 uses
@@ -79,6 +99,7 @@ type
     procedure CopyValues(const FromObj, ToObj: TObject); virtual; abstract;
     procedure ForgetFutureMementos;
     function  MementoNow: TObject;
+    procedure SetVersionNow(const Value: integer);
   protected
     procedure ValidateBackup(const Version: integer);
   public
@@ -90,7 +111,7 @@ type
     procedure Redo;
     procedure Undo;
     property  VersionMax: integer read GetVersionMax;
-    property  VersionNow: integer read GetVersionNow;
+    property  VersionNow: integer read GetVersionNow  write SetVersionNow;
   end;
   TMementoVersionsClass = class of TMementoVersions;
 
@@ -124,13 +145,16 @@ resourcestring
   SErrorNotBackedUp = '%s object not backed up.';
   SErrorNoSnapshot  = '%s object does not have version %d.';
   SNullStrings      = 'Cannot assign a string value to a nil TStrings object.';
+  SInvalidMethod    = 'Invalid method pointer';
+  SIncomparableType = 'Incomparable type kind: %s';
 
+function  SameValue(const Value1, Value2: TValue): Boolean;
 procedure ListFieldChanges(const FieldPrefix: string; const Originator, Memento: TObject; const Changes: TChanges);
 
 implementation
 
 uses
-  Classes, Delphi.Mocks.Helpers, BatSoft.Classes;
+  Classes, TypInfo, BatSoft.Classes;
 
 var
   Ctx: TRttiContext;
@@ -140,7 +164,64 @@ begin
   raise EMemento.Create(Format(SErrorNotBackedUp, [ClassTyp.ClassName]));
 end;
 
+function DynamicArraySize(const DynArr: Pointer): Cardinal;
+begin
+  Result  := integer(Pointer(integer(DynArr)-4)^) * integer(Pointer(integer(DynArr)-8)^)
+end;
+
+function CopyDynamicArray(const Value: TValue): TValue;
+var
+  Arr: array of TValue;
+  i, ArrLen: Integer;
+begin
+  if Value.IsEmpty then
+    Exit(nil);
+  //  Copy array
+  ArrLen := Value.GetArrayLength;
+  SetLength(Arr, ArrLen);
+  for i := 0 to ArrLen - 1 do
+    Arr[i]  := Value.GetArrayElement(i);
+  //  Assign array
+  Result  := TValue.FromArray(Value.TypeInfo, Arr);
+end;
+
 { TChanges }
+
+function ValueToStr(const Value: TValue): string;
+const
+  SNil  = 'nil';
+var
+  Method: TMethod;
+  RTTIClass: TRttiType;
+  RTTIMethods: TArray<TRttiMethod>;
+  RTTIMethod: TRttiMethod;
+begin
+  if Value.TypeInfo = TypeInfo(TGUID) then
+    Result  := Value.AsType<TGUID>().ToString
+  else if Value.TypeInfo.Kind = tkMethod then
+    try
+      //  Obtain method
+      Value.ExtractRawDataNoCopy(@Method);
+      if  not Assigned(Method.Data) then
+        Exit('nil');
+      //  Obtain method name
+      RTTIClass := Ctx.GetType(TObject(Method.Data).ClassType);
+      RTTIMethods := RTTIClass.GetMethods;
+      Result  := IntToHex(integer(Method.Code));
+      for RTTIMethod in RTTIMethods do
+        if  RTTIMethod.CodeAddress = Method.Code  then
+          begin
+            Result  := RTTIMethod.Name;
+            break;
+          end;
+      //  Add class name
+      Result  := TObject(Method.Data).ClassName + '(' + IntToHex(integer(Method.Data)) + ').' + Result + '()';
+    except
+      raise EMemento.Create(SInvalidMethod);
+    end
+  else
+    Result  := Value.ToString
+end;
 
 function TChanges.ToString: string;
 var
@@ -150,7 +231,7 @@ begin
   Strs    := TStringList.Create;
   try
     for Change in Self  do
-      Strs.Add(Change.Name+': '+Change.Backup.ToString+' -> '+Change.Original.ToString);
+      Strs.Add(Change.Name+': ' + ValueToStr(Change.Backup) +' -> ' + ValueToStr(Change.Original));
     Result  := Strs.Text
   finally
     Strs.Free;
@@ -193,7 +274,7 @@ begin
               Field.AsInstance.MetaclassType.InheritsFrom(TStrings)
 end;
 
-function GetMementoStrsAsStr(const Field: TRttiField; const Memento: TObject): string;
+function GetMementoStrsAsStr(const Field: TRttiField; const Memento: TObject): string; overload;
 var
   StrBackup: PString;
 begin
@@ -281,28 +362,31 @@ procedure CopyFieldsToMemento(const Originator, Memento: TObject);
 var
   Fields: TArray<TRttiField>;
   Field: TRttiField;
-  ValOrigin, ValBackup: TValue;
+  ValOriginator, ValMemento: TValue;
 begin
   Fields := GetFields(Originator.ClassType);
   for Field in Fields do
     begin
-      ValOrigin := Field.GetValue(Originator);
+      ValOriginator := Field.GetValue(Originator);
       //  Special backup for TStrings objects
       if  IsMementoStrs(Field.FieldType)  then
         begin
-          SetMementoStrsAsStr(Field, Memento, GetOriginatorStrsAsStr(ValOrigin));
+          SetMementoStrsAsStr(Field, Memento, GetOriginatorStrsAsStr(ValOriginator));
           Continue;
         end;
       //  Might do deep backup
-      if IsDeepField(Field) and not ValOrigin.IsEmpty then
+      if IsDeepField(Field) and not ValOriginator.IsEmpty then
         begin
-          ValBackup := ObtainMemento(ValOrigin.AsObject.ClassType);
-          Field.SetValue(Memento, ValBackup);
-          CopyFieldsToMemento(ValOrigin.AsObject, ValBackup.AsObject);
+          ValMemento := ObtainMemento(ValOriginator.AsObject.ClassType);
+          Field.SetValue(Memento, ValMemento);
+          CopyFieldsToMemento(ValOriginator.AsObject, ValMemento.AsObject);
         end
+      //  Copy dynamic array
+      else if Field.FieldType.TypeKind = tkDynArray then
+        Field.SetValue(Memento, CopyDynamicArray(ValOriginator))
       //  Regular direct backup
       else
-        Field.SetValue(Memento, ValOrigin);
+        Field.SetValue(Memento, ValOriginator);
     end;
 end;
 
@@ -310,69 +394,121 @@ procedure CopyFieldsToOriginator(const Memento, Originator: TObject);
 var
   Fields: TArray<TRttiField>;
   Field: TRttiField;
-  ValOrigin, ValBackup: TValue;
+  ValOriginator, ValMemento: TValue;
 begin
   Fields := GetFields(Originator.ClassType);
   for Field in Fields do
     begin
-      ValOrigin := Field.GetValue(Originator);
+      ValOriginator := Field.GetValue(Originator);
       //  Special restore for TStrings objects
       if  IsMementoStrs(Field.FieldType)  then
         begin
-          SetOriginatorStrsAsStr(ValOrigin, GetMementoStrsAsStr(Field, Memento));
+          SetOriginatorStrsAsStr(ValOriginator, GetMementoStrsAsStr(Field, Memento));
           Continue;
         end;
       //  Might do deep restore
-      ValBackup := Field.GetValue(Memento);
-      if IsDeepField(Field) and not ValOrigin.IsEmpty and not ValBackup.IsEmpty then
-        CopyFieldsToOriginator(ValBackup.AsObject, ValOrigin.AsObject)
+      ValMemento := Field.GetValue(Memento);
+      if IsDeepField(Field) and not ValOriginator.IsEmpty and not ValMemento.IsEmpty then
+        CopyFieldsToOriginator(ValMemento.AsObject, ValOriginator.AsObject)
       //  Regular direct restore
       else
-        Field.SetValue(Originator, ValBackup);
+        Field.SetValue(Originator, ValMemento);
     end;
 end;
 
-function SameValue(const Value1, Value2: TValue): Boolean; inline;
+function SameValue(const Value1, Value2: TValue): Boolean;
+var
+  Data1, Data2: TBytes;
+  DynArr1, DynArr2: Pointer;
 begin
-  Result  := Value1.Equals(Value2)
+  if  Value1.TypeInfo.Kind <> Value2.TypeInfo.Kind  then
+    Exit(False)
+  else
+    case Value1.TypeInfo.Kind of
+      tkFloat :       Result  := Value1.AsExtended = Value2.AsExtended;
+
+      tkInteger :     Result  := Value1.AsInteger = Value2.AsInteger;
+
+      tkInt64 :       Result  := Value1.AsInt64 = Value2.AsInt64;
+
+      tkEnumeration, tkSet :
+                      Result  := Value1.AsOrdinal = Value2.AsOrdinal;
+
+      tkChar :        Result  := Value1.AsString = Value2.AsString;
+
+      tkString, tkWChar, tkLString, tkWString, tkUString :
+                      Result  := Value1.AsString = Value2.AsString;
+
+      tkClass :       Result  := Value1.AsObject = Value2.AsObject;
+      tkClassRef :    Result  := Value1.AsClass = Value2.AsClass;
+      tkPointer :     Result  := Value1.AsInteger = Value2.AsInteger;
+      tkInterface :   Result  := Value1.AsInterface = Value2.AsInterface;
+      tkVariant :     Result  := Value1.AsVariant = Value2.AsVariant;
+
+      tkMethod, tkProcedure,
+      tkArray,
+      tkRecord, tkMRecord :
+        if (Value1.TypeInfo <> Value2.TypeInfo) or (Value1.DataSize <> Value2.DataSize) then
+          Result  := False
+        else
+          begin
+            SetLength(Data1, Value1.DataSize);
+            SetLength(Data2, Value2.DataSize);
+            Value1.ExtractRawDataNoCopy(Data1);
+            Value2.ExtractRawDataNoCopy(Data2);
+            Result  := CompareMem(Data1, Data2, Value1.DataSize);
+          end;
+
+      tkDynArray :
+        if  Value1.TypeInfo <> Value2.TypeInfo  then
+          Result  := False
+        else
+          begin
+            Value1.ExtractRawDataNoCopy(@DynArr1);
+            Value2.ExtractRawDataNoCopy(@DynArr2);
+            if DynamicArraySize(DynArr1) <> DynamicArraySize(DynArr2) then
+              Result  := False
+            else
+              Result  := CompareMem(DynArr1, DynArr2, Value1.DataSize);
+          end;
+
+    else  //  tkUnknown
+      raise EMemento.Create(Format(SIncomparableType, [GetEnumName(TypeInfo(TTypeKind), Ord(Value1.TypeInfo.Kind))]));
+    end;
 end;
 
 function HasFieldChanges(const ClassTyp: TClass; const Originator, Memento: TObject): Boolean;
 var
   Fields: TArray<TRttiField>;
   Field: TRttiField;
-  ValOrigin, ValBackup: TValue;
+  ValOriginator, ValMemento: TValue;
 begin
   Result := False;
   Fields := GetFields(ClassTyp);
   for Field in Fields do
     begin
       //  Compare TStrings
-      ValOrigin := Field.GetValue(Originator);
+      ValOriginator := Field.GetValue(Originator);
       if  IsMementoStrs(Field.FieldType)  then
         begin
-          ValOrigin := TValue.From(GetOriginatorStrsAsStr(ValOrigin));
-          ValBackup := TValue.From(GetMementoStrsAsStr(Field, Memento));
-          if  SameValue(ValOrigin, ValBackup) then
+          ValOriginator := TValue.From(GetOriginatorStrsAsStr(ValOriginator));
+          ValMemento := TValue.From(GetMementoStrsAsStr(Field, Memento));
+          if  SameValue(ValOriginator, ValMemento) then
             Continue
           else
             Exit(True);
         end;
       //  Deep comparison
-      ValBackup := Field.GetValue(Memento);
-      if  IsDeepField(Field) and not ValOrigin.IsEmpty and not ValBackup.IsEmpty  then
-        Exit(HasFieldChanges(ValOrigin.AsObject.ClassType, ValOrigin.AsObject, ValBackup.AsObject));
+      ValMemento := Field.GetValue(Memento);
+      if  IsDeepField(Field) and not ValOriginator.IsEmpty and not ValMemento.IsEmpty  then
+        Exit(HasFieldChanges(ValOriginator.AsObject.ClassType, ValOriginator.AsObject, ValMemento.AsObject));
       //  Plain comparison
-      if not SameValue(ValOrigin, ValBackup) then
+      if not SameValue(ValOriginator, ValMemento) then
         Exit(True)
     end;
 end;
 
 procedure ListFieldChanges(const FieldPrefix: string; const Originator, Memento: TObject; const Changes: TChanges);
-const
-  ValueTypeKinds = [tkInteger, tkInt64, tkEnumeration, tkSet, tkFloat, tkClass,
-      tkString, tkLString, tkWString, tkUString, tkWChar, tkChar, tkInterface,
-      tkClassRef, tkPointer, tkVariant];
 var
   Fields: TArray<TRttiField>;
   Field: TRttiField;
@@ -400,9 +536,6 @@ begin
           not Change.Original.IsEmpty and not Change.Backup.IsEmpty
       then
         ListFieldChanges(FieldPrefix + Field.Name + '.', Change.Original.AsObject, Change.Backup.AsObject, Changes)
-      //  Ignore un-comparable fields
-      else if not (Change.Original.Kind in ValueTypeKinds) or not (Change.Backup.Kind in ValueTypeKinds) then
-
       //  Plain comparison
       else if not SameValue(Change.Original, Change.Backup) then
         Changes.Add(Change);
@@ -425,35 +558,6 @@ begin
 end;
 
 function HasPropertyChanges(const ClassTyp: TClass; const Originator, Memento: TObject): Boolean;
-//var
-//  Fields: TArray<TRttiProperty>;
-//  Field: TRttiProperty;
-//  ValOrigin, ValBackup: TValue;
-//begin
-//  Result := False;
-//  Fields := GetProperties(ClassTyp);
-//  for Field in Fields do
-//    begin
-//      //  Compare TStrings
-//      ValOrigin := Field.GetValue(Originator);
-//      if  IsMementoStrs(Field.PropertyType)  then
-//        begin
-//          ValOrigin := TValue.From(GetOriginatorStrsAsStr(ValOrigin));
-//          ValBackup := TValue.From(GetMementoStrsAsStr(Field, Memento));
-//          if  SameValue(ValOrigin, ValBackup) then
-//            Continue
-//          else
-//            Exit(True);
-//        end;
-//      //  Deep comparison
-//      ValBackup := Field.GetValue(Memento);
-//      if  IsDeepField(Field) and not ValOrigin.IsEmpty and not ValBackup.IsEmpty  then
-//        Exit(HasFieldChanges(ValOrigin.AsObject.ClassType, ValOrigin.AsObject, ValBackup.AsObject));
-//      //  Plain comparison
-//      if not SameValue(ValOrigin, ValBackup) then
-//        Exit(True)
-//    end;
-//end;
 var
   Fields: TArray<TRttiProperty>;
   Field: TRttiProperty;
@@ -470,7 +574,7 @@ begin
     end;
 end;
 
-procedure ListPropertyChanges(const ClassTyp: TClass; const Obj, Memento: TObject; const Changes: TChanges);
+procedure ListPropertyChanges(const ClassTyp: TClass; const Originator, Memento: TObject; const Changes: TChanges);
 var
   Fields: TArray<TRttiProperty>;
   Field: TRttiProperty;
@@ -481,7 +585,7 @@ begin
   for Field in Fields do
     begin
       Change.Name     := Field.Name;
-      Change.Original := Field.GetValue(Obj);
+      Change.Original := Field.GetValue(Originator);
       Change.Backup   := Field.GetValue(Memento);
       if not SameValue(Change.Original, Change.Backup) then
         Changes.Add(Change);
@@ -656,6 +760,13 @@ end;
 procedure TMementoVersions.Restore;
 begin
   ValidateBackup(VersionNow);
+  CopyValues(MementoNow, fOriginator);
+end;
+
+procedure TMementoVersions.SetVersionNow(const Value: integer);
+begin
+  ValidateBackup(Value);
+  fMementos.Now := Value;
   CopyValues(MementoNow, fOriginator);
 end;
 

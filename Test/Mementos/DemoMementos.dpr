@@ -5,8 +5,7 @@ uses
   FMX.Forms,
   uRefCounter in 'uRefCounter.pas',
   FChangeTest in 'FChangeTest.pas' {frmChangeTest},
-  BatSoft.Mementos in '..\..\BatLibrary\BatSoft.Mementos.pas',
-  Delphi.Mocks.Helpers in '..\..\BatLibrary\Delphi.Mocks.Helpers.pas';
+  BatSoft.Mementos in '..\..\BatLibrary\BatSoft.Mementos.pas';
 
 {$R *.res}
 

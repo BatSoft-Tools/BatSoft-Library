@@ -7,7 +7,7 @@ uses
 
 type
   [TestFixture]
-  TMyTestObject = class
+  TTestBinaryList = class
   private const
     SAll  = '1,2,3,4,5,6,7,8,9';
     SOdd  = '1,3,5,7,9';
@@ -45,14 +45,14 @@ implementation
 uses
   SysUtils, Classes;
 
-{ TMyTestObject }
+{ TTestBinaryList }
 
-procedure TMyTestObject.Add5;
+procedure TTestBinaryList.Add5;
 begin
   fBinaryList.Add('5');
 end;
 
-function TMyTestObject.GetState: string;
+function TTestBinaryList.GetState: string;
 var
   Strs: TStringList;
   i: Integer;
@@ -67,7 +67,7 @@ begin
   end;
 end;
 
-procedure TMyTestObject.Setup;
+procedure TTestBinaryList.Setup;
 begin
   fBinaryList := TBinaryList<string>.Create;
   //  Odd
@@ -85,14 +85,14 @@ begin
   fUnsortedEven.Add('6');
 end;
 
-procedure TMyTestObject.TearDown;
+procedure TTestBinaryList.TearDown;
 begin
   fBinaryList.Free;
   fUnsortedOdd.Free;
   fUnsortedEven.Free;
 end;
 
-procedure TMyTestObject.TestAdd;
+procedure TTestBinaryList.TestAdd;
 begin
   fBinaryList.Add('5');
   fBinaryList.Add('1');
@@ -107,7 +107,7 @@ begin
   Assert.AreEqual(GetState, SAll);
 end;
 
-procedure TMyTestObject.TestAddRangeArray;
+procedure TTestBinaryList.TestAddRangeArray;
 begin
   fBinaryList.AddRange(fUnsortedOdd.ToArray);
   fBinaryList.AddRange(fUnsortedEven.ToArray);
@@ -115,7 +115,7 @@ begin
   Assert.AreEqual(GetState, SAll);
 end;
 
-procedure TMyTestObject.TestAddRangeEnumerator;
+procedure TTestBinaryList.TestAddRangeEnumerator;
 begin
   fBinaryList.AddRange(fUnsortedOdd);
   fBinaryList.AddRange(fUnsortedEven);
@@ -123,7 +123,7 @@ begin
   Assert.AreEqual(GetState, SAll);
 end;
 
-procedure TMyTestObject.TestClearAndCount;
+procedure TTestBinaryList.TestClearAndCount;
 begin
   fBinaryList.AddRange(fUnsortedOdd);
 
@@ -134,7 +134,7 @@ begin
   Assert.AreEqual(fBinaryList.Count, 0);
 end;
 
-procedure TMyTestObject.TestDelete;
+procedure TTestBinaryList.TestDelete;
 begin
   fBinaryList.AddRange(fUnsortedOdd);
 
@@ -154,7 +154,7 @@ begin
   Assert.AreEqual(GetState, '');
 end;
 
-procedure TMyTestObject.TestDeleteRange;
+procedure TTestBinaryList.TestDeleteRange;
 begin
   fBinaryList.AddRange(fUnsortedOdd);
   fBinaryList.AddRange(fUnsortedEven);
@@ -163,7 +163,7 @@ begin
   Assert.AreEqual(GetState, '1,2,3,8,9');
 end;
 
-procedure TMyTestObject.TestDuplicates;
+procedure TTestBinaryList.TestDuplicates;
 begin
   fBinaryList.AddRange(fUnsortedOdd);
 
@@ -185,7 +185,7 @@ begin
   Assert.AreEqual(GetState, '1,3,5,7,7,9');
 end;
 
-procedure TMyTestObject.TestIndexOf;
+procedure TTestBinaryList.TestIndexOf;
 begin
   fBinaryList.AddRange(fUnsortedEven);
 
@@ -198,5 +198,8 @@ begin
   Assert.AreEqual(fBinaryList.IndexOf('3'), -1);
   Assert.AreEqual(fBinaryList.IndexOf('9'), -1);
 end;
+
+initialization
+  TDUnitX.RegisterTestFixture(TTestBinaryList);
 
 end.

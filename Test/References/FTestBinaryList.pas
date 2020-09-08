@@ -72,13 +72,13 @@ end;
 
 procedure TfrmTestBinaryList.butPopulateClick(Sender: TObject);
 begin
-  fList.Prepopulate('100');
-  fList.Prepopulate('200');
-  fList.Prepopulate('300');
-  fList.Prepopulate('400');
-  fList.Prepopulate('500');
-  fList.Prepopulate('600');
-  fList.Prepopulate('700');
+  fList.Add('100');
+  fList.Add('200');
+  fList.Add('300');
+  fList.Add('400');
+  fList.Add('500');
+  fList.Add('600');
+  fList.Add('700');
   PopulateForm;
 end;
 
