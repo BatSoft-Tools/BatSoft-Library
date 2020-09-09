@@ -39,7 +39,8 @@ contains
   BatSoft.Mementos in 'BatSoft.Mementos.pas',
   BatSoft.Observer.Base in 'BatSoft.Observer.Base.pas',
   BatSoft.Observer.Manual in 'BatSoft.Observer.Manual.pas',
-  BatSoft.Observer.Managed in 'BatSoft.Observer.Managed.pas';
+  BatSoft.Observer.Managed in 'BatSoft.Observer.Managed.pas',
+  BatSoft.Settings.Base.Ini in 'BatSoft.Settings.Base.Ini.pas';
 
 end.
 

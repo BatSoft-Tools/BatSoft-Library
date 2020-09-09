@@ -18,12 +18,16 @@ type
     Button1: TButton;
     butInit0: TButton;
     Button2: TButton;
+    butIniCreate: TButton;
+    butIniLoad: TButton;
+    butIniSave: TButton;
     procedure butSaveClick(Sender: TObject);
     procedure butLoadClick(Sender: TObject);
     procedure butInit0Click(Sender: TObject);
     procedure butInit1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure butIniSaveClick(Sender: TObject);
   private
     fDemo: TDemoSettings;
     function  CreateUser(const i: integer): TUserSettings;
@@ -38,9 +42,24 @@ implementation
 
 uses
   Generics.Collections, RTTI,
-  BatSoft.Settings, BatSoft.Settings.Ini, BatSoft.Settings.JSON;
+  BatSoft.Settings, BatSoft.Settings.Ini, BatSoft.Settings.JSON,
+  BatSoft.Settings.Base.Ini, BatSoft.Settings.Base;
 
 { TfrmDemoSettings }
+
+procedure TfrmDemoSettings.butIniSaveClick(Sender: TObject);
+var
+  Writer: TSettingsWriter;
+begin
+  if not SaveDialog.Execute then
+    Exit;
+  Writer  := TSettingsWriter.Create(TSettingsWriterIni.Create(SaveDialog.FileName));
+  try
+    Writer.Save(fDemo);
+  finally
+    Writer.Free;
+  end;
+end;
 
 procedure TfrmDemoSettings.butInit0Click(Sender: TObject);
 begin

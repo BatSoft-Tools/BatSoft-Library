@@ -3,7 +3,7 @@ unit uDemoSettings;
 interface
 
 uses
-  Classes, Generics.Collections, BatSoft.Settings;
+  Classes, Generics.Collections, BatSoft.Settings, BatSoft.Settings.Base;
 
 type
   //  Your settings classes must be enclosed with {$M+} so that RTTI exists for
@@ -48,6 +48,8 @@ type
     //  The attribure to use is:  [SettingsOrder(ReadOrder, WriteOrder)]
     [SettingsOrder(1, 1)] //  Ensures this is read and written before UserNameCurr
     property  UserNameAll   : TStringList   read fUserNameAll;
+    [SettingsDeepField]
+    property  UserNameDeep   : TStringList   read fUserNameAll;
     [SettingsOrder(2, 2)]
     property  UserNameCurr  : string  read fUserNameCurr  write fUserNameCurr;
     //  Here we persist containers of settings

@@ -9,6 +9,8 @@ uses
 
 {$IFDEF DEVELOPING}
 type
+  SettingsDeepField = class(TCustomAttribute);
+
   ISettingsStoreReader = interface
     ['{42508E64-EC8C-44C9-A2F6-9C666BE84230}']
     function State: string;
@@ -77,7 +79,16 @@ type
   end;
 
   TSettingsWriter = class
-
+  private
+    fStore: ISettingsStoreWriter;
+    procedure SaveThing(const Name: string; const Obj: TObject; const PropClass: TClass);
+    procedure SaveList(const Name: string; const Obj: TObject);
+    procedure SaveObj(const Name: string; const Obj: TObject);
+    procedure SaveStrings(const Name: string; const Obj: TObject);
+    procedure SaveStringsDeep(const Name: string; const Obj: TObject);
+  public
+    constructor Create(const ASettingsWriter: ISettingsStoreWriter);
+    procedure Save(const Obj: TObject);
   end;
 
 resourcestring
@@ -95,14 +106,14 @@ uses
 
 var
   RTTI: TRttiContext;
-  TypeBool: TRttiType;
   STBytes: string;
+  EmptyObj: TObject;
 
 const
   SClass  = 'Class';
   SCreate = 'Create';
   SupportedSimpleTypes = [tkInteger, tkInt64, tkFloat, tkEnumeration, tkSet,
-              tkChar, tkWChar, tkString, tkLString, tkWString, tkUString, tkVariant];
+        tkChar, tkWChar, tkString, tkLString, tkWString, tkUString, tkVariant];
 
 { TSettingsReader }
 
@@ -335,12 +346,136 @@ begin
 //  end;
 end;
 
+{ TSettingsWriter }
+
+constructor TSettingsWriter.Create(const ASettingsWriter: ISettingsStoreWriter);
+begin
+  inherited Create();
+  fStore  := ASettingsWriter;
+end;
+
+procedure TSettingsWriter.Save(const Obj: TObject);
+begin
+  fStore.BeginSave;
+  try
+    SaveThing('', Obj, nil);
+  finally
+    fStore.EndSave;
+  end;
+end;
+
+procedure TSettingsWriter.SaveList(const Name: string; const Obj: TObject);
+begin
+
+end;
+
+procedure TSettingsWriter.SaveObj(const Name: string; const Obj: TObject);
+var
+  RTTIType: TRttiType;
+  RTTIProps: TArray<TRttiProperty>;
+  RTTIProp: TRttiProperty;
+  Kind: TTypeKind;
+  SettName: string;
+  Child: TObject;
+begin
+  if  not Assigned(Obj) then
+    Exit;
+  RTTIType  := RTTI.GetType(Obj.ClassType);
+  RTTIProps := RTTIType.GetProperties;
+  RTTIProps := SortAndFilter(RTTIProps, True);
+  for RTTIProp in RTTIProps do
+    begin
+      //  Get the correct settings name
+      SettName  := SettingNameAttribute.SettingNameOf(RTTIProp);
+      //  Examine type kind
+      Kind  := RTTIProp.PropertyType.TypeKind;
+      //  - Save simple type
+      if Kind in SupportedSimpleTypes then
+        fStore.SetValue(SettName, RTTIProp.GetValue(Obj))
+      //  - Save sub-object
+      else if Kind = tkClass then
+        begin
+          Child := RTTIProp.GetValue(Obj).AsObject;
+
+          if  not Assigned(Child) then
+            Continue;
+
+          if (Child is TStrings) and not TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField) then
+            begin
+              SaveStrings(SettName, Child);
+              Continue;
+            end;
+
+          fStore.MoveToChild(SettName);
+          try
+            //  Save type
+            if Child.ClassType <> RTTIProp.PropertyType.AsInstance.MetaclassType then
+              fStore.SetValue(SClass, Child.QualifiedClassName);
+            //  Save contents
+            if  RegisteredSettingsLists.IsSettingsList(Child.ClassType) then
+              SaveList(Name, Child)
+            else if Child is TStrings then
+              SaveStringsDeep(SettName, Child)
+            else
+              SaveObj(Name, Child)
+          finally
+            fStore.MoveToParent;
+          end;
+        end
+      //  - Unhandled
+      else
+        raise ESettings.Create(SEUnsupportedType);
+    end;
+end;
+
+procedure TSettingsWriter.SaveStrings(const Name: string; const Obj: TObject);
+var
+  Strs: TStrings absolute Obj;
+begin
+  fStore.SetValue(Name, Strs.DelimitedText);
+end;
+
+procedure TSettingsWriter.SaveStringsDeep(const Name: string; const Obj: TObject);
+var
+  Strs: TStrings absolute Obj;
+  i: integer;
+begin
+  for i := 0 to Strs.Count - 1 do
+    if  Assigned(Strs.Objects[i]) then
+      SaveThing(Strs[i], Strs.Objects[i], TObject)
+    else
+      SaveThing(Strs[i], EmptyObj, TObject)
+end;
+
+procedure TSettingsWriter.SaveThing(const Name: string; const Obj: TObject; const PropClass: TClass);
+begin
+  if not Assigned(Obj) then
+    Exit;
+  fStore.MoveToChild(Name);
+  try
+    //  Save type
+    if Obj.ClassType <> PropClass then
+      fStore.SetValue(SClass, Obj.QualifiedClassName);
+    //  Save contents
+    if  RegisteredSettingsLists.IsSettingsList(Obj.ClassType) then
+      SaveList(Name, Obj)
+    else if Obj is TStrings then
+      SaveStrings(Name, Obj)
+    else
+      SaveObj(Name, Obj)
+  finally
+    fStore.MoveToParent;
+  end;
+end;
+
 initialization
-  RTTI    := TRttiContext.Create;
-  STBytes := 'TArray<System.Byte>';
+  RTTI      := TRttiContext.Create;
+  STBytes   := 'TArray<System.Byte>';
+  EmptyObj  := TObject.Create;
 
 finalization
   RTTI.Free;
+  EmptyObj.Free;
 
 {$ENDIF}
 end.

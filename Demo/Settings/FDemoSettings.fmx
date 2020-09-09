@@ -3,7 +3,7 @@ object frmDemoSettings: TfrmDemoSettings
   Top = 0
   Caption = 'Form1'
   ClientHeight = 320
-  ClientWidth = 370
+  ClientWidth = 653
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -64,5 +64,21 @@ object frmDemoSettings: TfrmDemoSettings
     TabOrder = 12
     Text = 'Button2'
     OnClick = Button2Click
+  end
+  object butIniCreate: TButton
+    Position.X = 312.000000000000000000
+    Position.Y = 16.000000000000000000
+    Text = 'butIniCreate'
+  end
+  object butIniLoad: TButton
+    Position.X = 312.000000000000000000
+    Position.Y = 48.000000000000000000
+    Text = 'butIniLoad'
+  end
+  object butIniSave: TButton
+    Position.X = 312.000000000000000000
+    Position.Y = 80.000000000000000000
+    Text = 'butIniSave'
+    OnClick = butIniSaveClick
   end
 end
