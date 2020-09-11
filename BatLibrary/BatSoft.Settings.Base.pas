@@ -2,15 +2,78 @@ unit BatSoft.Settings.Base;
 
 interface
 
-{$DEFINE DEVELOPING}
-
 uses
-  System.RTTI, Classes, BatSoft.Settings;
+  System.SysUtils, System.TypInfo, System.RTTI, System.Classes, Generics.Collections;
 
-{$IFDEF DEVELOPING}
 type
   SettingsDeepField = class(TCustomAttribute);
 
+{$region 'Settings attributes'}
+
+{$region 'Ignore'}
+
+type
+  SettingIgnoreAttribute = class(TCustomAttribute);
+
+function HasSettingIgnore(const Prop: TRttiProperty): Boolean;
+
+{$endregion}
+
+{$region 'Preferred constructor'}
+
+//type
+//  PreferredConstructorAttribute = class(TCustomAttribute);
+
+{$endregion}
+
+{$region 'Don''t clear'}
+
+//type
+//  SettingClearAttribute = class(TCustomAttribute)
+//  private
+//    fClear: Boolean;
+//  public
+//    constructor Create(const AClear: Boolean);
+//    property  Clear: Boolean  read fClear;
+//    class function ShouldClear(const Prop: TRttiProperty; const Default: Boolean): Boolean;
+//  end;
+
+{$endregion}
+
+{$region 'SettingsOrder'}
+
+type
+  SettingsOrderAttribute = class(TCustomAttribute)
+  private
+    fReadOrder: integer;
+    fWriteOrder: integer;
+  public
+    constructor Create(const AReadOrder, AWriteOrder: integer);
+    property  ReadOrder   : integer read fReadOrder;
+    property  WriteOrder  : integer read fWriteOrder;
+  end;
+
+function GetSettingsOrder(const Prop: TRttiProperty; const Write: Boolean): integer;
+function SortAndFilter(const Props: TArray<TRttiProperty>; const Write: Boolean): TArray<TRttiProperty>;
+
+{$endregion}
+
+{$region 'SettingName'}
+
+type
+  SettingNameAttribute = class(TCustomAttribute)
+  private
+    fSettingName: string;
+  public
+    constructor Create(const ASettingName: string);
+    property  SettingName: string read fSettingName;
+    class function SettingNameOf(const Prop: TRttiProperty): string;
+  end;
+
+{$endregion}
+
+{$endregion}
+type
   ISettingsStoreReader = interface
     ['{42508E64-EC8C-44C9-A2F6-9C666BE84230}']
     function State: string;
@@ -18,8 +81,8 @@ type
     procedure BeginLoad;
     procedure EndLoad;
     //  Navigation
-    procedure MoveToChild(const Name: string);
-    procedure MoveToParent;
+    procedure NodeEnter(const Name: string);
+    procedure NodeLeave;
     //  Arrays
     function  ListBegin: Boolean;
     function  ListNext: Boolean;
@@ -39,89 +102,268 @@ type
   ISettingsStoreWriter = interface
     ['{DE922225-D7A5-40DF-BAB4-CE84F522328D}']
     //  Storage
-    procedure BeginSave;
-    procedure EndSave;
+    procedure SaveBegin;
+    procedure SaveEnd;
     //  Navigation
-    procedure MoveToChild(const Name: string);
-    procedure MoveToParent;
+    procedure NodeClear(const Name: string);
+    procedure NodeEnter(const Name: string; const IsNil: Boolean);
+    procedure NodeLeave;
     //  Arrays
-    //  - Iterators
-    function  IsList: Boolean;
-    function  ListBegin: Boolean;
-    function  ListNext: Boolean;
+    procedure ListClear(const Name: string);
+    procedure ListBegin(const Name: string; const IsNil: Boolean);
     procedure ListEnd;
-    procedure SaveStrings(const Strs: TStrings);
-    //  - Modifiers
-    procedure ListClear;
-    procedure ListAdd;
-    //  Property values
-    procedure SetValue(const Name: string; const Value: TValue);
+    //  Array elements
+    procedure ElemEnter(const Index: integer; const IsNil: Boolean);
+    procedure ElemLeave;
+    //  Simple values
+    procedure SaveValue(const Name: string; const Value: TValue);
   end;
 
-  TSettingsReader = class
-  private
-    function  CreateObject(const DefaultClass: TRttiType): TObject;
+  TSettingsStore = class(TInterfacedObject)
   protected
-    fReader: ISettingsStoreReader;
-    fWriter: ISettingsStoreWriter;
-    fClearValues: Boolean;
-    //  Loading
-    procedure LoadThing(const Obj: TObject);
-    procedure LoadList(const Obj: TObject);
-    procedure LoadObj(const Obj: TObject);
-    procedure LoadStrings(const Obj: TObject);
+    fFileName: string;
+    fEnumsAsStrings: Boolean;
+  public
+    constructor Create(const AFileName: string; const AEnumsAsStrings: Boolean = True); virtual;
+    class procedure Load(const Obj: TObject; const AFileName: string; const AEnumsAsStrings: Boolean = True);
+    class procedure Save(const Obj: TObject; const AFileName: string; const AEnumsAsStrings: Boolean = True);
+  end;
+  TSettingsStoreClass = class of TSettingsStore;
+
+  TSettingsReader = class
   public
     constructor Create(AReader: ISettingsStoreReader; AWriter: ISettingsStoreWriter); overload;
     constructor Create(AReaderWriter: IInterface); overload;
-    //  ISettingsStore interface
-    procedure LoadFile(const Settings: TObject; const ClearValues: Boolean);
-    procedure SaveFile(const Settings: TObject);
+    procedure Load(const Obj: TObject);
   end;
 
   TSettingsWriter = class
   private
     fStore: ISettingsStoreWriter;
-    procedure SaveThing(const Name: string; const Obj: TObject; const PropClass: TClass);
-    procedure SaveList(const Name: string; const Obj: TObject);
-    procedure SaveObj(const Name: string; const Obj: TObject);
+    procedure SaveProperties(const Obj: TObject; const PropClass: TClass);
+    procedure SaveList(const Obj: TObject; const ElemClass: TClass);
     procedure SaveStrings(const Name: string; const Obj: TObject);
-    procedure SaveStringsDeep(const Name: string; const Obj: TObject);
+    procedure SaveStringsDeep(const Obj: TObject);
   public
     constructor Create(const ASettingsWriter: ISettingsStoreWriter);
-    procedure Save(const Obj: TObject);
+    procedure Save(const Obj: TObject; ObjClass: TClass = nil);
   end;
 
-resourcestring
-  SESettingsNotNil  = 'Settings must not be nil.';
-  SENotSettingsList = 'List is not a settings list.';
-  SENotByteArray    = 'Property %s cannot be loaded because it is a dynamic array, but not TArray<Byte>.';
-  SEUnsupportedType = 'Property %s cannot be loaded because it is of type %s.';
-{$ENDIF}
+  ObjectLists = class
+  private
+    class var _Types: TDictionary<TClass, TClass>;
+  public
+    class constructor Create;
+    class destructor  Destroy;
+    class procedure Register(const ListClass, ElemClass: TClass);
+    class function  IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean; overload;
+  end;
 
-implementation
+  ESettings = class(Exception)
+  public
+    constructor Create(const AMessage: string); overload;
+    constructor Create(const AMessage: string; const Args: array of const); overload;
+  end;
 
-{$IFDEF DEVELOPING}
-uses
-  SysUtils, TypInfo, Generics.Collections, BatSoft.Classes;
-
-var
-  RTTI: TRttiContext;
-  STBytes: string;
-  EmptyObj: TObject;
+function  EnumToStr(const Value: TValue): string;
+function  EnumSetToStr(const Value: TValue): string;
 
 const
   SClass  = 'Class';
-  SCreate = 'Create';
+
+resourcestring
+  SESettingsNotNil    = 'Settings must not be nil.';
+  SENotSettingsList   = 'List is not a settings list.';
+  SENotByteArray      = 'Property %s cannot be loaded because it is a dynamic array, but not TArray<Byte>.';
+  SEUnsupportedType   = 'Property %s cannot be loaded because it is of type %s.';
+  SNotImplemented     = 'Not implemented.';
+  SNotRegisteredClass = 'Class %s is not registered.';
+
+implementation
+
+uses
+  System.Generics.Defaults, BatSoft.Classes;
+
+var
+  RTTI: TRttiContext;
+
+const
   SupportedSimpleTypes = [tkInteger, tkInt64, tkFloat, tkEnumeration, tkSet,
         tkChar, tkWChar, tkString, tkLString, tkWString, tkUString, tkVariant];
+
+type
+  TSettingsOrderComparer = class(TInterfacedObject, IComparer<TRttiProperty>)
+  private
+    fWriteOrder: Boolean;
+  public
+    constructor Create(const AWriteOrder: Boolean);
+    //  IComparer<T> interface
+    function Compare(const Left, Right: TRttiProperty): Integer;
+  end;
+
+var
+  ReadComparer: IComparer<TRttiProperty>;
+  WriteComparer: IComparer<TRttiProperty>;
+
+function FindAttribute(const Prop: TRttiProperty; const AttributeClass: TClass; out Attribute: TCustomAttribute): Boolean;
+var
+  Attrs: TArray<TCustomAttribute>;
+  Attr: TCustomAttribute;
+begin
+  Attrs   := Prop.GetAttributes;
+  for Attr in Attrs do
+    if  Attr is AttributeClass  then
+      begin
+        Attribute := Attr;
+        Exit(True);
+      end;
+  Result  := False;
+end;
+
+{ TSettingsOrderComparer }
+
+function TSettingsOrderComparer.Compare(const Left, Right: TRttiProperty): Integer;
+begin
+  Result  := GetSettingsOrder(Left, fWriteOrder) - GetSettingsOrder(Right, fWriteOrder)
+end;
+
+constructor TSettingsOrderComparer.Create(const AWriteOrder: Boolean);
+begin
+  inherited Create;
+  fWriteOrder := AWriteOrder;
+end;
+
+{ IgnoreSettingAttribute }
+
+function HasSettingIgnore(const Prop: TRttiProperty): Boolean;
+var
+  Attr: TCustomAttribute;
+begin
+  Result  := FindAttribute(Prop, SettingIgnoreAttribute, Attr)
+end;
+
+{ SettingsOrderAttribute }
+
+constructor SettingsOrderAttribute.Create(const AReadOrder, AWriteOrder: integer);
+begin
+  inherited Create;
+  fReadOrder  := AReadOrder;
+  fWriteOrder := AWriteOrder;
+end;
+
+function GetSettingsOrder(const Prop: TRttiProperty; const Write: Boolean): integer;
+var
+  Attr: TCustomAttribute;
+begin
+  if  not FindAttribute(Prop, SettingsOrderAttribute, Attr) then
+    Result  := 0
+  else if Write then
+    Result  := SettingsOrderAttribute(Attr).WriteOrder
+  else
+    Result  := SettingsOrderAttribute(Attr).ReadOrder;
+end;
+
+function SortAndFilter(const Props: TArray<TRttiProperty>; const Write: Boolean): TArray<TRttiProperty>;
+var
+  List: TList<TRttiProperty>;
+  Prop: TRttiProperty;
+begin
+  List  := TList<TRttiProperty>.Create;
+  try
+    //  Sort properties
+    for Prop in Props do
+      if  Prop.Visibility = TMemberVisibility.mvPublished then
+        if  not HasSettingIgnore(Prop)  then
+          List.Add(Prop);
+    if  Write then
+      List.Sort(WriteComparer)
+    else
+      List.Sort(ReadComparer);
+    //  Done
+    Result  := List.ToArray;
+  finally
+    List.Free;
+  end;
+end;
+
+{ SettingNameAttribute }
+
+constructor SettingNameAttribute.Create(const ASettingName: string);
+begin
+  inherited Create;
+  fSettingName  := ASettingName;
+end;
+
+class function SettingNameAttribute.SettingNameOf(const Prop: TRttiProperty): string;
+var
+  Attr: TCustomAttribute;
+begin
+  if  FindAttribute(Prop, SettingNameAttribute, Attr) then
+    Result  := SettingNameAttribute(Attr).SettingName
+  else
+    Result  := Prop.Name;
+end;
+
+//  Enumeration strings
+
+function EnumSetToStr(const Value: TValue): string;
+var
+  Int: integer;
+begin
+  Value.ExtractRawDataNoCopy(@Int);
+  Result  := SetToString(Value.TypeInfo, Int)
+end;
+
+function EnumToStr(const Value: TValue): string;
+var
+  Int: integer;
+begin
+  Value.ExtractRawDataNoCopy(@Int);
+  Result  := GetEnumName(Value.TypeInfo, Int)
+end;
+
+{ TSettingsStore }
+
+constructor TSettingsStore.Create(const AFileName: string; const AEnumsAsStrings: Boolean);
+begin
+  inherited Create();
+  fFileName       := AFileName;
+  fEnumsAsStrings := AEnumsAsStrings;
+end;
+
+class procedure TSettingsStore.Load(const Obj: TObject; const AFileName: string; const AEnumsAsStrings: Boolean);
+var
+  Reader: TSettingsReader;
+begin
+  if  Self = TSettingsStore then
+    raise ESettings.Create(SNotImplemented);
+  Reader  := TSettingsReader.Create(Self.Create(AFileName, AEnumsAsStrings) as ISettingsStoreReader);
+  try
+    Reader.Load(Obj);
+  finally
+    Reader.Free;
+  end;
+end;
+
+class procedure TSettingsStore.Save(const Obj: TObject; const AFileName: string; const AEnumsAsStrings: Boolean);
+var
+  Writer: TSettingsWriter;
+begin
+  if  Self = TSettingsStore then
+    raise ESettings.Create(SNotImplemented);
+  Writer  := TSettingsWriter.Create(Self.Create(AFileName, AEnumsAsStrings) as ISettingsStoreWriter);
+  try
+    Writer.Save(Obj);
+  finally
+    Writer.Free;
+  end;
+end;
 
 { TSettingsReader }
 
 constructor TSettingsReader.Create(AReader: ISettingsStoreReader; AWriter: ISettingsStoreWriter);
 begin
   inherited Create();
-  fReader := AReader;
-  fWriter := AWriter;
 end;
 
 constructor TSettingsReader.Create(AReaderWriter: IInterface);
@@ -129,221 +371,9 @@ begin
   Create(AReaderWriter as ISettingsStoreReader, AReaderWriter as ISettingsStoreWriter)
 end;
 
-function TSettingsReader.CreateObject(const DefaultClass: TRttiType): TObject;
-
-  function CreateOfClass(ChildClass: TRttiType): TObject;
-  var
-    Methods: TArray<TRttiMethod>;
-    Method: TRttiMethod;
-    i: integer;
-  begin
-    Methods := ChildClass.GetMethods;
-    for i := 0 to Length(Methods) - 1 do
-      begin
-        Method  := Methods[i];
-        if  Method.IsConstructor and (Length(Method.GetParameters) = 0) and SameText(Method.Name, SCreate) or
-            TCustomAttribute.HasAttribute<PreferredConstructorAttribute>(Method.GetAttributes)
-        then
-          Exit(Method.Invoke(ChildClass.AsInstance.MetaclassType, []).AsObject);
-      end;
-    Result  := ChildClass.AsInstance.MetaclassType.Create;
-  end;
-
-var
-  ClassValue: TValue;
-  ChildClassName: string;
-  ChildClass: TRttiType;
+procedure TSettingsReader.Load(const Obj: TObject);
 begin
-  //  Determine class
-  if  fReader.GetValue(SClass, tkString, ClassValue) and not ClassValue.IsEmpty then
-    begin
-      ChildClassName  := ClassValue.AsString;
-      ChildClass      := RTTI.FindType(ChildClassName);
-    end
-  else
-    ChildClass  := DefaultClass;
-  //  Create object
-  if  not Assigned(ChildClass)  then
-    Result  := nil
-  else
-    Result  := CreateOfClass(ChildClass)
-end;
 
-procedure TSettingsReader.LoadFile(const Settings: TObject; const ClearValues: Boolean);
-begin
-  fClearValues  := ClearValues;
-  if  not Assigned(Settings)  then
-    raise ESettings.Create(SESettingsNotNil);
-  fReader.BeginLoad;
-  try
-    LoadThing(Settings);
-  finally
-    fReader.EndLoad;
-  end;
-end;
-
-procedure TSettingsReader.LoadList(const Obj: TObject);
-var
-  ListObj: TObjectList<TObject>;
-  ElemType: TClass;
-  RTTIType: TRttiType;
-  ElemObj: TObject;
-begin
-  if  not RegisteredSettingsLists.Find(Obj, ListObj, ElemType) then
-    raise ESettings.Create(SENotSettingsList);
-  RTTIType  := RTTI.GetType(ElemType);
-  //  Might clear the list
-  if  fClearValues  then
-    ListObj.Clear;
-  //  Load the list
-  if  fReader.ListBegin then
-    try
-      repeat
-        ElemObj := CreateObject(RTTIType);
-        ListObj.Add(ElemObj);
-        LoadThing(ElemObj);
-      until not fReader.ListNext;
-    finally
-      fReader.ListEnd;
-    end;
-end;
-
-procedure TSettingsReader.LoadObj(const Obj: TObject);
-var
-  RTTIType, RTTIClassType: TRttiType;
-  RTTIProps: TArray<TRttiProperty>;
-  RTTIProp: TRttiProperty;
-  SettName: string;
-  Value: TValue;
-  ChildObj: TObject;
-begin
-//  if  not Assigned(Obj) then
-//    Exit;
-  RTTIType  := RTTI.GetType(Obj.ClassType);
-  RTTIProps := RTTIType.GetProperties;
-  RTTIProps := SortAndFilter(RTTIProps, False);
-  for RTTIProp in RTTIProps do
-    begin
-      //  Get the correct settings name
-      SettName  := SettingNameAttribute.SettingNameOf(RTTIProp);
-      //  Obtain value
-      if  not fReader.GetValue(SettName, RTTIProp.PropertyType.TypeKind, Value) then
-        if  fClearValues  then
-          Value := TValue.Empty
-        else
-          Continue;
-      //  Might clear property
-      if  Value.IsEmpty and SettingClearAttribute.ShouldClear(RTTIProp, fClearValues) then
-        begin
-          if  RTTIProp.PropertyType.TypeKind = tkClass  then
-            begin
-              RTTIProp.GetValue(Obj).AsObject.Free;
-              RTTIProp.SetValue(Obj, nil);
-            end
-          else
-            RTTIProp.SetValue(Obj, TValue.Empty);
-          Continue;
-        end;
-      //  Set property
-      if  RTTIProp.IsWritable or (RTTIProp.PropertyType.TypeKind = tkClass) then
-        case RTTIProp.PropertyType.TypeKind of
-          tkClassRef :
-            begin
-              RTTIClassType  := RTTI.FindType(Value.AsString);
-              if  not Assigned(RTTIClassType)  then
-                raise ESettings.Create('Class ' + Value.AsString + ' not found.');
-              if  RTTIClassType.TypeKind <> tkClass then
-                raise ESettings.Create('Type ' + Value.AsString + ' is not a class.');
-              RTTIProp.SetValue(Obj, TClass((RTTIClassType as TRttiInstanceType).MetaclassType));
-            end;
-          tkClass :
-            begin
-              //  Get current object
-              ChildObj := RTTIProp.GetValue(Obj).AsObject;
-              //  Get hold of a child object
-              if  not Assigned(ChildObj) and not Value.IsEmpty and RTTIProp.IsWritable  then
-                begin
-                  ChildObj  := CreateObject(RTTI.GetType((RTTIProp.PropertyType as TRttiInstanceType).MetaclassType));
-                  RTTIProp.SetValue(Obj, ChildObj);
-                end;
-              //
-//            if  Assigned(ChildObj) and not Value.IsEmpty and (Should-be-ClassType <> ChildObj.ClassType) then
-//              ...
-              //  Load its settings
-              if  Assigned(ChildObj) then
-                try
-                  fReader.MoveToChild(SettName);
-                  LoadThing(ChildObj);
-                finally
-                  fReader.MoveToParent;
-                end;
-            end;
-          tkDynArray :
-            if  not Value.IsEmpty then
-              begin
-                if  not SameText(RTTIProp.PropertyType.Name, STBytes) then
-                  raise ESettings.Create(SENotByteArray, [SettName]);
-                if  not SameText(Value.TypeInfo.Name, STBytes)  then
-                  raise ESettings.Create(SENotByteArray, [SettName]);
-                RTTIProp.SetValue(Obj, Value);
-              end;
-          tkEnumeration :
-            SetEnumProp(Obj, SettName, Value.ToString);
-          tkSet :
-            SetSetProp(Obj, SettName, Value.ToString);
-        else
-            RTTIProp.SetValue(Obj, Value);
-        end;
-    end;
-end;
-
-procedure TSettingsReader.LoadStrings(const Obj: TObject);
-var
-  Strs: TStrings absolute Obj;
-  Str: string;
-begin
-  //  Might clear the list
-  if  fClearValues  then
-    Strs.Clear;
-  //  Load the list
-  fReader.LoadStrings(Strs);
-  if  fReader.ListBegin then
-    try
-      repeat
-        Str := fReader.ListValue;
-        Strs.Add(Str);
-      until not fReader.ListNext;
-    finally
-      fReader.ListEnd;
-    end;
-end;
-
-procedure TSettingsReader.LoadThing(const Obj: TObject);
-begin
-  if  RegisteredSettingsLists.IsSettingsList(Obj.ClassType) then
-    LoadList(Obj)
-  else if Obj is TStrings then
-    LoadStrings(Obj)
-  else
-    LoadObj(Obj)
-end;
-
-procedure TSettingsReader.SaveFile(const Settings: TObject);
-
-  procedure SaveObj(const Obj: TObject);
-  begin
-
-  end;
-
-begin
-//  if  not Assigned(Settings)  then
-//    raise ESettings.Create(SESettingsNotNil);
-//  fImplementation.BeginSave;
-//  try
-//    SaveObj(Settings);
-//  finally
-//    fImplementation.EndSave;
-//  end;
 end;
 
 { TSettingsWriter }
@@ -354,22 +384,37 @@ begin
   fStore  := ASettingsWriter;
 end;
 
-procedure TSettingsWriter.Save(const Obj: TObject);
+procedure TSettingsWriter.Save(const Obj: TObject; ObjClass: TClass);
 begin
-  fStore.BeginSave;
+  //  Determine object class
+  if  not Assigned(ObjClass)  then
+    ObjClass  := Obj.ClassType;
+  //  Save
+  fStore.SaveBegin;
   try
-    SaveThing('', Obj, nil);
+    SaveProperties(Obj, ObjClass);
   finally
-    fStore.EndSave;
+    fStore.SaveEnd;
   end;
 end;
 
-procedure TSettingsWriter.SaveList(const Name: string; const Obj: TObject);
+procedure TSettingsWriter.SaveList(const Obj: TObject; const ElemClass: TClass);
+var
+  List: TObjectList<TObject> absolute Obj;
+  i: integer;
 begin
-
+  for i := 0 to List.Count - 1 do
+    begin
+      fStore.ElemEnter(i, not Assigned(List[i]));
+      try
+        SaveProperties(List[i], ElemClass)
+      finally
+        fStore.ElemLeave;
+      end;
+    end;
 end;
 
-procedure TSettingsWriter.SaveObj(const Name: string; const Obj: TObject);
+procedure TSettingsWriter.SaveProperties(const Obj: TObject; const PropClass: TClass);
 var
   RTTIType: TRttiType;
   RTTIProps: TArray<TRttiProperty>;
@@ -377,10 +422,13 @@ var
   Kind: TTypeKind;
   SettName: string;
   Child: TObject;
+  ElemClass: TClass;
 begin
   if  not Assigned(Obj) then
     Exit;
   RTTIType  := RTTI.GetType(Obj.ClassType);
+  if  RTTIType.AsInstance.MetaclassType <> PropClass  then
+    fStore.SaveValue(SClass, Obj.QualifiedClassName);
   RTTIProps := RTTIType.GetProperties;
   RTTIProps := SortAndFilter(RTTIProps, True);
   for RTTIProp in RTTIProps do
@@ -389,42 +437,58 @@ begin
       SettName  := SettingNameAttribute.SettingNameOf(RTTIProp);
       //  Examine type kind
       Kind  := RTTIProp.PropertyType.TypeKind;
-      //  - Save simple type
+      //  Save simple type
       if Kind in SupportedSimpleTypes then
-        fStore.SetValue(SettName, RTTIProp.GetValue(Obj))
-      //  - Save sub-object
+        fStore.SaveValue(SettName, RTTIProp.GetValue(Obj))
+      //  Save sub-object
       else if Kind = tkClass then
         begin
           Child := RTTIProp.GetValue(Obj).AsObject;
-
+          //  Handle nil objects
           if  not Assigned(Child) then
             Continue;
-
-          if (Child is TStrings) and not TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField) then
-            begin
-              SaveStrings(SettName, Child);
-              Continue;
-            end;
-
-          fStore.MoveToChild(SettName);
-          try
-            //  Save type
-            if Child.ClassType <> RTTIProp.PropertyType.AsInstance.MetaclassType then
-              fStore.SetValue(SClass, Child.QualifiedClassName);
-            //  Save contents
-            if  RegisteredSettingsLists.IsSettingsList(Child.ClassType) then
-              SaveList(Name, Child)
-            else if Child is TStrings then
-              SaveStringsDeep(SettName, Child)
+          //  TStrings are special
+          if  Child is TStrings then
+            //  Write "deep" TStrings elements as separate named children
+            if  TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField)  then
+              begin
+                fStore.NodeClear(SettName);
+                fStore.NodeEnter(SettName, not Assigned(Child));
+                try
+                  SaveStringsDeep(Child);
+                finally
+                  fStore.NodeLeave;
+                end;
+              end
             else
-              SaveObj(Name, Child)
-          finally
-            fStore.MoveToParent;
-          end;
+              //  Write "shallow" TStrings as a single delimited string
+              SaveStrings(SettName, Child)
+          //  Save settings list elements as objects
+          else if ObjectLists.IsRegistered(Child.ClassType, ElemClass) then
+            begin
+              fStore.ListClear(SettName);
+              fStore.ListBegin(SettName, not Assigned(Child));
+              try
+                SaveList(Child, ElemClass);
+              finally
+                fStore.ListEnd;
+              end;
+            end
+          //  Not a list
+          else
+            begin
+              fStore.NodeEnter(SettName, not Assigned(Child));
+              try
+                SaveProperties(Child, RTTIProp.PropertyType.AsInstance.MetaclassType);
+              finally
+                fStore.NodeLeave;
+              end;
+            end
+//            raise ESettings.Create(SEUnsupportedType, [SettName, Child.ClassName]);
         end
       //  - Unhandled
       else
-        raise ESettings.Create(SEUnsupportedType);
+        raise ESettings.Create(SEUnsupportedType, [SettName, EnumToStr(TValue.From(Kind))]);
     end;
 end;
 
@@ -432,50 +496,65 @@ procedure TSettingsWriter.SaveStrings(const Name: string; const Obj: TObject);
 var
   Strs: TStrings absolute Obj;
 begin
-  fStore.SetValue(Name, Strs.DelimitedText);
+  fStore.SaveValue(Name, Strs.DelimitedText);
 end;
 
-procedure TSettingsWriter.SaveStringsDeep(const Name: string; const Obj: TObject);
+procedure TSettingsWriter.SaveStringsDeep(const Obj: TObject);
 var
   Strs: TStrings absolute Obj;
   i: integer;
 begin
   for i := 0 to Strs.Count - 1 do
-    if  Assigned(Strs.Objects[i]) then
-      SaveThing(Strs[i], Strs.Objects[i], TObject)
-    else
-      SaveThing(Strs[i], EmptyObj, TObject)
+    begin
+      fStore.NodeEnter(Strs[i], not Assigned(Strs.Objects[i]));
+      try
+        SaveProperties(Strs.Objects[i], TObject);
+      finally
+        fStore.NodeLeave;
+      end;
+    end;
 end;
 
-procedure TSettingsWriter.SaveThing(const Name: string; const Obj: TObject; const PropClass: TClass);
+{ ObjectLists }
+
+class constructor ObjectLists.Create;
 begin
-  if not Assigned(Obj) then
-    Exit;
-  fStore.MoveToChild(Name);
-  try
-    //  Save type
-    if Obj.ClassType <> PropClass then
-      fStore.SetValue(SClass, Obj.QualifiedClassName);
-    //  Save contents
-    if  RegisteredSettingsLists.IsSettingsList(Obj.ClassType) then
-      SaveList(Name, Obj)
-    else if Obj is TStrings then
-      SaveStrings(Name, Obj)
-    else
-      SaveObj(Name, Obj)
-  finally
-    fStore.MoveToParent;
-  end;
+  _Types  := TDictionary<TClass, TClass>.Create;
+end;
+
+class destructor ObjectLists.Destroy;
+begin
+  _Types.Free;
+end;
+
+class function ObjectLists.IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean;
+begin
+  Result  := _Types.TryGetValue(ListClass, ElemClass)
+end;
+
+class procedure ObjectLists.Register(const ListClass, ElemClass: TClass);
+begin
+  _Types.Add(ListClass, ElemClass);
+end;
+
+{ ESettings }
+
+constructor ESettings.Create(const AMessage: string; const Args: array of const);
+begin
+  inherited Create(Format(AMessage, Args));
+end;
+
+constructor ESettings.Create(const AMessage: string);
+begin
+  inherited;
 end;
 
 initialization
-  RTTI      := TRttiContext.Create;
-  STBytes   := 'TArray<System.Byte>';
-  EmptyObj  := TObject.Create;
+  RTTI  := TRttiContext.Create;
+  ReadComparer  := TSettingsOrderComparer.Create(False);
+  WriteComparer := TSettingsOrderComparer.Create(True);
 
 finalization
   RTTI.Free;
-  EmptyObj.Free;
 
-{$ENDIF}
 end.

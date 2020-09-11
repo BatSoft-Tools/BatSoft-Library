@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
-  FMX.Controls.Presentation, FMX.StdCtrls, uDemoSettings;
+  FMX.Controls.Presentation, FMX.StdCtrls, BatSoft.Settings.Base, uDemoSettings;
 
 type
   TfrmDemoSettings = class(TForm)
@@ -20,14 +20,17 @@ type
     Button2: TButton;
     butIniCreate: TButton;
     butIniLoad: TButton;
-    butIniSave: TButton;
-    procedure butSaveClick(Sender: TObject);
-    procedure butLoadClick(Sender: TObject);
+    butSaveIni: TButton;
+    butJsonLoad: TButton;
+    butSaveJSON: TButton;
+    butInit2: TButton;
     procedure butInit0Click(Sender: TObject);
     procedure butInit1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
-    procedure butIniSaveClick(Sender: TObject);
+    procedure butSaveJSONClick(Sender: TObject);
+    procedure butSaveIniClick(Sender: TObject);
+    procedure butInit2Click(Sender: TObject);
   private
     fDemo: TDemoSettings;
     function  CreateUser(const i: integer): TUserSettings;
@@ -42,24 +45,9 @@ implementation
 
 uses
   Generics.Collections, RTTI,
-  BatSoft.Settings, BatSoft.Settings.Ini, BatSoft.Settings.JSON,
-  BatSoft.Settings.Base.Ini, BatSoft.Settings.Base;
+  BatSoft.Settings.Base.Ini, BatSoft.Settings.Base.Json;
 
 { TfrmDemoSettings }
-
-procedure TfrmDemoSettings.butIniSaveClick(Sender: TObject);
-var
-  Writer: TSettingsWriter;
-begin
-  if not SaveDialog.Execute then
-    Exit;
-  Writer  := TSettingsWriter.Create(TSettingsWriterIni.Create(SaveDialog.FileName));
-  try
-    Writer.Save(fDemo);
-  finally
-    Writer.Free;
-  end;
-end;
 
 procedure TfrmDemoSettings.butInit0Click(Sender: TObject);
 begin
@@ -76,30 +64,31 @@ begin
 
   fDemo.Users := TUsers.Create();
   fDemo.Users.Add(CreateUser(1));
-  fDemo.Users.Add(CreateUser(2));
+  fDemo.Users.Add(nil);
+  fDemo.Users.Add(nil);
 
-  fDemo.UserNameAll.Add('abc');
-  fDemo.UserNameAll.Add('def');
+  fDemo.UserNameAll.AddObject('abc', nil);
+  fDemo.UserNameAll.AddObject('def', nil);
   fDemo.UserNameAll.AddObject('hij', CreateUser(3));
   fDemo.UserNameCurr  := fDemo.UserNameAll[0];
 end;
 
-procedure TfrmDemoSettings.butLoadClick(Sender: TObject);
+procedure TfrmDemoSettings.butInit2Click(Sender: TObject);
 begin
-  if  OpenDialog.Execute  then
-    begin
-      SettingsJSON.LoadFile(fDemo, OpenDialog.FileName, chkClearValues.IsChecked);
-
-    end;
+  fDemo.Users[1]  := CreateUser(2);
+  fDemo.UserNameAll.Objects[0]  := CreateUser(1);
 end;
 
-procedure TfrmDemoSettings.butSaveClick(Sender: TObject);
+procedure TfrmDemoSettings.butSaveIniClick(Sender: TObject);
 begin
   if SaveDialog.Execute then
-    begin
-      SettingsJSON.SaveFile(fDemo, SaveDialog.FileName);
+    TSettingsWriterIni.Save(fDemo, SaveDialog.FileName)
+end;
 
-    end;
+procedure TfrmDemoSettings.butSaveJSONClick(Sender: TObject);
+begin
+  if SaveDialog.Execute then
+    TSettingsWriterJSON.Save(fDemo, SaveDialog.FileName)
 end;
 
 procedure TfrmDemoSettings.Button1Click(Sender: TObject);
@@ -127,6 +116,8 @@ begin
   Result  := TUserSettings.Create;
   Result.UserName := 'User '+IntToStr(i);
   Result.Access   := TAccess(i mod 3);
+  Result.Accesses := [TAccess(i mod 3), TAccess(i+1 mod 3)];
+  Result.DateTime := Now;
 end;
 
 end.

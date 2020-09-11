@@ -31,16 +31,14 @@ requires
   rtl;
 
 contains
-  BatSoft.Settings in 'BatSoft.Settings.pas',
-  BatSoft.Settings.JSON in 'BatSoft.Settings.JSON.pas',
   BatSoft.Classes in 'BatSoft.Classes.pas',
-  BatSoft.Settings.Ini in 'BatSoft.Settings.Ini.pas',
   BatSoft.Settings.Base in 'BatSoft.Settings.Base.pas',
   BatSoft.Mementos in 'BatSoft.Mementos.pas',
   BatSoft.Observer.Base in 'BatSoft.Observer.Base.pas',
   BatSoft.Observer.Manual in 'BatSoft.Observer.Manual.pas',
   BatSoft.Observer.Managed in 'BatSoft.Observer.Managed.pas',
-  BatSoft.Settings.Base.Ini in 'BatSoft.Settings.Base.Ini.pas';
+  BatSoft.Settings.Base.Ini in 'BatSoft.Settings.Base.Ini.pas',
+  BatSoft.Settings.Base.JSON in 'BatSoft.Settings.Base.JSON.pas';
 
 end.
 
