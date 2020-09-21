@@ -24,6 +24,7 @@ type
     butJsonLoad: TButton;
     butSaveJSON: TButton;
     butInit2: TButton;
+    Button3: TButton;
     procedure butInit0Click(Sender: TObject);
     procedure butInit1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -31,6 +32,8 @@ type
     procedure butSaveJSONClick(Sender: TObject);
     procedure butSaveIniClick(Sender: TObject);
     procedure butInit2Click(Sender: TObject);
+    procedure butIniLoadClick(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
   private
     fDemo: TDemoSettings;
     function  CreateUser(const i: integer): TUserSettings;
@@ -48,6 +51,12 @@ uses
   BatSoft.Settings.Base.Ini, BatSoft.Settings.Base.Json;
 
 { TfrmDemoSettings }
+
+procedure TfrmDemoSettings.butIniLoadClick(Sender: TObject);
+begin
+  if OpenDialog.Execute then
+    TSettingsReaderIni.Load<TDemoSettings>(fDemo, OpenDialog.FileName)
+end;
 
 procedure TfrmDemoSettings.butInit0Click(Sender: TObject);
 begin
@@ -111,12 +120,38 @@ begin
     ShowMessage(User.UserName);
 end;
 
+procedure TfrmDemoSettings.Button3Click(Sender: TObject);
+var
+  Obj: TUserSettings;
+  RTTI: TRttiContext;
+  RTTIType: TRttiType;
+  RTTIProps: TArray<TRttiProperty>;
+  RTTIProp: TRttiProperty;
+  Value: TValue;
+begin
+  Obj := fDemo.Users[1];
+
+  RTTI  := TRttiContext.Create;
+  try
+    RTTIType  := RTTI.GetType(Obj.ClassType);
+    RTTIProps := RTTIType.GetProperties;
+    for RTTIProp in RTTIProps do
+      if RTTIProp.Name = 'Accesses' then
+        begin
+          Value := RTTIProp.GetValue(Obj);
+          RTTIProp.SetValue(Obj, Value);
+        end;
+  finally
+    RTTI.Free;
+  end;
+end;
+
 function TfrmDemoSettings.CreateUser(const i: integer): TUserSettings;
 begin
   Result  := TUserSettings.Create;
   Result.UserName := 'User '+IntToStr(i);
   Result.Access   := TAccess(i mod 3);
-  Result.Accesses := [TAccess(i mod 3), TAccess(i+1 mod 3)];
+  Result.Accesses := [TAccess(i mod 3), TAccess((i+1) mod 3)];
   Result.DateTime := Now;
 end;
 

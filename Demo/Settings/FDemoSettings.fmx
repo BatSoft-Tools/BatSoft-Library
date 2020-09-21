@@ -72,6 +72,7 @@ object frmDemoSettings: TfrmDemoSettings
     Position.X = 312.000000000000000000
     Position.Y = 48.000000000000000000
     Text = 'butIniLoad'
+    OnClick = butIniLoadClick
   end
   object butSaveIni: TButton
     Position.X = 312.000000000000000000
@@ -96,5 +97,11 @@ object frmDemoSettings: TfrmDemoSettings
     TabOrder = 5
     Text = 'butInit2'
     OnClick = butInit2Click
+  end
+  object Button3: TButton
+    Position.X = 312.000000000000000000
+    Position.Y = 144.000000000000000000
+    Text = 'Button3'
+    OnClick = Button3Click
   end
 end
