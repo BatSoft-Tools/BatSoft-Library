@@ -86,9 +86,10 @@ type
     //  Arrays
     function  ListBegin(const Name: string): Boolean;
     procedure ListEnd;
-//    //  Array elements
-//    function  ElemEnter(const Index: integer): Boolean;
-//    procedure ElemLeave;
+    //  Array elements
+    function  ElemEnter: Boolean;
+    procedure ElemLeave;
+    function  ElemNext: Boolean;
     //  Simple values
     function  LoadValue(const Name: string; const TypeInfo: PTypeInfo): TValue;
   end;
@@ -210,7 +211,7 @@ resourcestring
 implementation
 
 uses
-  System.Generics.Defaults, BatSoft.Classes, FDemoSettings;
+  System.Generics.Defaults, BatSoft.Classes;
 
 var
   RTTI: TRttiContext;
@@ -486,8 +487,24 @@ begin
 end;
 
 procedure TSettingsReader.LoadList(const Obj: TObject; const ElemClass: TClass);
+var
+  RTTIElemClass: TRttiInstanceType;
+  List: TObjectList<TObject> absolute Obj;
+  Elem: TObject;
 begin
-
+  RTTIElemClass := RTTI.GetType(ElemClass).AsInstance;
+  while fStore.ElemNext do
+    if  not fStore.ElemEnter  then
+      List.Add(nil)
+    else
+      try
+        Elem  := nil;
+        CorrectObjectClass(Elem, RTTIElemClass);
+        List.Add(Elem);
+        LoadProperties(Elem);
+      finally
+        fStore.ElemLeave;
+      end;
 end;
 
 procedure TSettingsReader.LoadProperties(const Obj: TObject);

@@ -3,7 +3,8 @@ unit BatSoft.Settings.Ini;
 interface
 
 uses
-  System.Rtti, System.Classes, System.TypInfo, System.IniFiles, BatSoft.Settings;
+  System.Rtti, System.Classes, System.TypInfo, System.IniFiles,
+  System.Generics.Collections, BatSoft.Settings;
 
 type
   TSettingsIni = class abstract(TSettingsStore)
@@ -23,6 +24,9 @@ type
   end;
 
   TSettingsReaderIni = class(TSettingsIni, ISettingsStoreReader)
+  private
+    fIterators: TStack<TStrings>;
+    fElemName: string;
   public
     //  ISettingsStoreReader interface
     //  Storage
@@ -35,9 +39,10 @@ type
     //  Arrays
     function  ListBegin(const Name: string): Boolean;
     procedure ListEnd;
-//    //  Array elements
-//    function  ElemEnter(const Index: integer): Boolean;
-//    procedure ElemLeave;
+    //  Array elements
+    function  ElemEnter: Boolean;
+    procedure ElemLeave;
+    function  ElemNext: Boolean;
     //  Simple values
     function  LoadValue(const Name: string; const Info: PTypeInfo): TValue;
   end;
@@ -68,7 +73,7 @@ type
 implementation
 
 uses
-  System.SysUtils, System.Variants, uDemoSettings;
+  System.SysUtils, System.Variants;
 
 { TSettingsIni }
 
@@ -109,25 +114,61 @@ end;
 
 { TSettingsReaderIni }
 
+function TSettingsReaderIni.ElemEnter: Boolean;
+begin
+  Result  := NodeEnter(fElemName)
+end;
+
+procedure TSettingsReaderIni.ElemLeave;
+begin
+  NodeLeave;
+end;
+
+function TSettingsReaderIni.ElemNext: Boolean;
+begin
+  //  Do we have a next element?
+  Result  := fIterators.Peek.Count > 0;
+  if  Result  then
+    begin
+      //  Note the name of the element
+      fElemName := fIterators.Peek[0];
+      //  Iterate
+      fIterators.Peek.Delete(0);
+    end;
+end;
+
 function TSettingsReaderIni.ListBegin(const Name: string): Boolean;
+var
+  Iterator: TStringList;
 begin
   fPath.Add(Name);
   Result  := True;
+  if  Result  then
+    begin
+      Iterator  := TStringList.Create;
+      fIterators.Push(Iterator);
+      NodeChildren(Iterator);
+    end;
 end;
 
 procedure TSettingsReaderIni.ListEnd;
 begin
+  fIterators.Pop.Free;
   fPath.Delete(fPath.Count - 1)
 end;
 
 procedure TSettingsReaderIni.LoadBegin;
 begin
-  StoreBegin
+  StoreBegin;
+  fIterators  := TStack<TStrings>.Create;
 end;
 
 procedure TSettingsReaderIni.LoadEnd;
 begin
-  StoreEnd
+  while fIterators.Count > 0 do
+    fIterators.Pop.Free;
+  fIterators.Free;
+  StoreEnd;
 end;
 
 function TSettingsReaderIni.LoadValue(const Name: string; const Info: PTypeInfo): TValue;
@@ -179,14 +220,21 @@ procedure TSettingsReaderIni.NodeChildren(const Names: TStrings);
 var
   i: integer;
   Path: TStringList;
+  CurrPath: string;
 begin
   fIni.ReadSections(CurrentSection, Names);
   //  Filter down to the immediate children
+  CurrPath  := CurrentSection + fPathDelimiter;
   Path  := TStringList.Create;
   try
     Path.Delimiter  := fPathDelimiter;
-    for i := 0 to Names.Count - 1 do
+    for i := Names.Count - 1 downto 0 do
       begin
+        if  not Names[i].StartsWith(CurrPath, True) then
+          begin
+            Names.Delete(i);
+            Continue;
+          end;
         Path.DelimitedText  := Names[i];
         if  Path.Count > fPath.Count + 1  then
           Names.Delete(i)

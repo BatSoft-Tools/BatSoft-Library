@@ -18,6 +18,8 @@ type
   end;
 
   TSettingsReaderJSON = class(TSettingsJSON, ISettingsStoreReader)
+  private
+    fIterators: TStack<TJSONArray.TEnumerator>;
   public
     //  ISettingsStoreReader interface
     //  Storage
@@ -30,9 +32,10 @@ type
     //  Arrays
     function  ListBegin(const Name: string): Boolean;
     procedure ListEnd;
-//    //  Array elements
-//    function  ElemEnter(const Index: integer): Boolean;
-//    procedure ElemLeave;
+    //  Array elements
+    function  ElemEnter: Boolean;
+    procedure ElemLeave;
+    function  ElemNext: Boolean;
     //  Simple values
     function  LoadValue(const Name: string; const Info: PTypeInfo): TValue;
   end;
@@ -85,14 +88,43 @@ end;
 
 { TSettingsReaderJSON }
 
-function TSettingsReaderJSON.ListBegin(const Name: string): Boolean;
+function TSettingsReaderJSON.ElemEnter: Boolean;
+var
+  Value: TJSONValue;
 begin
+  Value   := fIterators.Peek.GetCurrent;
+  Result  := not (Value is TJSONNull);
+  if  Result  then
+    fPath.Push(Value);
+end;
 
+procedure TSettingsReaderJSON.ElemLeave;
+begin
+  fPath.Pop
+end;
+
+function TSettingsReaderJSON.ElemNext: Boolean;
+begin
+  Result  := fIterators.Peek.MoveNext
+end;
+
+function TSettingsReaderJSON.ListBegin(const Name: string): Boolean;
+var
+  Pair: TJSONPair;
+begin
+  Pair    := CurrentNode.Get(Name);
+  Result  := Pair.JsonValue is TJSONArray;
+  if  Result  then
+    begin
+      fPath.Push(Pair.JsonValue);
+      fIterators.Push((Pair.JsonValue as TJSONArray).GetEnumerator);
+    end;
 end;
 
 procedure TSettingsReaderJSON.ListEnd;
 begin
-
+  fPath.Pop;
+  fIterators.Pop.Free;
 end;
 
 procedure TSettingsReaderJSON.LoadBegin;
@@ -100,6 +132,7 @@ var
   JSONStr: string;
 begin
   StoreBegin;
+  fIterators  := TStack<TJSONArray.TEnumerator>.Create;
   //  Load file
   JSONStr := TFile.ReadAllText(fFileName);
   fPath.Push(TJSONObject.ParseJSONValue(JSONStr));
@@ -107,6 +140,8 @@ end;
 
 procedure TSettingsReaderJSON.LoadEnd;
 begin
+  while fIterators.Count > 0 do
+    fIterators.Pop.Free;
   StoreEnd;
 end;
 
