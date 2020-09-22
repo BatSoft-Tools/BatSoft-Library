@@ -518,6 +518,7 @@ var
   ElemClass: TClass;
   Value: TValue;
   Converter: TValueConverter;
+  Child: TObject;
 begin
   if  not Assigned(Obj) then
     Exit;
@@ -563,17 +564,15 @@ begin
                 fStore.ListEnd;
               end;
             end
-//          //  Not a list
-//          else
-//            begin
-//              fStore.NodeEnter(SettName, not Assigned(Child));
-//              try
-//                SaveProperties(Child, RTTIProp.PropertyType.AsInstance.MetaclassType);
-//              finally
-//                fStore.NodeLeave;
-//              end;
-//            end
-//              raise ESettings.Create(SEUnsupportedType, [SettName, Child.ClassName]);
+          //  Not a list
+          else if fStore.NodeEnter(SettName)  then
+            try
+              Child := RTTIProp.GetValue(Obj).AsObject;
+              CorrectObjectClass(Child, RTTIProp.PropertyType.AsInstance);
+              LoadProperties(Child);
+            finally
+              fStore.NodeLeave;
+            end;
         end
       //  - Unhandled
       else
@@ -712,9 +711,12 @@ begin
           Child := RTTIProp.GetValue(Obj).AsObject;
           //  Handle nil objects
           if  not Assigned(Child) then
-            Continue;
+            begin
+              fStore.NodeEnter(SettName, not Assigned(Child));
+              fStore.NodeLeave;
+            end
           //  TStrings are special
-          if  Child is TStrings then
+          else if  Child is TStrings then
             //  Write "deep" TStrings elements as separate named children
             if  TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField)  then
               begin
@@ -750,7 +752,6 @@ begin
                 fStore.NodeLeave;
               end;
             end
-//            raise ESettings.Create(SEUnsupportedType, [SettName, Child.ClassName]);
         end
       //  - Unhandled
       else
