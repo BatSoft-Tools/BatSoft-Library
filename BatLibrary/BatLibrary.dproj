@@ -108,13 +108,14 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="BatSoft.Classes.pas"/>
-        <DCCReference Include="BatSoft.Settings.Base.pas"/>
+        <DCCReference Include="BatSoft.Settings.pas"/>
         <DCCReference Include="BatSoft.Mementos.pas"/>
         <DCCReference Include="BatSoft.Observer.Base.pas"/>
         <DCCReference Include="BatSoft.Observer.Manual.pas"/>
         <DCCReference Include="BatSoft.Observer.Managed.pas"/>
-        <DCCReference Include="BatSoft.Settings.Base.Ini.pas"/>
-        <DCCReference Include="BatSoft.Settings.Base.JSON.pas"/>
+        <DCCReference Include="BatSoft.Settings.Ini.pas"/>
+        <DCCReference Include="BatSoft.Settings.JSON.pas"/>
+        <DCCReference Include="BatSoft.Settings.Types.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

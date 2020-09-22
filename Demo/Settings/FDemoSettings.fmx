@@ -84,6 +84,7 @@ object frmDemoSettings: TfrmDemoSettings
     Position.X = 416.000000000000000000
     Position.Y = 48.000000000000000000
     Text = 'butJsonLoad'
+    OnClick = butJsonLoadClick
   end
   object butSaveJSON: TButton
     Position.X = 416.000000000000000000

@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
-  FMX.Controls.Presentation, FMX.StdCtrls, BatSoft.Settings.Base, uDemoSettings;
+  FMX.Controls.Presentation, FMX.StdCtrls, BatSoft.Settings, uDemoSettings;
 
 type
   TfrmDemoSettings = class(TForm)
@@ -34,13 +34,14 @@ type
     procedure butInit2Click(Sender: TObject);
     procedure butIniLoadClick(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure butJsonLoadClick(Sender: TObject);
   private
-    fDemo: TDemoSettings;
     function  CreateUser(const i: integer): TUserSettings;
   end;
 
 var
   frmDemoSettings: TfrmDemoSettings;
+  fDemo: TDemoSettings = nil;
 
 implementation
 
@@ -48,7 +49,7 @@ implementation
 
 uses
   Generics.Collections, RTTI,
-  BatSoft.Settings.Base.Ini, BatSoft.Settings.Base.Json;
+  BatSoft.Settings.Ini, BatSoft.Settings.Json;
 
 { TfrmDemoSettings }
 
@@ -68,8 +69,12 @@ procedure TfrmDemoSettings.butInit1Click(Sender: TObject);
 begin
   FreeAndNil(fDemo);
   fDemo := TDemoSettings.Create;
-  fDemo.SettingA  := 'ABC';
-  fDemo.SettingB  := 123;
+  fDemo.Prop_Str    := 'ABC';
+  fDemo.Prop_Int    := 123;
+  fDemo.Prop_Int64  := 456;
+  fDemo.Prop_Dbl    := Now;
+  fDemo.Prop_Ext    := Now;
+  fDemo.Prop_Curr   := 1234.5678;
 
   fDemo.Users := TUsers.Create();
   fDemo.Users.Add(CreateUser(1));
@@ -86,6 +91,12 @@ procedure TfrmDemoSettings.butInit2Click(Sender: TObject);
 begin
   fDemo.Users[1]  := CreateUser(2);
   fDemo.UserNameAll.Objects[0]  := CreateUser(1);
+end;
+
+procedure TfrmDemoSettings.butJsonLoadClick(Sender: TObject);
+begin
+  if OpenDialog.Execute then
+    TSettingsReaderJSON.Load<TDemoSettings>(fDemo, OpenDialog.FileName)
 end;
 
 procedure TfrmDemoSettings.butSaveIniClick(Sender: TObject);
@@ -152,7 +163,6 @@ begin
   Result.UserName := 'User '+IntToStr(i);
   Result.Access   := TAccess(i mod 3);
   Result.Accesses := [TAccess(i mod 3), TAccess((i+1) mod 3)];
-  Result.DateTime := Now;
 end;
 
 end.

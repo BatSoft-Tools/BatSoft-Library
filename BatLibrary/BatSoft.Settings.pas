@@ -1,4 +1,4 @@
-unit BatSoft.Settings.Base;
+unit BatSoft.Settings;
 
 interface
 
@@ -84,8 +84,8 @@ type
     function  NodeEnter(const Name: string): Boolean;
     procedure NodeLeave;
     //  Arrays
-//    function  ListBegin(const Name: string): Boolean;
-//    procedure ListEnd;
+    function  ListBegin(const Name: string): Boolean;
+    procedure ListEnd;
 //    //  Array elements
 //    function  ElemEnter(const Index: integer): Boolean;
 //    procedure ElemLeave;
@@ -131,8 +131,9 @@ type
     procedure CorrectObjectClass(var Obj: TObject; const PropertyClass: TRttiInstanceType);
     function  GetObjClass: TRttiInstanceType;
     procedure LoadProperties(const Obj: TObject);
+    procedure LoadList(const Obj: TObject; const ElemClass: TClass);
     function  LoadString(const Name: string): string;
-    procedure LoadStringsDeep(var Obj: TObject; const RTTIProp: TRttiProperty);
+    procedure LoadStringsDeep(const Obj: TObject; const RTTIProp: TRttiProperty);
   public
     constructor Create(ASettingsReader: ISettingsStoreReader); overload;
     procedure Load(var Obj: TObject; const ObjClass: TClass);
@@ -148,6 +149,25 @@ type
   public
     constructor Create(const ASettingsWriter: ISettingsStoreWriter);
     procedure Save(const Obj: TObject; ObjClass: TClass = nil);
+  end;
+
+  TValueConverter = reference to function(const Value: TValue; const Info: PTypeInfo): TValue;
+
+  SettingsTypes = class
+  private type
+    TValueConverters = record
+      StoreInfo: PTypeInfo;
+      ToStore, ToProperty: TValueConverter;
+    end;
+  private
+    class var _Types: TDictionary<PTypeInfo, TValueConverters>;
+    class function  FindTypeInfo(const PropInfo: PTypeInfo): PTypeInfo;
+    class function  FindToProperty(const PropInfo: PTypeInfo; out Converter: TValueConverter): Boolean;
+    class function  FindToStore(const PropInfo: PTypeInfo; out Converter: TValueConverter): Boolean;
+  public
+    class constructor Create;
+    class destructor  Destroy;
+    class procedure Register(const PropInfo, StoreInfo: PTypeInfo; const ToProperty, ToStore: TValueConverter); overload;
   end;
 
   ObjectLists = class
@@ -190,7 +210,7 @@ resourcestring
 implementation
 
 uses
-  System.Generics.Defaults, BatSoft.Classes;
+  System.Generics.Defaults, BatSoft.Classes, FDemoSettings;
 
 var
   RTTI: TRttiContext;
@@ -465,6 +485,11 @@ begin
   end;
 end;
 
+procedure TSettingsReader.LoadList(const Obj: TObject; const ElemClass: TClass);
+begin
+
+end;
+
 procedure TSettingsReader.LoadProperties(const Obj: TObject);
 var
   RTTIType: TRttiType;
@@ -472,8 +497,10 @@ var
   RTTIProp: TRttiProperty;
   Kind: TTypeKind;
   SettName: string;
-  Child: TObject;
   ChildClass: TClass;
+  ElemClass: TClass;
+  Value: TValue;
+  Converter: TValueConverter;
 begin
   if  not Assigned(Obj) then
     Exit;
@@ -486,9 +513,17 @@ begin
       SettName  := SettingNameAttribute.SettingNameOf(RTTIProp);
       //  Examine type kind
       Kind  := RTTIProp.PropertyType.TypeKind;
-      //  Save simple type
+      //  Load simple type
       if Kind in SupportedSimpleTypes then
-        RTTIProp.SetValue(Obj, fStore.LoadValue(SettName, RTTIProp.PropertyType.Handle))
+        begin
+          //  Determine what to load
+          Value := fStore.LoadValue(SettName, SettingsTypes.FindTypeInfo(RTTIProp.PropertyType.Handle));
+          //  Find specific converter
+          if  SettingsTypes.FindToProperty(RTTIProp.PropertyType.Handle, Converter) then
+            Value := Converter(Value, RTTIProp.PropertyType.Handle);
+          //  Set the value
+          RTTIProp.SetValue(Obj, Value);
+        end
       //  Save sub-object
       else if Kind = tkClass then
         begin
@@ -497,27 +532,20 @@ begin
           if  ChildClass.InheritsFrom(TStrings) then
             //  Read "deep" TStrings elements as separate named children
             if  TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField)  then
-              begin
-                Child := RTTIProp.GetValue(Obj).AsObject;
-                LoadStringsDeep(Child, RTTIProp);
-                if  RTTIProp.IsWritable then
-                  RTTIProp.SetValue(Obj, Child);
-              end
+              LoadStringsDeep(Obj, RTTIProp)
             else
               //  Read "shallow" TStrings as a single delimited string
-              (Child as TStrings).DelimitedText := LoadString(SettName)
-
-//          //  Save settings list elements as objects
-//          else if ObjectLists.IsRegistered(Child.ClassType, ElemClass) then
-//            begin
-//              fStore.ListClear(SettName);
-//              fStore.ListBegin(SettName, not Assigned(Child));
-//              try
-//                SaveList(Child, ElemClass);
-//              finally
-//                fStore.ListEnd;
-//              end;
-//            end
+              (RTTIProp.GetValue(Obj).AsObject as TStrings).DelimitedText := LoadString(SettName)
+          //  Load settings list elements as objects
+          else if ObjectLists.IsRegistered(ChildClass, ElemClass) then
+            begin
+              fStore.ListBegin(SettName);
+              try
+                LoadList(RTTIProp.GetValue(Obj).AsObject, ElemClass);
+              finally
+                fStore.ListEnd;
+              end;
+            end
 //          //  Not a list
 //          else
 //            begin
@@ -542,18 +570,25 @@ begin
   Result  := fStore.LoadValue(Name, TypeInfo(string)).AsString
 end;
 
-procedure TSettingsReader.LoadStringsDeep(var Obj: TObject; const RTTIProp: TRttiProperty);
+procedure TSettingsReader.LoadStringsDeep(const Obj: TObject; const RTTIProp: TRttiProperty);
 var
-  Strs: TStrings absolute Obj;
-  ElemNames: TStrings;
+  Strs: TStrings;
+  ElemNames: TStringList;
   ElemName: string;
   Elem: TObject;
   i: integer;
 begin
+  Strs  := RTTIProp.GetValue(Obj).AsObject as TStrings;
+
   if  fStore.NodeEnter(RTTIProp.Name) then
     try
-      if  RTTIProp.IsWritable then
-        CorrectObjectClass(Obj, RTTIProp.PropertyType.AsInstance);
+      //  Correct strings type
+      if  not Assigned(Strs) and RTTIProp.IsWritable  then
+        begin
+          CorrectObjectClass(TObject(Strs), RTTIProp.PropertyType.AsInstance);
+          RTTIProp.SetValue(Obj, Strs);
+        end;
+      //
       ElemNames := TStringList.Create;
       try
         fStore.NodeChildren(ElemNames);
@@ -574,6 +609,7 @@ begin
                 fStore.NodeLeave;
               end;
           end;
+        //  Tidy up
       finally
         ElemNames.Free;
       end;
@@ -629,6 +665,8 @@ var
   SettName: string;
   Child: TObject;
   ElemClass: TClass;
+  Value: TValue;
+  Converter: TValueConverter;
 begin
   if  not Assigned(Obj) then
     Exit;
@@ -641,11 +679,16 @@ begin
     begin
       //  Get the correct settings name
       SettName  := SettingNameAttribute.SettingNameOf(RTTIProp);
+      //  Determine what to save
+      Value     := RTTIProp.GetValue(Obj);
+      //  Find specific converter
+      if  SettingsTypes.FindToStore(RTTIProp.PropertyType.Handle, Converter) then
+        Value := Converter(Value, RTTIProp.PropertyType.Handle);
       //  Examine type kind
-      Kind  := RTTIProp.PropertyType.TypeKind;
+      Kind  := Value.Kind;
       //  Save simple type
       if Kind in SupportedSimpleTypes then
-        fStore.SaveValue(SettName, RTTIProp.GetValue(Obj))
+        fStore.SaveValue(SettName, Value)
       //  Save sub-object
       else if Kind = tkClass then
         begin
@@ -719,6 +762,56 @@ begin
         fStore.NodeLeave;
       end;
     end;
+end;
+
+{ SettingsTypes }
+
+class constructor SettingsTypes.Create;
+begin
+  _Types  := TDictionary<PTypeInfo, TValueConverters>.Create;
+end;
+
+class destructor SettingsTypes.Destroy;
+begin
+  _Types.Free;
+end;
+
+class function SettingsTypes.FindToProperty(const PropInfo: PTypeInfo; out Converter: TValueConverter): Boolean;
+var
+  Converters: TValueConverters;
+begin
+  Result  := _Types.TryGetValue(PropInfo, Converters);
+  if  Result  then
+    Converter := Converters.ToProperty
+end;
+
+class function SettingsTypes.FindToStore(const PropInfo: PTypeInfo; out Converter: TValueConverter): Boolean;
+var
+  Converters: TValueConverters;
+begin
+  Result  := _Types.TryGetValue(PropInfo, Converters);
+  if  Result  then
+    Converter := Converters.ToStore
+end;
+
+class function SettingsTypes.FindTypeInfo(const PropInfo: PTypeInfo): PTypeInfo;
+var
+  Converters: TValueConverters;
+begin
+  if  _Types.TryGetValue(PropInfo, Converters)  then
+    Result  := Converters.StoreInfo
+  else
+    Result  := PropInfo
+end;
+
+class procedure SettingsTypes.Register(const PropInfo, StoreInfo: PTypeInfo; const ToProperty, ToStore: TValueConverter);
+var
+  ValueConverters: TValueConverters;
+begin
+  ValueConverters.StoreInfo   := StoreInfo;
+  ValueConverters.ToStore     := ToStore;
+  ValueConverters.ToProperty  := ToProperty;
+  _Types.AddOrSetValue(PropInfo, ValueConverters);
 end;
 
 { ObjectLists }

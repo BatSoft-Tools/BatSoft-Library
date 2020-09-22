@@ -1,0 +1,285 @@
+unit BatSoft.Settings.JSON;
+
+interface
+
+uses
+  System.Classes, System.TypInfo, System.Rtti, System.Generics.Collections,
+  System.JSON, BatSoft.Settings;
+
+type
+  TSettingsJSON = class abstract(TSettingsStore)
+  protected
+    fRoot: TJSONObject;
+    fPath: TStack<TJSONValue>;
+    procedure StoreBegin;
+    procedure StoreEnd;
+    //  For use in subclasses' SaveValue() overrides
+    function  CurrentNode: TJSONObject; inline;
+  end;
+
+  TSettingsReaderJSON = class(TSettingsJSON, ISettingsStoreReader)
+  public
+    //  ISettingsStoreReader interface
+    //  Storage
+    procedure LoadBegin;
+    procedure LoadEnd;
+    //  Navigation
+    procedure NodeChildren(const Names: TStrings);
+    function  NodeEnter(const Name: string): Boolean;
+    procedure NodeLeave;
+    //  Arrays
+    function  ListBegin(const Name: string): Boolean;
+    procedure ListEnd;
+//    //  Array elements
+//    function  ElemEnter(const Index: integer): Boolean;
+//    procedure ElemLeave;
+    //  Simple values
+    function  LoadValue(const Name: string; const Info: PTypeInfo): TValue;
+  end;
+
+  TSettingsWriterJSON = class(TSettingsJSON, ISettingsStoreWriter)
+  public
+    //  ISettingsStoreWriter interface
+    //  Storage
+    procedure SaveBegin;
+    procedure SaveEnd;
+    //  Navigation
+    procedure NodeClear(const Name: string);
+    procedure NodeEnter(const Name: string; const IsNil: Boolean);
+    procedure NodeLeave;
+    //  Arrays
+    procedure ListClear(const Name: string);
+    procedure ListBegin(const Name: string; const IsNil: Boolean);
+    procedure ListEnd;
+    //  Array elements
+    procedure ElemEnter(const Index: integer; const IsNil: Boolean);
+    procedure ElemLeave;
+    //  Simple values
+    procedure SaveValue(const Name: string; const Value: TValue); virtual;
+  end;
+
+implementation
+
+uses
+  System.SysUtils, System.IOUtils;
+
+{ TSettingsJSON }
+
+function TSettingsJSON.CurrentNode: TJSONObject;
+begin
+  Result  := fPath.Peek as TJSONObject
+end;
+
+procedure TSettingsJSON.StoreBegin;
+begin
+  fRoot := TJSONObject.Create;
+  fPath := TStack<TJSONValue>.Create;
+  fPath.Push(fRoot);
+end;
+
+procedure TSettingsJSON.StoreEnd;
+begin
+  fPath.Free;
+  FreeAndNil(fRoot);
+end;
+
+{ TSettingsReaderJSON }
+
+function TSettingsReaderJSON.ListBegin(const Name: string): Boolean;
+begin
+
+end;
+
+procedure TSettingsReaderJSON.ListEnd;
+begin
+
+end;
+
+procedure TSettingsReaderJSON.LoadBegin;
+var
+  JSONStr: string;
+begin
+  StoreBegin;
+  //  Load file
+  JSONStr := TFile.ReadAllText(fFileName);
+  fPath.Push(TJSONObject.ParseJSONValue(JSONStr));
+end;
+
+procedure TSettingsReaderJSON.LoadEnd;
+begin
+  StoreEnd;
+end;
+
+function TSettingsReaderJSON.LoadValue(const Name: string; const Info: PTypeInfo): TValue;
+var
+  JSONVal: TJSONValue;
+begin
+  JSONVal := CurrentNode.GetValue(Name);
+  if  Assigned(JSONVal) then
+    case Info.Kind of
+      tkInteger :
+        Result  := (JSONVal as TJSONNumber).AsInt;
+      tkInt64 :
+        Result  := (JSONVal as TJSONNumber).AsInt64;
+      tkFloat :
+        Result  := (JSONVal as TJSONNumber).AsDouble;
+      tkEnumeration :
+        if  Info = TypeInfo(Boolean)  then
+          Result  := (JSONVal as TJSONBool).AsBoolean
+        else if  fEnumsAsStrings then
+          Result  := Enum_StringToValue((JSONVal as TJSONString).Value, Info)
+        else
+          Result  := (JSONVal as TJSONNumber).AsInt;
+      tkSet :
+        if  fEnumsAsStrings then
+          Result  := EnumSet_StringToValue((JSONVal as TJSONString).Value, Info)
+        else
+          Result  := (JSONVal as TJSONNumber).AsInt64;
+      tkChar, tkWChar, tkString, tkLString, tkWString, tkUString :
+        Result  := (JSONVal as TJSONString).Value;
+      tkVariant :
+        Result  := TValue.FromVariant((JSONVal as TJSONString).Value);
+    else
+      raise ESettings.Create(SEUnsupportedType, [Name, Info.Name]);
+    end
+  else
+    Result  := TValue.Empty;
+end;
+
+procedure TSettingsReaderJSON.NodeChildren(const Names: TStrings);
+var
+  i: integer;
+begin
+  Names.Clear;
+  for i := 0 to CurrentNode.Count - 1 do
+    Names.Add(CurrentNode.Pairs[i].JsonString.Value);
+end;
+
+function TSettingsReaderJSON.NodeEnter(const Name: string): Boolean;
+var
+  Pair: TJSONPair;
+begin
+  Pair    := CurrentNode.Get(Name);
+  Result  := Assigned(Pair) and not (Pair.JsonValue is TJSONNull);
+  if  Result  then
+    fPath.Push(Pair.JsonValue)
+end;
+
+procedure TSettingsReaderJSON.NodeLeave;
+begin
+  fPath.Pop;
+end;
+
+{ TSettingsWriterJSON }
+
+procedure TSettingsWriterJSON.ElemEnter(const Index: integer; const IsNil: Boolean);
+var
+  Child: TJSONValue;
+begin
+  if  IsNil then
+    Child := TJSONNull.Create
+  else
+    Child := TJSONObject.Create;
+  (fPath.Peek as TJSONArray).AddElement(Child);
+  fPath.Push(Child);
+end;
+
+procedure TSettingsWriterJSON.ElemLeave;
+begin
+  fPath.Pop;
+end;
+
+procedure TSettingsWriterJSON.ListBegin(const Name: string; const IsNil: Boolean);
+var
+  Arr: TJSONArray;
+begin
+  Arr := TJSONArray.Create;
+  if  fPath.Peek is TJSONArray  then
+    (fPath.Peek as TJSONArray).Add(Arr)
+  else
+    (fPath.Peek as TJSONObject).AddPair(Name, Arr);
+  fPath.Push(Arr);
+end;
+
+procedure TSettingsWriterJSON.ListClear(const Name: string);
+begin
+  //  Nothing to do
+end;
+
+procedure TSettingsWriterJSON.ListEnd;
+begin
+  fPath.Pop;
+end;
+
+procedure TSettingsWriterJSON.NodeClear(const Name: string);
+begin
+  //  Nothing to do
+end;
+
+procedure TSettingsWriterJSON.NodeEnter(const Name: string; const IsNil: Boolean);
+var
+  Child: TJSONValue;
+begin
+  if  IsNil then
+    Child := TJSONNull.Create
+  else
+    Child := TJSONObject.Create;
+  if  fPath.Peek is TJSONArray  then
+    (fPath.Peek as TJSONArray).AddElement(Child)
+  else
+    (fPath.Peek as TJSONObject).AddPair(Name, Child);
+  fPath.Push(Child);
+end;
+
+procedure TSettingsWriterJSON.NodeLeave;
+begin
+  fPath.Pop;
+end;
+
+procedure TSettingsWriterJSON.SaveBegin;
+begin
+  StoreBegin;
+end;
+
+procedure TSettingsWriterJSON.SaveEnd;
+begin
+  //  Save to file
+  TFile.WriteAllText(fFileName, fRoot.ToJSON);
+  //  Tidy up
+  StoreEnd;
+end;
+
+procedure TSettingsWriterJSON.SaveValue(const Name: string; const Value: TValue);
+var
+  JSONValue: TJSONValue;
+begin
+  case Value.TypeInfo.Kind of
+    tkInteger :
+      JSONValue := TJSONNumber.Create(Value.AsInteger);
+    tkInt64 :
+      JSONValue := TJSONNumber.Create(Value.AsInt64);
+    tkFloat :
+      JSONValue := TJSONNumber.Create(Value.AsExtended);
+    tkEnumeration :
+      if  Value.TypeInfo = TypeInfo(Boolean)  then
+        JSONValue := TJSONBool.Create(Value.AsBoolean)
+      else if  fEnumsAsStrings then
+        JSONValue := TJSONString.Create(EnumToStr(Value))
+      else
+        JSONValue := TJSONNumber.Create(Value.AsOrdinal);
+    tkSet :
+      if  fEnumsAsStrings then
+        JSONValue := TJSONString.Create(EnumSetToStr(Value))
+      else
+        JSONValue := TJSONNumber.Create(Value.AsOrdinal);
+    tkChar, tkWChar, tkString, tkLString, tkWString, tkUString :
+      JSONValue := TJSONString.Create(Value.AsString);
+    tkVariant :
+      JSONValue := TJSONString.Create(Value.AsString);
+  else
+    raise ESettings.Create(SEUnsupportedType, [Name, Value.TypeInfo.Name]);
+  end;
+  CurrentNode.AddPair(Name, JSONValue);
+end;
+
+end.

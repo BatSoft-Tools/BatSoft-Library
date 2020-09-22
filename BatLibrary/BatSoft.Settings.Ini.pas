@@ -1,9 +1,9 @@
-unit BatSoft.Settings.Base.Ini;
+unit BatSoft.Settings.Ini;
 
 interface
 
 uses
-  System.Rtti, System.Classes, System.TypInfo, System.IniFiles, BatSoft.Settings.Base;
+  System.Rtti, System.Classes, System.TypInfo, System.IniFiles, BatSoft.Settings;
 
 type
   TSettingsIni = class abstract(TSettingsStore)
@@ -13,7 +13,7 @@ type
     fIni: TIniFile;
     fPath: TStrings;
     fPathDelimiter: Char;
-    function CurrentSection: string; inline;
+    function  CurrentSection: string; inline;
     procedure StoreBegin;
     procedure StoreEnd;
   public
@@ -33,14 +33,13 @@ type
     function  NodeEnter(const Name: string): Boolean;
     procedure NodeLeave;
     //  Arrays
-//    function  ListBegin(const Name: string): Boolean;
-//    procedure ListEnd;
+    function  ListBegin(const Name: string): Boolean;
+    procedure ListEnd;
 //    //  Array elements
 //    function  ElemEnter(const Index: integer): Boolean;
 //    procedure ElemLeave;
     //  Simple values
     function  LoadValue(const Name: string; const Info: PTypeInfo): TValue;
-
   end;
 
   TSettingsWriterIni = class(TSettingsIni, ISettingsStoreWriter)
@@ -110,6 +109,17 @@ end;
 
 { TSettingsReaderIni }
 
+function TSettingsReaderIni.ListBegin(const Name: string): Boolean;
+begin
+  fPath.Add(Name);
+  Result  := True;
+end;
+
+procedure TSettingsReaderIni.ListEnd;
+begin
+  fPath.Delete(fPath.Count - 1)
+end;
+
 procedure TSettingsReaderIni.LoadBegin;
 begin
   StoreBegin
@@ -131,10 +141,7 @@ begin
     tkInt64 :
       Result  := fIni.ReadInt64(Path, Name, 0);
     tkFloat :
-      if  Info = TypeInfo(TDate)      then  Result  := fIni.ReadDate    (Path, Name, 0)  else
-      if  Info = TypeInfo(TTime)      then  Result  := fIni.ReadTime    (Path, Name, 0)  else
-      if  Info = TypeInfo(TDateTime)  then  Result  := fIni.ReadDateTime(Path, Name, 0)  else
-                                            Result  := fIni.ReadFloat   (Path, Name, 0);
+      Result  := fIni.ReadFloat (Path, Name, 0);
     tkEnumeration :
       if  fEnumsAsStrings then
         Result  := Enum_StringToValue(fIni.ReadString(Path, Name, ''), Info)
@@ -149,7 +156,7 @@ begin
       Result  := fIni.ReadString(Path, Name, '');
     tkVariant :
       if  fIni.ValueExists(Path, Name)  then
-        Result  := fIni.ReadString(Path, Name, '')
+        Result  := TValue.FromVariant(fIni.ReadString(Path, Name, ''))
       else
         Result  := TValue.FromVariant(Null)
   end;
@@ -170,12 +177,25 @@ end;
 
 procedure TSettingsReaderIni.NodeChildren(const Names: TStrings);
 var
-  i, Start: integer;
+  i: integer;
+  Path: TStringList;
 begin
   fIni.ReadSections(CurrentSection, Names);
-  Start := Length(CurrentSection + fPathDelimiter) + 1;
-  for i := 0 to Names.Count - 1 do
-    Names[i]  := Copy(Names[i], Start, MaxInt);
+  //  Filter down to the immediate children
+  Path  := TStringList.Create;
+  try
+    Path.Delimiter  := fPathDelimiter;
+    for i := 0 to Names.Count - 1 do
+      begin
+        Path.DelimitedText  := Names[i];
+        if  Path.Count > fPath.Count + 1  then
+          Names.Delete(i)
+        else
+          Names[i]  := Path[fPath.Count];
+      end;
+  finally
+    Path.Free;
+  end;
 end;
 
 { TSettingsWriterIni }
@@ -264,10 +284,7 @@ begin
     tkInt64 :
       fIni.WriteInt64(Path, Name, Value.AsInt64);
     tkFloat :
-      if  Value.TypeInfo = TypeInfo(TDate)      then  fIni.WriteDate    (Path, Name, Value.AsExtended)  else
-      if  Value.TypeInfo = TypeInfo(TTime)      then  fIni.WriteTime    (Path, Name, Value.AsExtended)  else
-      if  Value.TypeInfo = TypeInfo(TDateTime)  then  fIni.WriteDateTime(Path, Name, Value.AsExtended)  else
-                                                      fIni.WriteFloat   (Path, Name, Value.AsExtended);
+      fIni.WriteFloat(Path, Name, Value.AsExtended);
     tkEnumeration :
       if  fEnumsAsStrings then
         fIni.WriteString(Path, Name, EnumToStr(Value))

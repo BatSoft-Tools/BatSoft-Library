@@ -5,10 +5,11 @@ uses
   FMX.Forms,
   FDemoSettings in 'FDemoSettings.pas' {frmDemoSettings},
   uDemoSettings in 'uDemoSettings.pas',
-  BatSoft.Settings.Base in '..\..\BatLibrary\BatSoft.Settings.Base.pas',
-  BatSoft.Settings.Base.Ini in '..\..\BatLibrary\BatSoft.Settings.Base.Ini.pas',
+  BatSoft.Settings in '..\..\BatLibrary\BatSoft.Settings.pas',
+  BatSoft.Settings.Ini in '..\..\BatLibrary\BatSoft.Settings.Ini.pas',
   BatSoft.Classes in '..\..\BatLibrary\BatSoft.Classes.pas',
-  BatSoft.Settings.Base.JSON in '..\..\BatLibrary\BatSoft.Settings.Base.JSON.pas';
+  BatSoft.Settings.JSON in '..\..\BatLibrary\BatSoft.Settings.JSON.pas',
+  BatSoft.Settings.Types in '..\..\BatLibrary\BatSoft.Settings.Types.pas';
 
 {$R *.res}
 
