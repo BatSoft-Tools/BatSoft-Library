@@ -124,12 +124,12 @@ begin
     TWriter.Save(Settings1, FileName, True);
 
     //  Save different
-    Settings2.Init1;
+    Settings2.Init2;
     TWriter.Save(Settings2, FileName, True);
 
     //  Load...
     TReader.Load(Settings3, FileName, True);
-    //  then test to see that invalid remnants of 1 don't remain
+    //  ...then test to see that invalid remnants of 1 don't remain
     CompareCntnrs(Settings2, Settings3);
   finally
     FreeAndNil(Settings1);
