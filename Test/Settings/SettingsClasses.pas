@@ -52,6 +52,15 @@ type
     property  DateTime    : TDateTime read fDateTime      write fDateTime;
   end;
 
+  TComplexValues = class
+  private
+    fGUID: TGUID;
+  public
+    function  Init: TComplexValues;
+  published
+    property  ValueGUID   : TGUID     read fGUID          write fGUID;
+  end;
+
   TObjBase = class
   private
     fValueInt: integer;
@@ -74,16 +83,8 @@ type
 
   TObjList = class(TObjectList<TObjBase>);
 
-  TAllTypes = class
+  TCntrTypes = class
   private
-    [MementoDeepField]
-    fValues: TSimpleValues;
-    [MementoDeepField]
-    fObj: TObjBase;
-    [MementoDeepField]
-    fObjExt: TObjBase;
-    [MementoDeepField]
-    fObjNil: TObjBase;
     [MementoIgnore]
     fObjList: TObjList;
     fStrs: TStringList;
@@ -92,16 +93,36 @@ type
   public
     constructor Create;
     destructor  Destroy; override;
-    procedure Init1;
+    procedure Init1; virtual;
+    procedure Init2;
   published
-    property  Values    : TSimpleValues   read fValues    write fValues;
-    property  Obj       : TObjBase        read fObj       write fObj;
-    property  ObjExt    : TObjBase        read fObjExt    write fObjExt;
-    property  ObjNil    : TObjBase        read fObjNil    write fObjNil;
     property  ObjList   : TObjList        read fObjList   write fObjList;
     property  Strs      : TStringList     read fStrs      write fStrs;
     [SettingsDeepField]
     property  StrsDeep  : TStringList     read fStrsDeep  write fStrsDeep;
+  end;
+
+  TAllTypes = class(TCntrTypes)
+  private
+    [MementoDeepField]
+    fSimple: TSimpleValues;
+    [MementoDeepField]
+    fComplex: TComplexValues;
+    [MementoDeepField]
+    fObj: TObjBase;
+    [MementoDeepField]
+    fObjExt: TObjBase;
+    [MementoDeepField]
+    fObjNil: TObjBase;
+  public
+    destructor  Destroy; override;
+    procedure Init1; override;
+  published
+    property  Simple    : TSimpleValues   read fSimple    write fSimple;
+    property  Complex   : TComplexValues  read fComplex   write fComplex;
+    property  Obj       : TObjBase        read fObj       write fObj;
+    property  ObjExt    : TObjBase        read fObjExt    write fObjExt;
+    property  ObjNil    : TObjBase        read fObjNil    write fObjNil;
   end;
 {$M-}
 
@@ -133,6 +154,14 @@ begin
   fDateTime     := When;
 end;
 
+{ TComplexValues }
+
+function TComplexValues.Init: TComplexValues;
+begin
+  Result  := Self;
+  fGUID   := TGUID.NewGuid;
+end;
+
 { TObjBase }
 
 function TObjBase.Init(const A: integer): TObjBase;
@@ -150,9 +179,9 @@ begin
   fValueEnum  := TEnum(A mod EnumCount);
 end;
 
-{ TAllTypes }
+{ TCntrTypes }
 
-constructor TAllTypes.Create;
+constructor TCntrTypes.Create;
 begin
   inherited;
   fStrs     := TStringList.Create;
@@ -160,26 +189,60 @@ begin
   fObjList  := TObjList.Create;
 end;
 
-destructor TAllTypes.Destroy;
+destructor TCntrTypes.Destroy;
+var
+  i: integer;
 begin
+  for i := 0 to fStrsDeep.Count - 1 do
+    fStrsDeep.Objects[i].Free;
   fStrs.Free;
   fStrsDeep.Free;
   fObjList.Free;
   inherited;
 end;
 
-procedure TAllTypes.Init1;
+procedure TCntrTypes.Init1;
 begin
-  fValues   := TSimpleValues.Create.Init(1);
-  fObj      := TObjBase.Create.Init(2);
-  fObjExt   := TObjSub.Create.Init(3);
-  fObjNil   := nil;
+  fObjList.Add(TObjBase.Create.Init(1));
+  fObjList.Add(nil);
+  fObjList.Add(TObjBase.Create.Init(3));
   fStrs.Add('ABC');
   fStrs.Add('DEF');
   fStrs.Add('HIJ');
   fStrsDeep.AddObject('Elem X', TObjBase.Create.Init(4));
   fStrsDeep.AddObject('Elem Y', nil);
   fStrsDeep.AddObject('Elem Z', TObjSub.Create.Init(5));
+end;
+
+procedure TCntrTypes.Init2;
+begin
+  fObjList.Add(nil);
+  fObjList.Add(TObjBase.Create.Init(1));
+  fStrs.Add('ABC');
+  fStrs.Add('XYZ');
+  fStrsDeep.AddObject('Elem X', nil);
+  fStrsDeep.AddObject('Elem Y', TObjBase.Create.Init(4));
+end;
+
+{ TAllTypes }
+
+destructor TAllTypes.Destroy;
+begin
+  fSimple.Free;
+  fComplex.Free;
+  fObj.Free;
+  fObjExt.Free;
+  inherited;
+end;
+
+procedure TAllTypes.Init1;
+begin
+  inherited;
+  fSimple   := TSimpleValues.Create.Init(1);
+  fComplex  := TComplexValues.Create.Init;
+  fObj      := TObjBase.Create.Init(2);
+  fObjExt   := TObjSub.Create.Init(3);
+  fObjNil   := nil;
 end;
 
 initialization

@@ -201,7 +201,7 @@ var
   RTTI: TRttiContext;
 
 const
-  SupportedSimpleTypes = [tkInteger, tkInt64, tkFloat, tkEnumeration, tkSet,
+  SupportedTypes = [tkInteger, tkInt64, tkFloat, tkEnumeration, tkSet, tkRecord,
         tkChar, tkWChar, tkString, tkLString, tkWString, tkUString, tkVariant];
 
 type
@@ -522,7 +522,7 @@ begin
       //  Examine type kind
       Kind  := RTTIProp.PropertyType.TypeKind;
       //  Load simple type
-      if Kind in SupportedSimpleTypes then
+      if Kind in SupportedTypes then
         begin
           if  not RTTIProp.IsWritable then
             Continue;
@@ -592,7 +592,6 @@ begin
       else
         raise ESettings.Create(SEUnsupportedType, [SettName, EnumToStr(TValue.From(Kind))]);
     end;
-
 end;
 
 function TSettingsReader.LoadString(const Name: string): string;
@@ -719,7 +718,7 @@ begin
       //  Examine type kind
       Kind  := Value.Kind;
       //  Save simple type
-      if Kind in SupportedSimpleTypes then
+      if Kind in SupportedTypes then
         fStore.SaveValue(SettName, Value)
       //  Save TClass
       else if Kind = tkClassRef then

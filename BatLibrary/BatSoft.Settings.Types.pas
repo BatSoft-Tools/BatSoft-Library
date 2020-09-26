@@ -13,7 +13,8 @@ function InternationalStrToDate(const Value: TValue; const Info: PTypeInfo): TVa
 function InternationalStrToTime(const Value: TValue; const Info: PTypeInfo): TValue;
 function InternationalStrToDateTime(const Value: TValue; const Info: PTypeInfo): TValue;
 
-procedure RegisterStandardTypes;
+procedure Register_DateTime_ISO8601;
+procedure Register_GUID;
 
 implementation
 
@@ -73,14 +74,31 @@ begin
     Result  := ISO8601ToDate(Value.AsString);
 end;
 
-procedure RegisterStandardTypes;
+procedure Register_DateTime_ISO8601;
 begin
   SettingsTypes.Register(TypeInfo(TTime),     TypeInfo(string), InternationalStrToTime,     TimeToInternationalStr);
   SettingsTypes.Register(TypeInfo(TDate),     TypeInfo(string), InternationalStrToDate,     DateToInternationalStr);
   SettingsTypes.Register(TypeInfo(TDateTime), TypeInfo(string), InternationalStrToDateTime, DateTimeToInternationalStr);
 end;
 
+procedure Register_GUID;
+begin
+  SettingsTypes.Register(TypeInfo(TGUID), TypeInfo(string),
+    function(const Value: TValue; const Info: PTypeInfo): TValue
+    begin
+      Result  := TValue.From(TGUID.Create(Value.AsString));
+    end,
+    function(const Value: TValue; const Info: PTypeInfo): TValue
+    var
+      GUID: TGUID;
+    begin
+      Value.ExtractRawDataNoCopy(@GUID);
+      Result  := GUID.ToString;
+    end)
+end;
+
 initialization
-  RegisterStandardTypes;
+  Register_DateTime_ISO8601;
+  Register_GUID;
 
 end.
