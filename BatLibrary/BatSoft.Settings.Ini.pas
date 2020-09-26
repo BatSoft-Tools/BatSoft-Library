@@ -185,14 +185,14 @@ begin
       Result  := fIni.ReadFloat (Path, Name, 0);
     tkEnumeration :
       if  fEnumsAsStrings then
-        Result  := Enum_StringToValue(fIni.ReadString(Path, Name, ''), Info)
+        Result  := StrToEnum(fIni.ReadString(Path, Name, ''), Info)   //        Result  := Enum_StringToValue(fIni.ReadString(Path, Name, ''), Info)
       else
-        Result  := fIni.ReadInteger(Path, Name, 0);
+        Result  := OrdToEnum(fIni.ReadInteger(Path, Name, 0), Info);
     tkSet :
       if  fEnumsAsStrings then
-        Result  := EnumSet_StringToValue(fIni.ReadString(Path, Name, ''), Info)
+        Result  := StrToEnumSet(fIni.ReadString(Path, Name, ''), Info)  //        Result  := EnumSet_StringToValue(fIni.ReadString(Path, Name, ''), Info)
       else
-        Result  := fIni.ReadInt64(Path, Name, 0);
+        Result  := OrdToEnumSet(fIni.ReadInt64(Path, Name, 0), Info);
     tkChar, tkWChar, tkString, tkLString, tkWString, tkUString :
       Result  := fIni.ReadString(Path, Name, '');
     tkVariant :
@@ -337,12 +337,12 @@ begin
       if  fEnumsAsStrings then
         fIni.WriteString(Path, Name, EnumToStr(Value))
       else
-        fIni.WriteInteger(Path, Name, Value.AsInteger);
+        fIni.WriteInteger(Path, Name, EnumToOrd(Value));
     tkSet :
       if  fEnumsAsStrings then
         fIni.WriteString(Path, Name, EnumSetToStr(Value))
       else
-        fIni.WriteInt64(Path, Name, Value.AsOrdinal);
+        fIni.WriteInt64(Path, Name, EnumSetToOrd(Value));
     tkChar, tkWChar, tkString, tkLString, tkWString, tkUString :
       fIni.WriteString(Path, Name, Value.AsString);
     tkVariant :

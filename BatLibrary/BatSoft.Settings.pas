@@ -5,45 +5,24 @@ interface
 uses
   System.SysUtils, System.TypInfo, System.RTTI, System.Classes, Generics.Collections;
 
-type
-  SettingsDeepField = class(TCustomAttribute);
-
 {$region 'Settings attributes'}
+type
+
+  SettingsDeepField = class(TCustomAttribute);
 
 {$region 'Ignore'}
 
 type
-  SettingIgnoreAttribute = class(TCustomAttribute);
+  SettingsIgnore = class(TCustomAttribute);
 
-function HasSettingIgnore(const Prop: TRttiProperty): Boolean;
-
-{$endregion}
-
-{$region 'Preferred constructor'}
-
-//type
-//  PreferredConstructorAttribute = class(TCustomAttribute);
-
-{$endregion}
-
-{$region 'Don''t clear'}
-
-//type
-//  SettingClearAttribute = class(TCustomAttribute)
-//  private
-//    fClear: Boolean;
-//  public
-//    constructor Create(const AClear: Boolean);
-//    property  Clear: Boolean  read fClear;
-//    class function ShouldClear(const Prop: TRttiProperty; const Default: Boolean): Boolean;
-//  end;
+function HasSettingsIgnore(const Prop: TRttiProperty): Boolean;
 
 {$endregion}
 
 {$region 'SettingsOrder'}
 
 type
-  SettingsOrderAttribute = class(TCustomAttribute)
+  SettingsOrder = class(TCustomAttribute)
   private
     fReadOrder: integer;
     fWriteOrder: integer;
@@ -61,13 +40,13 @@ function SortAndFilter(const Props: TArray<TRttiProperty>; const Write: Boolean)
 {$region 'SettingName'}
 
 type
-  SettingNameAttribute = class(TCustomAttribute)
+  SettingsStoreName = class(TCustomAttribute)
   private
-    fSettingName: string;
+    fStoreName: string;
   public
     constructor Create(const ASettingName: string);
-    property  SettingName: string read fSettingName;
-    class function SettingNameOf(const Prop: TRttiProperty): string;
+    property  StoreName: string read fStoreName;
+    class function StoreNameOf(const Prop: TRttiProperty): string;
   end;
 
 {$endregion}
@@ -188,13 +167,16 @@ type
   end;
 
 function  EnumToStr(const Value: TValue): string;
+function  StrToEnum(const Value: string; const Info: PTypeInfo): TValue;
+
+function  EnumToOrd(const Value: TValue): integer;
+function  OrdToEnum(const Value: Int64; const Info: PTypeInfo): TValue;
+
 function  EnumSetToStr(const Value: TValue): string;
+function  StrToEnumSet(const Value: string; const Info: PTypeInfo): TValue;
 
-function  StrToEnum(const Value: string; const Info: PTypeInfo): integer;
-function  StrToEnumSet(Value: string; const Info: PTypeInfo): Int64;
-
-function  Enum_StringToValue(const Value: string; const Info: PTypeInfo): TValue;
-function  EnumSet_StringToValue(const Value: string; const Info: PTypeInfo): TValue;
+function  EnumSetToOrd(const Value: TValue): Int64;
+function  OrdToEnumSet(const Value: Int64; const Info: PTypeInfo): TValue;
 
 const
   SClass  = 'Class';
@@ -207,6 +189,8 @@ resourcestring
   SEUnsupportedType   = 'Property %s cannot be loaded because it is of type %s.';
   SNotImplemented     = 'Not implemented.';
   SNotRegisteredClass = 'Class %s is not registered.';
+  SPropertyIsNil      = 'Property %s is nil';
+  SPropertyIsWrongType= 'Object in property %s is of type %s but %s is expected.';
 
 implementation
 
@@ -262,18 +246,18 @@ begin
   fWriteOrder := AWriteOrder;
 end;
 
-{ IgnoreSettingAttribute }
+{ SettingsIgnore }
 
-function HasSettingIgnore(const Prop: TRttiProperty): Boolean;
+function HasSettingsIgnore(const Prop: TRttiProperty): Boolean;
 var
   Attr: TCustomAttribute;
 begin
-  Result  := FindAttribute(Prop, SettingIgnoreAttribute, Attr)
+  Result  := FindAttribute(Prop, SettingsIgnore, Attr)
 end;
 
-{ SettingsOrderAttribute }
+{ SettingsOrder }
 
-constructor SettingsOrderAttribute.Create(const AReadOrder, AWriteOrder: integer);
+constructor SettingsOrder.Create(const AReadOrder, AWriteOrder: integer);
 begin
   inherited Create;
   fReadOrder  := AReadOrder;
@@ -284,12 +268,12 @@ function GetSettingsOrder(const Prop: TRttiProperty; const Write: Boolean): inte
 var
   Attr: TCustomAttribute;
 begin
-  if  not FindAttribute(Prop, SettingsOrderAttribute, Attr) then
+  if  not FindAttribute(Prop, SettingsOrder, Attr) then
     Result  := 0
   else if Write then
-    Result  := SettingsOrderAttribute(Attr).WriteOrder
+    Result  := SettingsOrder(Attr).WriteOrder
   else
-    Result  := SettingsOrderAttribute(Attr).ReadOrder;
+    Result  := SettingsOrder(Attr).ReadOrder;
 end;
 
 function SortAndFilter(const Props: TArray<TRttiProperty>; const Write: Boolean): TArray<TRttiProperty>;
@@ -302,7 +286,7 @@ begin
     //  Sort properties
     for Prop in Props do
       if  Prop.Visibility = TMemberVisibility.mvPublished then
-        if  not HasSettingIgnore(Prop)  then
+        if  not HasSettingsIgnore(Prop)  then
           List.Add(Prop);
     if  Write then
       List.Sort(WriteComparer)
@@ -315,20 +299,20 @@ begin
   end;
 end;
 
-{ SettingNameAttribute }
+{ SettingsStoreName }
 
-constructor SettingNameAttribute.Create(const ASettingName: string);
+constructor SettingsStoreName.Create(const ASettingName: string);
 begin
   inherited Create;
-  fSettingName  := ASettingName;
+  fStoreName  := ASettingName;
 end;
 
-class function SettingNameAttribute.SettingNameOf(const Prop: TRttiProperty): string;
+class function SettingsStoreName.StoreNameOf(const Prop: TRttiProperty): string;
 var
   Attr: TCustomAttribute;
 begin
-  if  FindAttribute(Prop, SettingNameAttribute, Attr) then
-    Result  := SettingNameAttribute(Attr).SettingName
+  if  FindAttribute(Prop, SettingsStoreName, Attr) then
+    Result  := SettingsStoreName(Attr).StoreName
   else
     Result  := Prop.Name;
 end;
@@ -336,45 +320,51 @@ end;
 //  Enumeration strings
 
 function EnumToStr(const Value: TValue): string;
-var
-  Int: integer;
 begin
-  Value.ExtractRawDataNoCopy(@Int);
-  Result  := GetEnumName(Value.TypeInfo, Int)
+  Result  := GetEnumName(Value.TypeInfo, EnumToOrd(Value))
 end;
 
-function EnumSetToStr(const Value: TValue): string;
-var
-  Int: integer;
-begin
-  Value.ExtractRawDataNoCopy(@Int);
-  Result  := SetToString(Value.TypeInfo, Int)
-end;
-
-function  StrToEnum(const Value: string; const Info: PTypeInfo): integer;
-begin
-  Result  := GetEnumValue(Info, Value)
-end;
-
-function  StrToEnumSet( Value: string; const Info: PTypeInfo): Int64;
-begin
-  Result  := StringToSet(Info, Value)
-end;
-
-function  Enum_StringToValue(const Value: string; const Info: PTypeInfo): TValue;
+function  StrToEnum(const Value: string; const Info: PTypeInfo): TValue;
 var
   Val: Int64;
 begin
-  Val := StrToEnum(Value, Info);
+  Val := GetEnumValue(Info, Value);
   Result  := TValue.FromOrdinal(Info, Val)
 end;
 
-function  EnumSet_StringToValue(const Value: string; const Info: PTypeInfo): TValue;
+function  EnumToOrd(const Value: TValue): integer;
+begin
+  Result  := 0;
+  Value.ExtractRawDataNoCopy(@Result);
+end;
+
+function  OrdToEnum(const Value: Int64; const Info: PTypeInfo): TValue;
+begin
+  TValue.Make(Value, Info, Result)
+end;
+
+function EnumSetToStr(const Value: TValue): string;
+begin
+  Result  := SetToString(Value.TypeInfo, EnumSetToOrd(Value))
+end;
+
+function  StrToEnumSet(const Value: string; const Info: PTypeInfo): TValue;
 var
   Val: Int64;
 begin
-  Val := StrToEnumSet(Value, Info);
+  Val := StringToSet(Info, Value);
   TValue.Make(@Val, Info, Result);
+end;
+
+function  EnumSetToOrd(const Value: TValue): Int64;
+begin
+  Result  := 0;
+  Value.ExtractRawDataNoCopy(@Result);
+end;
+
+function  OrdToEnumSet(const Value: Int64; const Info: PTypeInfo): TValue;
+begin
+  TValue.Make(Value, Info, Result)
 end;
 
 { TSettingsStore }
@@ -513,7 +503,7 @@ var
   RTTIProps: TArray<TRttiProperty>;
   RTTIProp: TRttiProperty;
   Kind: TTypeKind;
-  SettName: string;
+  SettName, ClassName: string;
   ChildClass: TClass;
   ElemClass: TClass;
   Value: TValue;
@@ -528,12 +518,14 @@ begin
   for RTTIProp in RTTIProps do
     begin
       //  Get the correct settings name
-      SettName  := SettingNameAttribute.SettingNameOf(RTTIProp);
+      SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
       //  Examine type kind
       Kind  := RTTIProp.PropertyType.TypeKind;
       //  Load simple type
       if Kind in SupportedSimpleTypes then
         begin
+          if  not RTTIProp.IsWritable then
+            Continue;
           //  Determine what to load
           Value := fStore.LoadValue(SettName, SettingsTypes.FindTypeInfo(RTTIProp.PropertyType.Handle));
           //  Find specific converter
@@ -541,6 +533,15 @@ begin
             Value := Converter(Value, RTTIProp.PropertyType.Handle);
           //  Set the value
           RTTIProp.SetValue(Obj, Value);
+        end
+      //  Load TClass
+      else if Kind = tkClassRef then
+        begin
+          ClassName := LoadString(SettName);
+          if  ClassName.IsEmpty then
+            RTTIProp.SetValue(Obj, nil)
+          else
+            RTTIProp.SetValue(Obj, RTTI.FindType(ClassName).AsInstance.MetaclassType)
         end
       //  Save sub-object
       else if Kind = tkClass then
@@ -553,7 +554,12 @@ begin
               LoadStringsDeep(Obj, RTTIProp)
             else
               //  Read "shallow" TStrings as a single delimited string
-              (RTTIProp.GetValue(Obj).AsObject as TStrings).DelimitedText := LoadString(SettName)
+              begin
+                Child := RTTIProp.GetValue(Obj).AsObject;
+                if  not Assigned(Child) then
+                  raise ESettings.Create(SPropertyIsNil, [SettName]);
+                (Child as TStrings).DelimitedText := LoadString(SettName)
+              end
           //  Load settings list elements as objects
           else if ObjectLists.IsRegistered(ChildClass, ElemClass) then
             begin
@@ -566,13 +572,21 @@ begin
             end
           //  Not a list
           else if fStore.NodeEnter(SettName)  then
-            try
-              Child := RTTIProp.GetValue(Obj).AsObject;
-              CorrectObjectClass(Child, RTTIProp.PropertyType.AsInstance);
-              LoadProperties(Child);
-            finally
-              fStore.NodeLeave;
-            end;
+            if  RTTIProp.IsReadable then
+              try
+                ChildClass  := RTTIProp.PropertyType.AsInstance.MetaclassType;
+                Child       := RTTIProp.GetValue(Obj).AsObject;
+                if  not RTTIProp.IsWritable then
+                  if  not Assigned(Child) then
+                    raise ESettings.Create(SPropertyIsNil, [SettName])
+                  else if not (Child is ChildClass) then
+                    raise ESettings.Create(SPropertyIsWrongType, [SettName, Child.ClassName, ChildClass.ClassName]);
+                CorrectObjectClass(Child, RTTIProp.PropertyType.AsInstance);
+                RTTIProp.SetValue(Obj, Child);
+                LoadProperties(Child);
+              finally
+                fStore.NodeLeave;
+              end;
         end
       //  - Unhandled
       else
@@ -693,8 +707,10 @@ begin
   RTTIProps := SortAndFilter(RTTIProps, True);
   for RTTIProp in RTTIProps do
     begin
+      if  not RTTIProp.IsReadable then
+        Continue;
       //  Get the correct settings name
-      SettName  := SettingNameAttribute.SettingNameOf(RTTIProp);
+      SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
       //  Determine what to save
       Value     := RTTIProp.GetValue(Obj);
       //  Find specific converter
@@ -705,6 +721,9 @@ begin
       //  Save simple type
       if Kind in SupportedSimpleTypes then
         fStore.SaveValue(SettName, Value)
+      //  Save TClass
+      else if Kind = tkClassRef then
+        fStore.SaveValue(SettName, Value.AsClass.QualifiedClassName)
       //  Save sub-object
       else if Kind = tkClass then
         begin

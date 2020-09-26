@@ -162,14 +162,14 @@ begin
         if  Info = TypeInfo(Boolean)  then
           Result  := (JSONVal as TJSONBool).AsBoolean
         else if  fEnumsAsStrings then
-          Result  := Enum_StringToValue((JSONVal as TJSONString).Value, Info)
+          Result  := StrToEnum((JSONVal as TJSONString).Value, Info)
         else
-          Result  := (JSONVal as TJSONNumber).AsInt;
+          Result  := OrdToEnum((JSONVal as TJSONNumber).AsInt, Info);
       tkSet :
         if  fEnumsAsStrings then
-          Result  := EnumSet_StringToValue((JSONVal as TJSONString).Value, Info)
+          Result  := StrToEnumSet((JSONVal as TJSONString).Value, Info)
         else
-          Result  := (JSONVal as TJSONNumber).AsInt64;
+          Result  := OrdToEnum((JSONVal as TJSONNumber).AsInt64, Info);
       tkChar, tkWChar, tkString, tkLString, tkWString, tkUString :
         Result  := (JSONVal as TJSONString).Value;
       tkVariant :
@@ -301,12 +301,12 @@ begin
       else if  fEnumsAsStrings then
         JSONValue := TJSONString.Create(EnumToStr(Value))
       else
-        JSONValue := TJSONNumber.Create(Value.AsOrdinal);
+        JSONValue := TJSONNumber.Create(EnumToOrd(Value));
     tkSet :
       if  fEnumsAsStrings then
         JSONValue := TJSONString.Create(EnumSetToStr(Value))
       else
-        JSONValue := TJSONNumber.Create(Value.AsOrdinal);
+        JSONValue := TJSONNumber.Create(EnumSetToOrd(Value));
     tkChar, tkWChar, tkString, tkLString, tkWString, tkUString :
       JSONValue := TJSONString.Create(Value.AsString);
     tkVariant :
