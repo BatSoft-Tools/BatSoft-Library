@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
-  FMX.Controls.Presentation, FMX.StdCtrls, uDemoSettings;
+  FMX.Controls.Presentation, FMX.StdCtrls, BatSoft.Settings, uDemoSettings;
 
 type
   TfrmDemoSettings = class(TForm)
@@ -18,19 +18,30 @@ type
     Button1: TButton;
     butInit0: TButton;
     Button2: TButton;
-    procedure butSaveClick(Sender: TObject);
-    procedure butLoadClick(Sender: TObject);
+    butIniCreate: TButton;
+    butIniLoad: TButton;
+    butSaveIni: TButton;
+    butJsonLoad: TButton;
+    butSaveJSON: TButton;
+    butInit2: TButton;
+    Button3: TButton;
     procedure butInit0Click(Sender: TObject);
     procedure butInit1Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure butSaveJSONClick(Sender: TObject);
+    procedure butSaveIniClick(Sender: TObject);
+    procedure butInit2Click(Sender: TObject);
+    procedure butIniLoadClick(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure butJsonLoadClick(Sender: TObject);
   private
-    fDemo: TDemoSettings;
     function  CreateUser(const i: integer): TUserSettings;
   end;
 
 var
   frmDemoSettings: TfrmDemoSettings;
+  fDemo: TDemoSettings = nil;
 
 implementation
 
@@ -38,9 +49,15 @@ implementation
 
 uses
   Generics.Collections, RTTI,
-  BatSoft.Settings, BatSoft.Settings.Ini, BatSoft.Settings.JSON;
+  BatSoft.Settings.Ini, BatSoft.Settings.Json;
 
 { TfrmDemoSettings }
+
+procedure TfrmDemoSettings.butIniLoadClick(Sender: TObject);
+begin
+  if OpenDialog.Execute then
+    TSettingsReaderIni.Load<TDemoSettings>(fDemo, OpenDialog.FileName)
+end;
 
 procedure TfrmDemoSettings.butInit0Click(Sender: TObject);
 begin
@@ -52,35 +69,46 @@ procedure TfrmDemoSettings.butInit1Click(Sender: TObject);
 begin
   FreeAndNil(fDemo);
   fDemo := TDemoSettings.Create;
-  fDemo.SettingA  := 'ABC';
-  fDemo.SettingB  := 123;
+  fDemo.Prop_Str    := 'ABC';
+  fDemo.Prop_Int    := 123;
+  fDemo.Prop_Int64  := 456;
+  fDemo.Prop_Dbl    := Now;
+  fDemo.Prop_Ext    := Now;
+  fDemo.Prop_Curr   := 1234.5678;
 
   fDemo.Users := TUsers.Create();
   fDemo.Users.Add(CreateUser(1));
-  fDemo.Users.Add(CreateUser(2));
+  fDemo.Users.Add(nil);
+  fDemo.Users.Add(nil);
 
-  fDemo.UserNameAll.Add('abc');
-  fDemo.UserNameAll.Add('def');
+  fDemo.UserNameAll.AddObject('abc', nil);
+  fDemo.UserNameAll.AddObject('def', nil);
   fDemo.UserNameAll.AddObject('hij', CreateUser(3));
   fDemo.UserNameCurr  := fDemo.UserNameAll[0];
 end;
 
-procedure TfrmDemoSettings.butLoadClick(Sender: TObject);
+procedure TfrmDemoSettings.butInit2Click(Sender: TObject);
 begin
-  if  OpenDialog.Execute  then
-    begin
-      SettingsJSON.LoadFile(fDemo, OpenDialog.FileName, chkClearValues.IsChecked);
-
-    end;
+  fDemo.Users[1]  := CreateUser(2);
+  fDemo.UserNameAll.Objects[0]  := CreateUser(1);
 end;
 
-procedure TfrmDemoSettings.butSaveClick(Sender: TObject);
+procedure TfrmDemoSettings.butJsonLoadClick(Sender: TObject);
+begin
+  if OpenDialog.Execute then
+    TSettingsReaderJSON.Load<TDemoSettings>(fDemo, OpenDialog.FileName)
+end;
+
+procedure TfrmDemoSettings.butSaveIniClick(Sender: TObject);
 begin
   if SaveDialog.Execute then
-    begin
-      SettingsJSON.SaveFile(fDemo, SaveDialog.FileName);
+    TSettingsWriterIni.Save(fDemo, SaveDialog.FileName)
+end;
 
-    end;
+procedure TfrmDemoSettings.butSaveJSONClick(Sender: TObject);
+begin
+  if SaveDialog.Execute then
+    TSettingsWriterJSON.Save(fDemo, SaveDialog.FileName)
 end;
 
 procedure TfrmDemoSettings.Button1Click(Sender: TObject);
@@ -103,11 +131,38 @@ begin
     ShowMessage(User.UserName);
 end;
 
+procedure TfrmDemoSettings.Button3Click(Sender: TObject);
+var
+  Obj: TUserSettings;
+  RTTI: TRttiContext;
+  RTTIType: TRttiType;
+  RTTIProps: TArray<TRttiProperty>;
+  RTTIProp: TRttiProperty;
+  Value: TValue;
+begin
+  Obj := fDemo.Users[1];
+
+  RTTI  := TRttiContext.Create;
+  try
+    RTTIType  := RTTI.GetType(Obj.ClassType);
+    RTTIProps := RTTIType.GetProperties;
+    for RTTIProp in RTTIProps do
+      if RTTIProp.Name = 'Accesses' then
+        begin
+          Value := RTTIProp.GetValue(Obj);
+          RTTIProp.SetValue(Obj, Value);
+        end;
+  finally
+    RTTI.Free;
+  end;
+end;
+
 function TfrmDemoSettings.CreateUser(const i: integer): TUserSettings;
 begin
   Result  := TUserSettings.Create;
   Result.UserName := 'User '+IntToStr(i);
   Result.Access   := TAccess(i mod 3);
+  Result.Accesses := [TAccess(i mod 3), TAccess((i+1) mod 3)];
 end;
 
 end.

@@ -3,292 +3,351 @@ unit BatSoft.Settings.Ini;
 interface
 
 uses
-  System.Rtti, BatSoft.Settings;
+  System.Rtti, System.Classes, System.TypInfo, System.IniFiles,
+  System.Generics.Collections, BatSoft.Settings;
 
 type
-  TSettingsStoreIni = class(TInterfacedObject, ISettingsStore)
+  TSettingsIni = class abstract(TSettingsStore)
   public
-    //  ISettingsStore interface
-    procedure LoadFile(const Settings: TObject; const FileName: string; const ClearValues: Boolean);
-    procedure SaveFile(const Settings: TObject; const FileName: string);
+    const DefaultPathDelimiter  = '/';
+  private
+    fIni: TIniFile;
+    fPath: TStrings;
+    fPathDelimiter: Char;
+    function  CurrentSection: string; inline;
+    procedure StoreBegin;
+    procedure StoreEnd;
+  public
+    constructor Create(const AFileName: string; const AEnumsAsStrings: Boolean = True); overload; override;
+    constructor Create(const AFileName: string; const AEnumsAsStrings: Boolean; const APathDelimiter: Char); reintroduce; overload;
+    destructor  Destroy; override;
   end;
 
-  SettingsIni = class
+  TSettingsReaderIni = class(TSettingsIni, ISettingsStoreReader)
+  private
+    fIterators: TStack<TStrings>;
+    fElemName: string;
   public
-    class procedure LoadFile(const Settings: TObject; const FileName: string; const ClearValues: Boolean);
-    class procedure SaveFile(const Settings: TObject; const FileName: string);
+    //  ISettingsStoreReader interface
+    //  Storage
+    procedure LoadBegin;
+    procedure LoadEnd;
+    //  Navigation
+    procedure NodeChildren(const Names: TStrings);
+    function  NodeEnter(const Name: string): Boolean;
+    procedure NodeLeave;
+    //  Arrays
+    function  ListBegin(const Name: string): Boolean;
+    procedure ListEnd;
+    //  Array elements
+    function  ElemEnter: Boolean;
+    procedure ElemLeave;
+    function  ElemNext: Boolean;
+    //  Simple values
+    function  LoadValue(const Name: string; const Info: PTypeInfo): TValue;
   end;
 
-  ESettingsIni = class(ESettings);
+  TSettingsWriterIni = class(TSettingsIni, ISettingsStoreWriter)
+  protected
+    //  For use in subclasses' SaveValue() overrides
+  public
+    //  ISettingsStoreWriter interface
+    //  Storage
+    procedure SaveBegin;
+    procedure SaveEnd;
+    //  Navigation
+    procedure NodeClear(const Name: string);
+    procedure NodeEnter(const Name: string; const IsNil: Boolean);
+    procedure NodeLeave;
+    //  Arrays
+    procedure ListClear(const Name: string);
+    procedure ListBegin(const Name: string; const IsNil: Boolean);
+    procedure ListEnd;
+    //  Array elements
+    procedure ElemEnter(const Index: integer; const IsNil: Boolean);
+    procedure ElemLeave;
+    //  Simple values
+    procedure SaveValue(const Name: string; const Value: TValue); virtual;
+  end;
 
 implementation
 
 uses
-  System.TypInfo, System.IniFiles, System.Classes;
+  System.SysUtils, System.Variants;
 
-const
-  SClass  = 'Class';
+{ TSettingsIni }
 
-type
-  TIniPath = type string;
-
-  TIniPathHelper = record helper for TIniPath
-  private const
-    CDiv = '/';
-  public
-    function Add(const Name: string): TIniPath;
-  end;
-
-{ TIniPathHelper }
-
-function TIniPathHelper.Add(const Name: string): TIniPath;
+constructor TSettingsIni.Create(const AFileName: string; const AEnumsAsStrings: Boolean);
 begin
-  Result  := Self + CDiv + Name
+  Create(AFileName, AEnumsAsStrings, DefaultPathDelimiter)
 end;
 
-{ TSettingsStoreIni }
-
-procedure TSettingsStoreIni.LoadFile(const Settings: TObject; const FileName: string; const ClearValues: Boolean);
-var
-  IniFile: TIniFile;
-  RTTI: TRttiContext;
-
-  procedure IniToSett(const SettObj: TObject; const Section: TIniPath);
-
-    procedure ObtainChild(const Prop: TRttiProperty; var ChildObj: TObject);
-    var
-      ChildClassName: string;
-      ChildClass: TRttiType;
-    begin
-      //  If object does not exist, then create it
-      if  not Assigned(ChildObj)  then
-        begin
-          //  Determine class
-          if  IniFile.ValueExists(Section, Prop.Name) then
-            begin
-              ChildClassName  := IniFile.ReadString(Section, Prop.Name, '');
-              ChildClass      := RTTI.FindType(ChildClassName);
-              if  not Assigned(ChildClass)  then
-                raise ESettingsIni.Create('Class '''+ChildClassName+''' not found.');
-            end
-          else
-            ChildClass  := Prop.PropertyType;
-          //  Create object
-          ChildObj  := ChildClass.AsInstance.MetaclassType.Create;
-          Prop.SetValue(SettObj, ChildObj);
-        end;
-    end;
-
-    procedure LoadStrings(const Strs: TStrings);
-    var
-      ChildSection: TIniPath;
-      ChildClassName: string;
-      ChildClass: TRttiType;
-      ChildObj: TObject;
-      ChildSections: TStringList;
-    begin
-      if  ClearValues then
-        Strs.Clear;
-      //  Read values
-      ChildSections := TStringList.Create;
-      try
-        IniFile.ReadSections(Section, ChildSections);
-        for ChildSection in ChildSections do
-          begin
-            //  Determine class
-            if  IniFile.ValueExists(ChildSection, SClass) then
-              begin
-                ChildClassName  := IniFile.ReadString(ChildSection, SClass, '');
-                ChildClass  := RTTI.FindType(ChildClassName);
-                if  not Assigned(ChildClass)  then
-                  raise ESettingsIni.Create('Class '''+ChildClassName+''' not found.');
-                //  Create child object
-                ChildObj  := ChildClass.AsInstance.MetaclassType.Create;
-                Strs.AddObject(ChildSection, ChildObj);
-                //  Recurse loading settings
-                IniToSett(ChildObj, ChildSection);
-              end;
-          end;
-      finally
-        ChildSections.Free;
-      end;
-    end;
-
-  var
-    RTTIType: TRttiType;
-    Props: TArray<TRttiProperty>;
-    Prop: TRttiProperty;
-    i: integer;
-    Child: TObject;
-    ClassValue: TRttiType;
-    ValueAsString: string;
-  begin
-    //  Run through each published property
-    RTTIType  := RTTI.GetType(SettObj.ClassType);
-    Props := RTTIType.GetProperties;
-    Props := SortAndFilter(Props, False);
-    for i := 0 to Length(Props) - 1 do
-      begin
-        Prop  := Props[i];
-        if  Prop.Visibility = TMemberVisibility.mvPublished then
-          begin
-            if  IniFile.SectionExists(Section) and (Prop.IsWritable or (Prop.PropertyType.TypeKind = tkClass))  then
-              begin
-                ValueAsString := IniFile.ReadString(Section, Prop.Name, Prop.GetValue(SettObj).AsString);
-                case Prop.PropertyType.TypeKind of
-                  tkInteger :     Prop.SetValue(SettObj, IniFile.ReadInteger(Section, Prop.Name, Prop.GetValue(SettObj).AsInteger));
-                  tkInt64 :       raise ESettingsIni.Create(ClassName+' does not support Int64.');
-                  tkFloat :       Prop.SetValue(SettObj, IniFile.ReadFloat(Section, Prop.Name, Prop.GetValue(SettObj).AsInteger));
-                  tkEnumeration : SetEnumProp(SettObj, Prop.Name, IniFile.ReadString(Section, Prop.Name, GetEnumProp(SettObj, Prop.Name)));
-                  tkSet :         SetSetProp(SettObj, Prop.Name, IniFile.ReadString(Section, Prop.Name, GetSetProp(SettObj, Prop.Name)));
-                  tkChar, tkWChar, tkString, tkLString, tkWString, tkUString, tkVariant :
-                                  Prop.SetValue(SettObj, ValueAsString);
-                  tkClassRef :
-                    begin
-                      ClassValue  := RTTI.FindType(ValueAsString);
-                      if  not Assigned(ClassValue)  then
-                        raise ESettingsIni.Create('Class '+ValueAsString+' not found.');
-                      if  ClassValue.TypeKind <> tkClass then
-                        raise ESettingsIni.Create('Type '+ValueAsString+' is not a class.');
-                      Prop.SetValue(SettObj, TClass((ClassValue as TRttiInstanceType).MetaclassType));
-                    end;
-                  tkClass :
-                    begin
-                      //  Try to get hold of a child object
-                      Child := Prop.GetValue(SettObj).AsObject;
-                      if  not Assigned(Child) and Prop.IsWritable then
-                        ObtainChild(Prop, Child);
-                      //  Recurse
-                      if  Assigned(Child) then
-                        IniToSett(Child, Section.Add(Prop.Name));
-                    end;
-                else raise ESettingsIni.Create('Property '+Prop.Name+' cannot be loaded because it is of type '+Prop.PropertyType.Name+'.');
-                end;
-              end
-            else if ClearValues then
-              begin
-                  case Prop.PropertyType.TypeKind of
-                    tkInteger, tkInt64, tkFloat,
-                    tkEnumeration, tkSet,
-                    tkChar, tkWChar, tkString, tkLString, tkWString, tkUString,
-                    tkVariant, tkClassRef :
-                      Prop.SetValue(SettObj, TValue.Empty);
-                    tkClass :
-                      begin
-                        Prop.GetValue(SettObj).AsObject.Free;
-                        Prop.SetValue(SettObj, nil);
-                      end;
-                  end;
-              end;
-          end;
-      end;
-    //  Load objects if this is a TStrings object
-    if  SettObj is TStrings then
-      LoadStrings(SettObj as TStrings);
-  end;
-
+constructor TSettingsIni.Create(const AFileName: string; const AEnumsAsStrings: Boolean; const APathDelimiter: Char);
 begin
-  //  Set up
-  RTTI.Create;
+  inherited Create(AFileName, AEnumsAsStrings);
+  fPath           := TStringList.Create;
+  fPathDelimiter  := APathDelimiter
+end;
+
+function TSettingsIni.CurrentSection: string;
+begin
+  Result  := fPath.DelimitedText
+end;
+
+destructor TSettingsIni.Destroy;
+begin
+  fPath.Free;
+  inherited;
+end;
+
+procedure TSettingsIni.StoreBegin;
+begin
+  fIni  := TIniFile.Create(fFileName);
+  fPath := TStringList.Create;
+  fPath.Delimiter := fPathDelimiter;
+end;
+
+procedure TSettingsIni.StoreEnd;
+begin
+  fIni.Free;
+end;
+
+{ TSettingsReaderIni }
+
+function TSettingsReaderIni.ElemEnter: Boolean;
+begin
+  Result  := NodeEnter(fElemName)
+end;
+
+procedure TSettingsReaderIni.ElemLeave;
+begin
+  NodeLeave;
+end;
+
+function TSettingsReaderIni.ElemNext: Boolean;
+begin
+  //  Do we have a next element?
+  Result  := fIterators.Peek.Count > 0;
+  if  Result  then
+    begin
+      //  Note the name of the element
+      fElemName := fIterators.Peek[0];
+      //  Iterate
+      fIterators.Peek.Delete(0);
+    end;
+end;
+
+function TSettingsReaderIni.ListBegin(const Name: string): Boolean;
+var
+  Iterator: TStringList;
+begin
+  fPath.Add(Name);
+  Result  := True;
+  if  Result  then
+    begin
+      Iterator  := TStringList.Create;
+      fIterators.Push(Iterator);
+      NodeChildren(Iterator);
+    end;
+end;
+
+procedure TSettingsReaderIni.ListEnd;
+begin
+  fIterators.Pop.Free;
+  fPath.Delete(fPath.Count - 1)
+end;
+
+procedure TSettingsReaderIni.LoadBegin;
+begin
+  StoreBegin;
+  fIterators  := TStack<TStrings>.Create;
+end;
+
+procedure TSettingsReaderIni.LoadEnd;
+begin
+  while fIterators.Count > 0 do
+    fIterators.Pop.Free;
+  fIterators.Free;
+  StoreEnd;
+end;
+
+function TSettingsReaderIni.LoadValue(const Name: string; const Info: PTypeInfo): TValue;
+var
+  Path: string;
+begin
+  Path  := CurrentSection;
+  case Info.Kind of
+    tkInteger :
+      Result  := fIni.ReadInteger(Path, Name, 0);
+    tkInt64 :
+      Result  := fIni.ReadInt64(Path, Name, 0);
+    tkFloat :
+      Result  := fIni.ReadFloat (Path, Name, 0);
+    tkEnumeration :
+      if  fEnumsAsStrings then
+        Result  := StrToEnum(fIni.ReadString(Path, Name, ''), Info)   //        Result  := Enum_StringToValue(fIni.ReadString(Path, Name, ''), Info)
+      else
+        Result  := OrdToEnum(fIni.ReadInteger(Path, Name, 0), Info);
+    tkSet :
+      if  fEnumsAsStrings then
+        Result  := StrToEnumSet(fIni.ReadString(Path, Name, ''), Info)  //        Result  := EnumSet_StringToValue(fIni.ReadString(Path, Name, ''), Info)
+      else
+        Result  := OrdToEnumSet(fIni.ReadInt64(Path, Name, 0), Info);
+    tkChar, tkWChar, tkString, tkLString, tkWString, tkUString :
+      Result  := fIni.ReadString(Path, Name, '');
+    tkVariant :
+      if  fIni.ValueExists(Path, Name)  then
+        Result  := TValue.FromVariant(fIni.ReadString(Path, Name, ''))
+      else
+        Result  := TValue.FromVariant(Null)
+  end;
+end;
+
+function TSettingsReaderIni.NodeEnter(const Name: string): Boolean;
+begin
+  fPath.Add(Name);
+  Result  := not SameText(fIni.ReadString(CurrentSection, SClass, string.Empty), SNil);
+  if  not Result  then
+    fPath.Delete(fPath.Count - 1)
+end;
+
+procedure TSettingsReaderIni.NodeLeave;
+begin
+  fPath.Delete(fPath.Count - 1)
+end;
+
+procedure TSettingsReaderIni.NodeChildren(const Names: TStrings);
+var
+  i: integer;
+  Path: TStringList;
+  CurrPath: string;
+begin
+  fIni.ReadSections(CurrentSection, Names);
+  //  Filter down to the immediate children
+  CurrPath  := CurrentSection + fPathDelimiter;
+  Path  := TStringList.Create;
   try
-    //  Load the .ini file
-    IniFile := TIniFile.Create(FileName);
-    try
-      IniToSett(Settings, '/');
-    finally
-      IniFile.Free;
-    end;
-  finally
-    RTTI.Free;
-  end;
-end;
-
-procedure TSettingsStoreIni.SaveFile(const Settings: TObject; const FileName: string);
-var
-  IniFile: TIniFile;
-  RTTI: TRttiContext;
-
-  procedure SettToIni(const SettObj: TObject; const ExpectedClass: TClass; const Section: TIniPath);
-  var
-    RTTIType: TRttiType;
-    Props: TArray<TRttiProperty>;
-    Prop: TRttiProperty;
-
-    procedure SaveStrings(const Strings: TStrings);
-    var
-      i: integer;
-    begin
-      for i := 0 to Strings.Count - 1 do
-        SettToIni(Strings.Objects[i], nil, Section.Add(Strings[i]));
-    end;
-
-  var
-    i: integer;
-  begin
-    //  Don't save nil
-    if  not Assigned(SettObj) then
-      Exit;
-    //  Might have to specify the class
-    if  SettObj.ClassType <> ExpectedClass  then
-      IniFile.WriteString(Section, SClass, SettObj.QualifiedClassName);
-    //  Run through each published property
-    RTTIType  := RTTI.GetType(SettObj.ClassType);
-    Props := SortAndFilter(RTTIType.GetProperties, True);
-    for i := 0 to Length(Props) - 1 do
+    Path.Delimiter  := fPathDelimiter;
+    for i := Names.Count - 1 downto 0 do
       begin
-        Prop  := Props[i];
-        if  (Prop.Visibility = TMemberVisibility.mvPublished) and Prop.IsReadable then
-          case Prop.PropertyType.TypeKind of
-            tkInteger :     IniFile.WriteInteger(Section, Prop.Name, Prop.GetValue(SettObj).AsInteger);
-            tkInt64 :       raise ESettingsIni.Create(ClassName+' does not support Int64.');
-            tkFloat :       IniFile.WriteFloat(Section, Prop.Name, Prop.GetValue(SettObj).AsExtended);
-            tkEnumeration : IniFile.WriteString(Section, Prop.Name, GetEnumProp(SettObj, Prop.Name));
-            tkSet :         IniFile.WriteString(Section, Prop.Name, GetSetProp(SettObj, Prop.Name));
-            tkChar, tkWChar, tkString, tkLString, tkWString, tkUString :
-                            IniFile.WriteString(Section, Prop.Name, Prop.GetValue(SettObj).AsString);
-            tkVariant :     IniFile.WriteString(Section, Prop.Name, Prop.GetValue(SettObj).AsVariant);
-            tkClassRef :    IniFile.WriteString(Section, Prop.Name, Prop.GetValue(SettObj).AsClass.QualifiedClassName);
-            tkClass :       SettToIni(Prop.GetValue(SettObj).AsObject, Prop.PropertyType.AsInstance.MetaclassType, Section.Add(Prop.Name));
-          else raise ESettingsIni.Create('Property '+Prop.Name+' cannot be saved because it is of type '+Prop.PropertyType.Name+'.');
+        if  not Names[i].StartsWith(CurrPath, True) then
+          begin
+            Names.Delete(i);
+            Continue;
           end;
+        Path.DelimitedText  := Names[i];
+        if  Path.Count > fPath.Count + 1  then
+          Names.Delete(i)
+        else
+          Names[i]  := Path[fPath.Count];
       end;
-    //  Save TStrings
-    if  SettObj is TStrings then
-      SaveStrings(SettObj as TStrings);
-  end;
-
-begin
-  //  Set up
-  RTTI.Create;
-  try
-    //  Generate the Ini structure
-    IniFile := TIniFile.Create(FileName);
-    try
-      SettToIni(Settings, Settings.ClassType, '/');
-    finally
-      IniFile.Free;
-    end;
   finally
-    RTTI.Free;
+    Path.Free;
   end;
 end;
 
-{ SettingsIni }
+{ TSettingsWriterIni }
 
-class procedure SettingsIni.LoadFile(const Settings: TObject; const FileName: string; const ClearValues: Boolean);
-var
-  Store: ISettingsStore;
+procedure TSettingsWriterIni.ElemEnter(const Index: integer; const IsNil: Boolean);
 begin
-  Store := TSettingsStoreIni.Create;
-  Store.LoadFile(Settings, FileName, ClearValues);
+  NodeEnter('(' + Index.ToString + ')', IsNil)
 end;
 
-class procedure SettingsIni.SaveFile(const Settings: TObject; const FileName: string);
-var
-  Store: ISettingsStore;
+procedure TSettingsWriterIni.ElemLeave;
 begin
-  Store := TSettingsStoreIni.Create;
-  Store.SaveFile(Settings, FileName);
+  fPath.Delete(fPath.Count - 1)
+end;
+
+procedure TSettingsWriterIni.ListBegin(const Name: string; const IsNil: Boolean);
+begin
+  fPath.Add(Name);
+end;
+
+procedure TSettingsWriterIni.ListClear(const Name: string);
+begin
+  NodeClear(Name)
+end;
+
+procedure TSettingsWriterIni.ListEnd;
+begin
+  fPath.Delete(fPath.Count - 1)
+end;
+
+procedure TSettingsWriterIni.NodeClear(const Name: string);
+var
+  Sections: TStrings;
+  Section, Path: string;
+begin
+  Sections  := TStringList.Create;
+  try
+    //  Erase this
+    Path  := fPath.DelimitedText;
+    if  Path.IsEmpty  then
+      Path  := Name
+    else
+      Path  := path + fPathDelimiter + Name;
+    fIni.EraseSection(Path);
+    //  Erase children
+    fIni.ReadSubSections(Path, Sections, True);
+    Path  := Path + fPathDelimiter;
+    for Section in Sections do
+      fIni.EraseSection(Path + Section);
+  finally
+    Sections.Free;
+  end;
+end;
+
+procedure TSettingsWriterIni.NodeEnter(const Name: string; const IsNil: Boolean);
+begin
+  fPath.Add(Name);
+  if  IsNil then
+    fIni.WriteString(fPath.DelimitedText, SClass, 'Null')
+  else
+    fIni.DeleteKey(fPath.DelimitedText, SClass)
+end;
+
+procedure TSettingsWriterIni.NodeLeave;
+begin
+  fPath.Delete(fPath.Count - 1)
+end;
+
+procedure TSettingsWriterIni.SaveBegin;
+begin
+  StoreBegin
+end;
+
+procedure TSettingsWriterIni.SaveEnd;
+begin
+  StoreEnd
+end;
+
+procedure TSettingsWriterIni.SaveValue(const Name: string; const Value: TValue);
+var
+  Path: string;
+begin
+  Path  := CurrentSection;
+  case Value.TypeInfo.Kind of
+    tkInteger :
+      fIni.WriteInteger(Path, Name, Value.AsInteger);
+    tkInt64 :
+      fIni.WriteInt64(Path, Name, Value.AsInt64);
+    tkFloat :
+      fIni.WriteFloat(Path, Name, Value.AsExtended);
+    tkEnumeration :
+      if  fEnumsAsStrings then
+        fIni.WriteString(Path, Name, EnumToStr(Value))
+      else
+        fIni.WriteInteger(Path, Name, EnumToOrd(Value));
+    tkSet :
+      if  fEnumsAsStrings then
+        fIni.WriteString(Path, Name, EnumSetToStr(Value))
+      else
+        fIni.WriteInt64(Path, Name, EnumSetToOrd(Value));
+    tkChar, tkWChar, tkString, tkLString, tkWString, tkUString :
+      fIni.WriteString(Path, Name, Value.AsString);
+    tkVariant :
+      fIni.WriteString(Path, Name, Value.AsString);
+  end;
 end;
 
 end.
