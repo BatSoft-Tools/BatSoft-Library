@@ -138,10 +138,10 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="Unit1.pas"/>
-        <DCCReference Include="TestObserverManaged.pas"/>
-        <DCCReference Include="TestObserverManual.pas"/>
         <DCCReference Include="TestBinaryList.pas"/>
         <DCCReference Include="TestMementos.pas"/>
+        <DCCReference Include="..\..\BatLibrary\BatSoft.Classes.pas"/>
+        <DCCReference Include="..\..\BatLibrary\BatSoft.Mementos.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

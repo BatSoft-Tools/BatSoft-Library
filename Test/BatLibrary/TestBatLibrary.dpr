@@ -14,10 +14,10 @@ uses
   {$ENDIF }
   DUnitX.TestFramework,
   Unit1 in 'Unit1.pas',
-  TestObserverManaged in 'TestObserverManaged.pas',
-  TestObserverManual in 'TestObserverManual.pas',
   TestBinaryList in 'TestBinaryList.pas',
-  TestMementos in 'TestMementos.pas';
+  TestMementos in 'TestMementos.pas',
+  BatSoft.Classes in '..\..\BatLibrary\BatSoft.Classes.pas',
+  BatSoft.Mementos in '..\..\BatLibrary\BatSoft.Mementos.pas';
 
 {$IFNDEF TESTINSIGHT}
 var

@@ -1,7 +1,7 @@
 object frmChangeTest: TfrmChangeTest
   Left = 0
   Top = 0
-  Caption = 'Mementos 2'
+  Caption = 'Demo: Mementos'
   ClientHeight = 495
   ClientWidth = 405
   FormFactor.Width = 320
@@ -235,6 +235,12 @@ object frmChangeTest: TfrmChangeTest
       Position.Y = 40.000000000000000000
       Text = 'Toggle'
       OnClick = butToggleClick
+    end
+    object butClear: TButton
+      Position.X = 208.000000000000000000
+      Position.Y = 40.000000000000000000
+      Text = 'Clear'
+      OnClick = butClearClick
     end
   end
 end

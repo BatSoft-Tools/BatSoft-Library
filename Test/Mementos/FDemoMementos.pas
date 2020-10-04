@@ -1,4 +1,4 @@
-unit FChangeTest;
+unit FDemoMementos;
 
 interface
 
@@ -70,6 +70,7 @@ type
     grpTAddress: TGroupBox;
     panButtons: TPanel;
     butToggle: TButton;
+    butClear: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure edPerNameExit(Sender: TObject);
@@ -89,6 +90,7 @@ type
     procedure edSuburbExit(Sender: TObject);
     procedure edNotesExit(Sender: TObject);
     procedure butToggleClick(Sender: TObject);
+    procedure butClearClick(Sender: TObject);
   private
     fRefCounter: IRefCounter;
     fPerson: TPerson;
@@ -122,6 +124,18 @@ begin
 end;
 
 { TfrmChangeTest2 }
+
+procedure TfrmChangeTest.butClearClick(Sender: TObject);
+begin
+  fPerson.Age         := 0;
+  fPerson.FamName     := '';
+  fPerson.PerName     := '';
+  fPerson.fCounter    := nil;
+  fPerson.Notes.Text  := '';
+  fPerson.Address.Street  := '';
+  fPerson.Address.Suburb  := '';
+  ShowPerson;
+end;
 
 procedure TfrmChangeTest.butCreateClick(Sender: TObject);
 begin
@@ -181,11 +195,11 @@ end;
 
 procedure TfrmChangeTest.butPopulateClick(Sender: TObject);
 begin
-  fPerson.Age       := 29;
-  fPerson.FamName   := 'Doe';
-  fPerson.PerName   := 'John';
-  fPerson.fCounter  := fRefCounter;
-  fPerson.Notes.Text:= 'Some notes about this person.';
+  fPerson.Age         := 29;
+  fPerson.FamName     := 'Doe';
+  fPerson.PerName     := 'John';
+  fPerson.fCounter    := fRefCounter;
+  fPerson.Notes.Text  := 'Some notes about this person.';
   fPerson.Address.Street  := '1 Main Road';
   fPerson.Address.Suburb  := 'Suburbia';
   ShowPerson;

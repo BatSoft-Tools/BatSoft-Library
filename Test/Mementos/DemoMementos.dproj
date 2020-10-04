@@ -192,7 +192,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="uRefCounter.pas"/>
-        <DCCReference Include="FChangeTest.pas">
+        <DCCReference Include="FDemoMementos.pas">
             <Form>frmChangeTest</Form>
         </DCCReference>
         <DCCReference Include="..\..\BatLibrary\BatSoft.Mementos.pas"/>

@@ -4,7 +4,7 @@ uses
   System.StartUpCopy,
   FMX.Forms,
   uRefCounter in 'uRefCounter.pas',
-  FChangeTest in 'FChangeTest.pas' {frmChangeTest},
+  FDemoMementos in 'FDemoMementos.pas' {frmChangeTest},
   BatSoft.Mementos in '..\..\BatLibrary\BatSoft.Mementos.pas';
 
 {$R *.res}
