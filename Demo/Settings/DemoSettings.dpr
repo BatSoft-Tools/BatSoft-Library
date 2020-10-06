@@ -17,6 +17,5 @@ uses
 begin
   Application.Initialize;
   Application.CreateForm(TfrmDemoSettings, frmDemoSettings);
-  Application.CreateForm(TfrmEditUser, frmEditUser);
   Application.Run;
 end.

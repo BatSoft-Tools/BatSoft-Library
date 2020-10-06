@@ -132,23 +132,36 @@ type
     procedure Save(const Obj: TObject; ObjClass: TClass = nil);
   end;
 
-  TValueConverter = reference to function(const Value: TValue; const Info: PTypeInfo): TValue;
+  TSimpleTypeConverter = reference to function(const Value: TValue; const Info: PTypeInfo): TValue;
+
+  TSimpleLoader   = reference to function (const Name: string; const TypeInfo: PTypeInfo): TValue;
+  TSimpleSaver    = reference to procedure (const Name: string; const Value: TValue);
+
+  TComplexLoader  = reference to function (const LoadValue: TSimpleLoader): TValue;
+  TComplexSaver   = reference to procedure (const Value: TValue; const SaveValue: TSimpleSaver);
 
   SettingsTypes = class
   private type
-    TValueConverters = record
+    TSimpleConverters = record
       StoreInfo: PTypeInfo;
-      ToStore, ToProperty: TValueConverter;
+      ToStore, ToProperty: TSimpleTypeConverter;
+    end;
+    TComplexConverters = record
+      PropInfo: PTypeInfo;
+      ToStore: TComplexSaver;
+      ToProperty: TComplexLoader;
     end;
   private
-    class var _Types: TDictionary<PTypeInfo, TValueConverters>;
-    class function  FindTypeInfo(const PropInfo: PTypeInfo): PTypeInfo;
-    class function  FindToProperty(const PropInfo: PTypeInfo; out Converter: TValueConverter): Boolean;
-    class function  FindToStore(const PropInfo: PTypeInfo; out Converter: TValueConverter): Boolean;
+    class var _SimpleTypes: TDictionary<PTypeInfo, TSimpleConverters>;
+    class var _ComplexTypes: TDictionary<PTypeInfo, TComplexConverters>;
+    class function  StoreTypeInfoOf(const PropInfo: PTypeInfo): PTypeInfo;
+    class function  ConvertToProperty(const PropInfo: PTypeInfo; const StoreValue: TValue): TValue;
+    class function  ConvertToStore(const PropInfo: PTypeInfo; const PropValue: TValue): TValue;
   public
     class constructor Create;
     class destructor  Destroy;
-    class procedure Register(const PropInfo, StoreInfo: PTypeInfo; const ToProperty, ToStore: TValueConverter); overload;
+    class procedure Register(const PropInfo, StoreInfo: PTypeInfo; const ToProperty, ToStore: TSimpleTypeConverter); overload;
+    class procedure Register(const PropInfo: PTypeInfo; const ToStore: TComplexSaver; const ToProperty: TComplexLoader); overload;
   end;
 
   SettingsLists = class
@@ -188,7 +201,8 @@ resourcestring
   SENotSettingsList   = 'List is not a settings list.';
   SENotByteArray      = 'Property %s cannot be loaded because it is a dynamic array, but not TArray<Byte>.';
   SEUnsupportedType   = 'Property %s cannot be loaded because it is of type %s.';
-  SNotImplemented     = 'Not implemented.';
+  SNotImplementedLoad = 'Does not implement ISettingsStoreReader.';
+  SNotImplementedSave = 'Does not implement ISettingsStoreWriter.';
   SNotRegisteredClass = 'Class %s is not registered.';
   SPropertyIsNil      = 'Property %s is nil';
   SPropertyIsWrongType= 'Object in property %s is of type %s but %s is expected.';
@@ -424,8 +438,8 @@ class procedure TSettingsStore.Load(var Obj: TObject; const AFileName: string; c
 var
   Reader: TSettingsReader;
 begin
-  if  Self = TSettingsStore then
-    raise ESettings.Create(SNotImplemented);
+  if  not Supports(Self, ISettingsStoreReader)  then
+    raise ESettings.Create(SNotImplementedLoad);
   Reader  := TSettingsReader.Create(Self.Create(AFileName, AEnumsAsStrings) as ISettingsStoreReader);
   try
     Reader.Load(TObject(Obj), DefaultClass);
@@ -443,8 +457,8 @@ class procedure TSettingsStore.Save(const Obj: TObject; const AFileName: string;
 var
   Writer: TSettingsWriter;
 begin
-  if  Self = TSettingsStore then
-    raise ESettings.Create(SNotImplemented);
+  if  not Supports(Self, ISettingsStoreWriter)  then
+    raise ESettings.Create(SNotImplementedSave);
   Writer  := TSettingsWriter.Create(Self.Create(AFileName, AEnumsAsStrings) as ISettingsStoreWriter);
   try
     Writer.Save(Obj);
@@ -551,7 +565,7 @@ var
   ChildClass: TClass;
   ElemClass: TClass;
   Value: TValue;
-  Converter: TValueConverter;
+  ComplexConverter: SettingsTypes.TComplexConverters;
   Child: TObject;
 begin
   if  not Assigned(Obj) then
@@ -563,6 +577,22 @@ begin
     begin
       //  Get the correct settings name
       SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
+      //  Manage complex types separately
+      if SettingsTypes._ComplexTypes.TryGetValue(RTTIProp.PropertyType.Handle, ComplexConverter)  then
+        begin
+          fStore.NodeEnter(SettName);
+          try
+            Value := ComplexConverter.ToProperty(
+              function (const Name: string; const TypeInfo: PTypeInfo): TValue
+              begin
+                Result  := SettingsTypes.ConvertToProperty(TypeInfo, fStore.LoadValue(Name, TypeInfo))
+              end);
+            RTTIProp.SetValue(Obj, Value);
+          finally
+            fStore.NodeLeave;
+          end;
+          Continue;
+        end;
       //  Examine type kind
       Kind  := RTTIProp.PropertyType.TypeKind;
       //  Load simple type
@@ -571,10 +601,9 @@ begin
           if  not RTTIProp.IsWritable then
             Continue;
           //  Determine what to load
-          Value := fStore.LoadValue(SettName, SettingsTypes.FindTypeInfo(RTTIProp.PropertyType.Handle));
+          Value := fStore.LoadValue(SettName, SettingsTypes.StoreTypeInfoOf(RTTIProp.PropertyType.Handle));
           //  Find specific converter
-          if  SettingsTypes.FindToProperty(RTTIProp.PropertyType.Handle, Converter) then
-            Value := Converter(Value, RTTIProp.PropertyType.Handle);
+          Value := SettingsTypes.ConvertToProperty(RTTIProp.PropertyType.Handle, Value);
           //  Set the value
           RTTIProp.SetValue(Obj, Value);
         end
@@ -739,7 +768,7 @@ var
   Child: TObject;
   ElemClass: TClass;
   Value: TValue;
-  Converter: TValueConverter;
+  ComplexConverter: SettingsTypes.TComplexConverters;
 begin
   if  not Assigned(Obj) then
     Exit;
@@ -756,9 +785,23 @@ begin
       SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
       //  Determine what to save
       Value     := RTTIProp.GetValue(Obj);
+      //  Manage complex types separately
+      if SettingsTypes._ComplexTypes.TryGetValue(RTTIProp.PropertyType.Handle, ComplexConverter)  then
+        begin
+          fStore.NodeEnter(SettName, False);
+          try
+            ComplexConverter.ToStore(Value,
+              procedure (const Name: string; const Value: TValue)
+              begin
+                fStore.SaveValue(Name, SettingsTypes.ConvertToStore(Value.TypeInfo, Value))
+              end);
+          finally
+            fStore.NodeLeave;
+          end;
+          Continue;
+        end;
       //  Find specific converter
-      if  SettingsTypes.FindToStore(RTTIProp.PropertyType.Handle, Converter) then
-        Value := Converter(Value, RTTIProp.PropertyType.Handle);
+      Value := SettingsTypes.ConvertToStore(RTTIProp.PropertyType.Handle, Value);
       //  Examine type kind
       Kind  := Value.Kind;
       //  Save simple type
@@ -846,52 +889,66 @@ end;
 
 { SettingsTypes }
 
+class function SettingsTypes.ConvertToProperty(const PropInfo: PTypeInfo; const StoreValue: TValue): TValue;
+var
+  Converters: TSimpleConverters;
+begin
+  if  _SimpleTypes.TryGetValue(PropInfo, Converters)  then
+    Result  := Converters.ToProperty(StoreValue, PropInfo)
+  else
+    Result  := StoreValue;
+end;
+
+class function SettingsTypes.ConvertToStore(const PropInfo: PTypeInfo; const PropValue: TValue): TValue;
+var
+  Converters: TSimpleConverters;
+begin
+  if  _SimpleTypes.TryGetValue(PropInfo, Converters)  then
+    Result  := Converters.ToStore(PropValue, PropInfo)
+  else
+    Result  := PropValue;
+end;
+
 class constructor SettingsTypes.Create;
 begin
-  _Types  := TDictionary<PTypeInfo, TValueConverters>.Create;
+  _SimpleTypes  := TDictionary<PTypeInfo, TSimpleConverters>.Create;
+  _ComplexTypes := TDictionary<PTypeInfo, TComplexConverters>.Create;
 end;
 
 class destructor SettingsTypes.Destroy;
 begin
-  _Types.Free;
+  _SimpleTypes.Free;
+  _ComplexTypes.Free;
 end;
 
-class function SettingsTypes.FindToProperty(const PropInfo: PTypeInfo; out Converter: TValueConverter): Boolean;
+class procedure SettingsTypes.Register(const PropInfo: PTypeInfo; const ToStore: TComplexSaver; const ToProperty: TComplexLoader);
 var
-  Converters: TValueConverters;
+  ValueConverters: TComplexConverters;
 begin
-  Result  := _Types.TryGetValue(PropInfo, Converters);
-  if  Result  then
-    Converter := Converters.ToProperty
+  ValueConverters.PropInfo    := PropInfo;
+  ValueConverters.ToStore     := ToStore;
+  ValueConverters.ToProperty  := ToProperty;
+  _ComplexTypes.AddOrSetValue(PropInfo, ValueConverters);
 end;
 
-class function SettingsTypes.FindToStore(const PropInfo: PTypeInfo; out Converter: TValueConverter): Boolean;
+class procedure SettingsTypes.Register(const PropInfo, StoreInfo: PTypeInfo; const ToProperty, ToStore: TSimpleTypeConverter);
 var
-  Converters: TValueConverters;
-begin
-  Result  := _Types.TryGetValue(PropInfo, Converters);
-  if  Result  then
-    Converter := Converters.ToStore
-end;
-
-class function SettingsTypes.FindTypeInfo(const PropInfo: PTypeInfo): PTypeInfo;
-var
-  Converters: TValueConverters;
-begin
-  if  _Types.TryGetValue(PropInfo, Converters)  then
-    Result  := Converters.StoreInfo
-  else
-    Result  := PropInfo
-end;
-
-class procedure SettingsTypes.Register(const PropInfo, StoreInfo: PTypeInfo; const ToProperty, ToStore: TValueConverter);
-var
-  ValueConverters: TValueConverters;
+  ValueConverters: TSimpleConverters;
 begin
   ValueConverters.StoreInfo   := StoreInfo;
   ValueConverters.ToStore     := ToStore;
   ValueConverters.ToProperty  := ToProperty;
-  _Types.AddOrSetValue(PropInfo, ValueConverters);
+  _SimpleTypes.AddOrSetValue(PropInfo, ValueConverters);
+end;
+
+class function SettingsTypes.StoreTypeInfoOf(const PropInfo: PTypeInfo): PTypeInfo;
+var
+  Converters: TSimpleConverters;
+begin
+  if  _SimpleTypes.TryGetValue(PropInfo, Converters)  then
+    Result  := Converters.StoreInfo
+  else
+    Result  := PropInfo
 end;
 
 { ObjectLists }

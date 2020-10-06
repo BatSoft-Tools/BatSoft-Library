@@ -3,7 +3,7 @@ unit uDemoSettings;
 interface
 
 uses
-  Generics.Collections, BatSoft.Settings;
+  System.Types, Generics.Collections, BatSoft.Settings;
 
 type
 //  Your settings classes must be enclosed with {$M+} so that RTTI exists for
@@ -42,6 +42,7 @@ type
   private
     fActiveUser: TUser;
     fUsers: TUsers;
+    fUserForm: TRect;
     function  GetActiveUserID: TGUID;
     procedure SetActiveUserID(const Value: TGUID);
   public
@@ -62,10 +63,17 @@ type
     //  Do this before looking up the active user.
     [SettingsLoadOrder(1)]
     property  Users         : TUsers  read fUsers write fUsers;
+
+    //  Form positions
+    property  UserForm  : TRect read fUserForm  write fUserForm;
   end;
 
 //  Tidy up the RTTI flag
 {$M-}
+
+//  Keep the settings in a central unit, such as the unit where it's classes are defined, as in this example.
+var
+  Settings: TAppSettings  = nil;
 
 implementation
 

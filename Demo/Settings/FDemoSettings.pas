@@ -53,7 +53,6 @@ type
 
 var
   frmDemoSettings: TfrmDemoSettings;
-  Settings: TAppSettings  = nil;
 
 implementation
 
@@ -99,7 +98,7 @@ begin
       //  In this demo we'll clear the settings first.
       ClearSettings;
       //  This is the line that loads from a JSON file
-      TSettingsJSONSaver.Load(Settings, OpenDialog.FileName, True);
+      TSettingsJSONLoader.Load(Settings, OpenDialog.FileName, True);
     end;
   PopulateUsers;
 end;
@@ -110,7 +109,7 @@ begin
   SaveDialog.FilterIndex  := 1;
   if  SaveDialog.Execute  then
     //  This is the line that saves to an ini file
-    TSettingsIniLoader.Save(Settings, SaveDialog.FileName, True)
+    TSettingsIniSaver.Save(Settings, SaveDialog.FileName, True)
 end;
 
 procedure TfrmDemoSettings.butSaveJSONClick(Sender: TObject);
@@ -119,7 +118,7 @@ begin
   SaveDialog.FilterIndex  := 2;
   if  SaveDialog.Execute  then
     //  This is the line that saves to a JSON file
-    TSettingsIniSaver.Save(Settings, SaveDialog.FileName, True)
+    TSettingsJSONSaver.Save(Settings, SaveDialog.FileName, True)
 end;
 
 procedure TfrmDemoSettings.butSeedDataClick(Sender: TObject);
@@ -136,7 +135,7 @@ procedure TfrmDemoSettings.butUserAddClick(Sender: TObject);
 var
   NewUser: TUser;
 begin
-  if  frmEditUser.New(NewUser)  then
+  if  TfrmEditUser.New(NewUser)  then
     Settings.Users.Add(NewUser);
   PopulateUsers;
 end;
@@ -152,7 +151,7 @@ end;
 
 procedure TfrmDemoSettings.butUserEditClick(Sender: TObject);
 begin
-  frmEditUser.Edit(SelectedUser);
+  TfrmEditUser.Edit(SelectedUser);
   PopulateUsers;
 end;
 
@@ -189,7 +188,7 @@ end;
 procedure TfrmDemoSettings.lstUsersDblClick(Sender: TObject);
 begin
   if  lstUsers.ItemIndex >= 0 then
-    frmEditUser.Edit(SelectedUser)
+    TfrmEditUser.Edit(SelectedUser)
 end;
 
 procedure TfrmDemoSettings.PopulateState;

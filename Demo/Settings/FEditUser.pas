@@ -20,13 +20,10 @@ type
     fUser: TUser;
     procedure SetUser(const Value: TUser);
   public
-    function  New(out AUser: TUser): Boolean;
-    function  Edit(const AUser: TUser): Boolean;
+    class function  New(out AUser: TUser): Boolean;
+    class function  Edit(const AUser: TUser): Boolean;
     property  User  : TUser read fUser  write SetUser;
   end;
-
-var
-  frmEditUser: TfrmEditUser;
 
 implementation
 
@@ -34,21 +31,32 @@ implementation
 
 { TfrmEditUser }
 
-function TfrmEditUser.Edit(const AUser: TUser): Boolean;
+class function TfrmEditUser.Edit(const AUser: TUser): Boolean;
+var
+  frmEditUser: TfrmEditUser;
 begin
-  User    := AUser;
-  Result  := ShowModal = mrOk
+  frmEditUser := TfrmEditUser.Create(Application);
+  try
+    //  Fetch form position
+    if  Settings.UserForm.Height > 0  then
+      frmEditUser.SetBounds(Settings.UserForm);
+    //  Usual form code
+    frmEditUser.User  := AUser;
+    Result  := frmEditUser.ShowModal = mrOk;
+    //  Save form position
+    Settings.UserForm := frmEditUser.GetBounds;
+  finally
+    frmEditUser.ReleaseForm;
+  end;
 end;
 
 procedure TfrmEditUser.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   if  ModalResult = mrOk  then
-    begin
-      fUser.Name  := edUserName.Text;
-    end;
+    fUser.Name  := edUserName.Text;
 end;
 
-function TfrmEditUser.New(out AUser: TUser): Boolean;
+class function TfrmEditUser.New(out AUser: TUser): Boolean;
 begin
   AUser   := TUser.CreateNew;
   Result  := Edit(AUser);

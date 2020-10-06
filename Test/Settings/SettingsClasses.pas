@@ -3,7 +3,8 @@ unit SettingsClasses;
 interface
 
 uses
-  System.Classes, System.Generics.Collections, BatSoft.Settings, BatSoft.Mementos;
+  System.Types, System.Classes, System.Generics.Collections,
+  BatSoft.Settings, BatSoft.Mementos;
 
 type
   TEnum = (enumABC, enumDEF, enumXYZ);
@@ -55,10 +56,12 @@ type
   TComplexValues = class
   private
     fGUID: TGUID;
+    fRect: TRect;
   public
     function  Init: TComplexValues;
   published
     property  ValueGUID   : TGUID     read fGUID          write fGUID;
+    property  ValueRect   : TRect     read fRect          write fRect;
   end;
 
   TObjBase = class
@@ -160,6 +163,7 @@ function TComplexValues.Init: TComplexValues;
 begin
   Result  := Self;
   fGUID   := TGUID.NewGuid;
+  fRect   := Rect(100, 200, 300, 400)
 end;
 
 { TObjBase }
