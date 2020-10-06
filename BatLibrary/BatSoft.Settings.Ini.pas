@@ -23,7 +23,7 @@ type
     destructor  Destroy; override;
   end;
 
-  TSettingsReaderIni = class(TSettingsIni, ISettingsStoreReader)
+  TSettingsIniLoader = class(TSettingsIni, ISettingsStoreReader)
   private
     fIterators: TStack<TStrings>;
     fElemName: string;
@@ -47,7 +47,7 @@ type
     function  LoadValue(const Name: string; const Info: PTypeInfo): TValue;
   end;
 
-  TSettingsWriterIni = class(TSettingsIni, ISettingsStoreWriter)
+  TSettingsIniSaver = class(TSettingsIni, ISettingsStoreWriter)
   protected
     //  For use in subclasses' SaveValue() overrides
   public
@@ -112,19 +112,19 @@ begin
   fIni.Free;
 end;
 
-{ TSettingsReaderIni }
+{ TSettingsIniLoader }
 
-function TSettingsReaderIni.ElemEnter: Boolean;
+function TSettingsIniLoader.ElemEnter: Boolean;
 begin
   Result  := NodeEnter(fElemName)
 end;
 
-procedure TSettingsReaderIni.ElemLeave;
+procedure TSettingsIniLoader.ElemLeave;
 begin
   NodeLeave;
 end;
 
-function TSettingsReaderIni.ElemNext: Boolean;
+function TSettingsIniLoader.ElemNext: Boolean;
 begin
   //  Do we have a next element?
   Result  := fIterators.Peek.Count > 0;
@@ -137,7 +137,7 @@ begin
     end;
 end;
 
-function TSettingsReaderIni.ListBegin(const Name: string): Boolean;
+function TSettingsIniLoader.ListBegin(const Name: string): Boolean;
 var
   Iterator: TStringList;
 begin
@@ -151,19 +151,19 @@ begin
     end;
 end;
 
-procedure TSettingsReaderIni.ListEnd;
+procedure TSettingsIniLoader.ListEnd;
 begin
   fIterators.Pop.Free;
   fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsReaderIni.LoadBegin;
+procedure TSettingsIniLoader.LoadBegin;
 begin
   StoreBegin;
   fIterators  := TStack<TStrings>.Create;
 end;
 
-procedure TSettingsReaderIni.LoadEnd;
+procedure TSettingsIniLoader.LoadEnd;
 begin
   while fIterators.Count > 0 do
     fIterators.Pop.Free;
@@ -171,7 +171,7 @@ begin
   StoreEnd;
 end;
 
-function TSettingsReaderIni.LoadValue(const Name: string; const Info: PTypeInfo): TValue;
+function TSettingsIniLoader.LoadValue(const Name: string; const Info: PTypeInfo): TValue;
 var
   Path: string;
 begin
@@ -203,7 +203,7 @@ begin
   end;
 end;
 
-function TSettingsReaderIni.NodeEnter(const Name: string): Boolean;
+function TSettingsIniLoader.NodeEnter(const Name: string): Boolean;
 begin
   fPath.Add(Name);
   Result  := not SameText(fIni.ReadString(CurrentSection, SClass, string.Empty), SNil);
@@ -211,12 +211,12 @@ begin
     fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsReaderIni.NodeLeave;
+procedure TSettingsIniLoader.NodeLeave;
 begin
   fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsReaderIni.NodeChildren(const Names: TStrings);
+procedure TSettingsIniLoader.NodeChildren(const Names: TStrings);
 var
   i: integer;
   Path: TStringList;
@@ -246,34 +246,34 @@ begin
   end;
 end;
 
-{ TSettingsWriterIni }
+{ TSettingsIniSaver }
 
-procedure TSettingsWriterIni.ElemEnter(const Index: integer; const IsNil: Boolean);
+procedure TSettingsIniSaver.ElemEnter(const Index: integer; const IsNil: Boolean);
 begin
   NodeEnter('(' + Index.ToString + ')', IsNil)
 end;
 
-procedure TSettingsWriterIni.ElemLeave;
+procedure TSettingsIniSaver.ElemLeave;
 begin
   fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsWriterIni.ListBegin(const Name: string; const IsNil: Boolean);
+procedure TSettingsIniSaver.ListBegin(const Name: string; const IsNil: Boolean);
 begin
   fPath.Add(Name);
 end;
 
-procedure TSettingsWriterIni.ListClear(const Name: string);
+procedure TSettingsIniSaver.ListClear(const Name: string);
 begin
   NodeClear(Name)
 end;
 
-procedure TSettingsWriterIni.ListEnd;
+procedure TSettingsIniSaver.ListEnd;
 begin
   fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsWriterIni.NodeClear(const Name: string);
+procedure TSettingsIniSaver.NodeClear(const Name: string);
 var
   Sections: TStrings;
   Section, Path: string;
@@ -297,7 +297,7 @@ begin
   end;
 end;
 
-procedure TSettingsWriterIni.NodeEnter(const Name: string; const IsNil: Boolean);
+procedure TSettingsIniSaver.NodeEnter(const Name: string; const IsNil: Boolean);
 begin
   fPath.Add(Name);
   if  IsNil then
@@ -306,22 +306,22 @@ begin
     fIni.DeleteKey(fPath.DelimitedText, SClass)
 end;
 
-procedure TSettingsWriterIni.NodeLeave;
+procedure TSettingsIniSaver.NodeLeave;
 begin
   fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsWriterIni.SaveBegin;
+procedure TSettingsIniSaver.SaveBegin;
 begin
   StoreBegin
 end;
 
-procedure TSettingsWriterIni.SaveEnd;
+procedure TSettingsIniSaver.SaveEnd;
 begin
   StoreEnd
 end;
 
-procedure TSettingsWriterIni.SaveValue(const Name: string; const Value: TValue);
+procedure TSettingsIniSaver.SaveValue(const Name: string; const Value: TValue);
 var
   Path: string;
 begin

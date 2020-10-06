@@ -7,8 +7,7 @@ uses
 
 type
   [TestFixture]
-  TTestSettingsIni = class(TTestSettings<TSettingsReaderIni, TSettingsWriterIni>)
-  public
+  TTestSettingsIni = class(TTestSettings<TSettingsIniLoader, TSettingsIniSaver>)
   end;
 
 implementation

@@ -84,7 +84,7 @@ begin
       //  In this demo we'll clear the settings first.
       ClearSettings;
       //  This is the line that loads from an ini file
-      TSettingsReaderIni.Load(Settings, OpenDialog.FileName, True);
+      TSettingsIniLoader.Load(Settings, OpenDialog.FileName, True);
     end;
   PopulateUsers;
 end;
@@ -99,7 +99,7 @@ begin
       //  In this demo we'll clear the settings first.
       ClearSettings;
       //  This is the line that loads from a JSON file
-      TSettingsReaderJSON.Load(Settings, OpenDialog.FileName, True);
+      TSettingsJSONSaver.Load(Settings, OpenDialog.FileName, True);
     end;
   PopulateUsers;
 end;
@@ -110,7 +110,7 @@ begin
   SaveDialog.FilterIndex  := 1;
   if  SaveDialog.Execute  then
     //  This is the line that saves to an ini file
-    TSettingsWriterIni.Save(Settings, SaveDialog.FileName, True)
+    TSettingsIniLoader.Save(Settings, SaveDialog.FileName, True)
 end;
 
 procedure TfrmDemoSettings.butSaveJSONClick(Sender: TObject);
@@ -119,7 +119,7 @@ begin
   SaveDialog.FilterIndex  := 2;
   if  SaveDialog.Execute  then
     //  This is the line that saves to a JSON file
-    TSettingsWriterJSON.Save(Settings, SaveDialog.FileName, True)
+    TSettingsIniSaver.Save(Settings, SaveDialog.FileName, True)
 end;
 
 procedure TfrmDemoSettings.butSeedDataClick(Sender: TObject);
