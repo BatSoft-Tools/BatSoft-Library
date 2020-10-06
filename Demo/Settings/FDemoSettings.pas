@@ -4,165 +4,237 @@ interface
 
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
-  FMX.Controls.Presentation, FMX.StdCtrls, BatSoft.Settings, uDemoSettings;
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, uDemoSettings,
+  FMX.Layouts, FMX.StdCtrls, FMX.Edit, FMX.Controls.Presentation,
+  FMX.ListView.Types, FMX.ListView.Appearances, FMX.ListView.Adapters.Base,
+  FMX.ListView, FMX.ListBox;
 
 type
   TfrmDemoSettings = class(TForm)
-    butSave: TButton;
-    butLoad: TButton;
-    OpenDialog: TOpenDialog;
-    SaveDialog: TSaveDialog;
-    chkClearValues: TCheckBox;
-    butInit1: TButton;
-    Button1: TButton;
-    butInit0: TButton;
-    Button2: TButton;
-    butIniCreate: TButton;
-    butIniLoad: TButton;
-    butSaveIni: TButton;
-    butJsonLoad: TButton;
+    panUsers: TGroupBox;
+    lstUsers: TListView;
+    panControl: TGroupBox;
+    butSaveINI: TButton;
     butSaveJSON: TButton;
-    butInit2: TButton;
-    Button3: TButton;
-    procedure butInit0Click(Sender: TObject);
-    procedure butInit1Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    SaveDialog: TSaveDialog;
+    butLoadINI: TButton;
+    butLoadJSON: TButton;
+    OpenDialog: TOpenDialog;
+    butSeedData: TButton;
+    panActiveUser: TGroupBox;
+    cmbActiveUser: TComboBox;
+    Splitter1: TSplitter;
+    Layout1: TLayout;
+    butClearData: TButton;
+    butUserAdd: TButton;
+    butUserEdit: TButton;
+    butUserDelete: TButton;
+    GridLayout1: TGridLayout;
+    procedure butSaveINIClick(Sender: TObject);
     procedure butSaveJSONClick(Sender: TObject);
-    procedure butSaveIniClick(Sender: TObject);
-    procedure butInit2Click(Sender: TObject);
-    procedure butIniLoadClick(Sender: TObject);
-    procedure Button3Click(Sender: TObject);
-    procedure butJsonLoadClick(Sender: TObject);
+    procedure butLoadINIClick(Sender: TObject);
+    procedure butLoadJSONClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure butSeedDataClick(Sender: TObject);
+    procedure butClearDataClick(Sender: TObject);
+    procedure cmbActiveUserExit(Sender: TObject);
+    procedure butUserAddClick(Sender: TObject);
+    procedure butUserEditClick(Sender: TObject);
+    procedure lstUsersChange(Sender: TObject);
+    procedure butUserDeleteClick(Sender: TObject);
+    procedure lstUsersDblClick(Sender: TObject);
   private
-    function  CreateUser(const i: integer): TUserSettings;
+    procedure ClearSettings;
+    procedure PopulateState;
+    procedure PopulateUsers;
+    function  SelectedUser: TUser;
   end;
 
 var
   frmDemoSettings: TfrmDemoSettings;
-  fDemo: TDemoSettings = nil;
+  Settings: TAppSettings  = nil;
 
 implementation
 
 {$R *.fmx}
 
 uses
-  Generics.Collections, RTTI,
-  BatSoft.Settings.Ini, BatSoft.Settings.Json;
+  BatSoft.Settings.Ini, BatSoft.Settings.JSON, FEditUser;
 
-{ TfrmDemoSettings }
+const
+  SIni  = '.ini';
+  SJson = '.json';
 
-procedure TfrmDemoSettings.butIniLoadClick(Sender: TObject);
+{ TfrmDemoSettings2 }
+
+procedure TfrmDemoSettings.butClearDataClick(Sender: TObject);
 begin
-  if OpenDialog.Execute then
-    TSettingsReaderIni.Load<TDemoSettings>(fDemo, OpenDialog.FileName)
+  ClearSettings;
+  PopulateUsers;
 end;
 
-procedure TfrmDemoSettings.butInit0Click(Sender: TObject);
+procedure TfrmDemoSettings.butLoadINIClick(Sender: TObject);
 begin
-  FreeAndNil(fDemo);
-  fDemo := TDemoSettings.Create;
+  OpenDialog.DefaultExt   := SIni;
+  OpenDialog.FilterIndex  := 1;
+  if  OpenDialog.Execute  then
+    begin
+      //  I normally allow cumulative loading of multiple settings sources.
+      //  In this demo we'll clear the settings first.
+      ClearSettings;
+      //  This is the line that loads from an ini file
+      TSettingsReaderIni.Load(Settings, OpenDialog.FileName, True);
+    end;
+  PopulateUsers;
 end;
 
-procedure TfrmDemoSettings.butInit1Click(Sender: TObject);
+procedure TfrmDemoSettings.butLoadJSONClick(Sender: TObject);
 begin
-  FreeAndNil(fDemo);
-  fDemo := TDemoSettings.Create;
-  fDemo.Prop_Str    := 'ABC';
-  fDemo.Prop_Int    := 123;
-  fDemo.Prop_Int64  := 456;
-  fDemo.Prop_Dbl    := Now;
-  fDemo.Prop_Ext    := Now;
-  fDemo.Prop_Curr   := 1234.5678;
-
-  fDemo.Users := TUsers.Create();
-  fDemo.Users.Add(CreateUser(1));
-  fDemo.Users.Add(nil);
-  fDemo.Users.Add(nil);
-
-  fDemo.UserNameAll.AddObject('abc', nil);
-  fDemo.UserNameAll.AddObject('def', nil);
-  fDemo.UserNameAll.AddObject('hij', CreateUser(3));
-  fDemo.UserNameCurr  := fDemo.UserNameAll[0];
+  OpenDialog.DefaultExt   := SJson;
+  OpenDialog.FilterIndex  := 2;
+  if  OpenDialog.Execute  then
+    begin
+      //  I normally allow cumulative loading of multiple settings sources.
+      //  In this demo we'll clear the settings first.
+      ClearSettings;
+      //  This is the line that loads from a JSON file
+      TSettingsReaderJSON.Load(Settings, OpenDialog.FileName, True);
+    end;
+  PopulateUsers;
 end;
 
-procedure TfrmDemoSettings.butInit2Click(Sender: TObject);
+procedure TfrmDemoSettings.butSaveINIClick(Sender: TObject);
 begin
-  fDemo.Users[1]  := CreateUser(2);
-  fDemo.UserNameAll.Objects[0]  := CreateUser(1);
-end;
-
-procedure TfrmDemoSettings.butJsonLoadClick(Sender: TObject);
-begin
-  if OpenDialog.Execute then
-    TSettingsReaderJSON.Load<TDemoSettings>(fDemo, OpenDialog.FileName)
-end;
-
-procedure TfrmDemoSettings.butSaveIniClick(Sender: TObject);
-begin
-  if SaveDialog.Execute then
-    TSettingsWriterIni.Save(fDemo, SaveDialog.FileName)
+  SaveDialog.DefaultExt   := SIni;
+  SaveDialog.FilterIndex  := 1;
+  if  SaveDialog.Execute  then
+    //  This is the line that saves to an ini file
+    TSettingsWriterIni.Save(Settings, SaveDialog.FileName, True)
 end;
 
 procedure TfrmDemoSettings.butSaveJSONClick(Sender: TObject);
 begin
-  if SaveDialog.Execute then
-    TSettingsWriterJSON.Save(fDemo, SaveDialog.FileName)
+  SaveDialog.DefaultExt   := SJson;
+  SaveDialog.FilterIndex  := 2;
+  if  SaveDialog.Execute  then
+    //  This is the line that saves to a JSON file
+    TSettingsWriterJSON.Save(Settings, SaveDialog.FileName, True)
 end;
 
-procedure TfrmDemoSettings.Button1Click(Sender: TObject);
-var
-  C: TClass;
+procedure TfrmDemoSettings.butSeedDataClick(Sender: TObject);
 begin
-  C := fDemo.Users.ClassType;
-  while Assigned(C) do
+  Settings.Users.Add(TUser.CreateNew('John Stag'));
+  Settings.Users.Add(TUser.CreateNew('Jane Doe'));
+  Settings.Users.Add(TUser.CreateNew('Sonny Skye'));
+  Settings.Users.Add(TUser.CreateNew('Dawn Breaker'));
+  Settings.Users.Add(TUser.CreateNew('May-June Summers'));
+  PopulateUsers;
+end;
+
+procedure TfrmDemoSettings.butUserAddClick(Sender: TObject);
+var
+  NewUser: TUser;
+begin
+  if  frmEditUser.New(NewUser)  then
+    Settings.Users.Add(NewUser);
+  PopulateUsers;
+end;
+
+procedure TfrmDemoSettings.butUserDeleteClick(Sender: TObject);
+begin
+  if  SelectedUser <> nil then
     begin
-      ShowMessage(C.QualifiedClassName);
-      C := C.ClassParent;
+      Settings.Users.DeleteUser(SelectedUser.ID);
+      PopulateUsers;
     end;
 end;
 
-procedure TfrmDemoSettings.Button2Click(Sender: TObject);
-var
-  User: TUserSettings;
+procedure TfrmDemoSettings.butUserEditClick(Sender: TObject);
 begin
-  for User in fDemo.Users do
-    ShowMessage(User.UserName);
+  frmEditUser.Edit(SelectedUser);
+  PopulateUsers;
 end;
 
-procedure TfrmDemoSettings.Button3Click(Sender: TObject);
-var
-  Obj: TUserSettings;
-  RTTI: TRttiContext;
-  RTTIType: TRttiType;
-  RTTIProps: TArray<TRttiProperty>;
-  RTTIProp: TRttiProperty;
-  Value: TValue;
+procedure TfrmDemoSettings.ClearSettings;
 begin
-  Obj := fDemo.Users[1];
+  Settings.Free;
+  Settings  := TAppSettings.Create;
+end;
 
-  RTTI  := TRttiContext.Create;
+procedure TfrmDemoSettings.cmbActiveUserExit(Sender: TObject);
+begin
+  if  cmbActiveUser.ItemIndex < 0 then
+    Settings.ActiveUser := nil
+  else
+    Settings.ActiveUser := cmbActiveUser.Items.Objects[cmbActiveUser.ItemIndex] as TUser;
+end;
+
+procedure TfrmDemoSettings.FormCreate(Sender: TObject);
+begin
+  Settings  := TAppSettings.Create;
+  PopulateState;
+end;
+
+procedure TfrmDemoSettings.FormDestroy(Sender: TObject);
+begin
+  Settings.Free;
+end;
+
+procedure TfrmDemoSettings.lstUsersChange(Sender: TObject);
+begin
+  PopulateState;
+end;
+
+procedure TfrmDemoSettings.lstUsersDblClick(Sender: TObject);
+begin
+  if  lstUsers.ItemIndex >= 0 then
+    frmEditUser.Edit(SelectedUser)
+end;
+
+procedure TfrmDemoSettings.PopulateState;
+begin
+  butUserEdit.Enabled   := SelectedUser <> nil;
+  butUserDelete.Enabled := SelectedUser <> nil;
+end;
+
+procedure TfrmDemoSettings.PopulateUsers;
+var
+  User: TUser;
+  Item: TListViewItem;
+begin
+  //  Users
+  lstUsers.BeginUpdate;
   try
-    RTTIType  := RTTI.GetType(Obj.ClassType);
-    RTTIProps := RTTIType.GetProperties;
-    for RTTIProp in RTTIProps do
-      if RTTIProp.Name = 'Accesses' then
-        begin
-          Value := RTTIProp.GetValue(Obj);
-          RTTIProp.SetValue(Obj, Value);
-        end;
+    lstUsers.Items.Clear;
+    for User in Settings.Users  do
+      begin
+        Item  := lstUsers.Items.Add;
+        Item.TagObject  := User;
+        Item.Text       := User.Name;
+      end;
   finally
-    RTTI.Free;
+    lstUsers.EndUpdate;
   end;
+  //  Active user
+  cmbActiveUser.Items.BeginUpdate;
+  try
+    cmbActiveUser.Items.Clear;
+    for User in Settings.Users  do
+      cmbActiveUser.Items.AddObject(User.Name, User);
+    cmbActiveUser.ItemIndex := cmbActiveUser.Items.IndexOfObject(Settings.ActiveUser);
+  finally
+    cmbActiveUser.Items.EndUpdate;
+  end;
+  PopulateState;
 end;
 
-function TfrmDemoSettings.CreateUser(const i: integer): TUserSettings;
+function TfrmDemoSettings.SelectedUser: TUser;
 begin
-  Result  := TUserSettings.Create;
-  Result.UserName := 'User '+IntToStr(i);
-  Result.Access   := TAccess(i mod 3);
-  Result.Accesses := [TAccess(i mod 3), TAccess((i+1) mod 3)];
+  if  lstUsers.ItemIndex < 0  then
+    Result  := nil
+  else
+    Result  :=lstUsers.Items[lstUsers.ItemIndex].TagObject as TUser
 end;
 
 end.

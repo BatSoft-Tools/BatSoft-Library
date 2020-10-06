@@ -19,21 +19,22 @@ function HasSettingsIgnore(const Prop: TRttiProperty): Boolean;
 
 {$endregion}
 
-{$region 'SettingsOrder'}
+{$region 'Settings Load/Save Order'}
 
 type
-  SettingsOrder = class(TCustomAttribute)
+  SettingsOrderBase = class abstract(TCustomAttribute)
   private
-    fReadOrder: integer;
-    fWriteOrder: integer;
+    fOrder: integer;
   public
-    constructor Create(const AReadOrder, AWriteOrder: integer);
-    property  ReadOrder   : integer read fReadOrder;
-    property  WriteOrder  : integer read fWriteOrder;
+    constructor Create(const AOrder: integer);
+    property  Order : integer read fOrder;
   end;
 
-function GetSettingsOrder(const Prop: TRttiProperty; const Write: Boolean): integer;
-function SortAndFilter(const Props: TArray<TRttiProperty>; const Write: Boolean): TArray<TRttiProperty>;
+  SettingsLoadOrder = class(SettingsOrderBase);
+  SettingsSaveOrder = class(SettingsOrderBase);
+
+function GetSettingsOrder(const Prop: TRttiProperty; const Save: Boolean): integer;
+function SortAndFilter(const Props: TArray<TRttiProperty>; const Save: Boolean): TArray<TRttiProperty>;
 
 {$endregion}
 
@@ -150,7 +151,7 @@ type
     class procedure Register(const PropInfo, StoreInfo: PTypeInfo; const ToProperty, ToStore: TValueConverter); overload;
   end;
 
-  ObjectLists = class
+  SettingsLists = class
   private
     class var _Types: TDictionary<TClass, TClass>;
   public
@@ -207,9 +208,9 @@ const
 type
   TSettingsOrderComparer = class(TInterfacedObject, IComparer<TRttiProperty>)
   private
-    fWriteOrder: Boolean;
+    fSaveOrder: Boolean;
   public
-    constructor Create(const AWriteOrder: Boolean);
+    constructor Create(const ASaveOrder: Boolean);
     //  IComparer<T> interface
     function Compare(const Left, Right: TRttiProperty): Integer;
   end;
@@ -237,13 +238,13 @@ end;
 
 function TSettingsOrderComparer.Compare(const Left, Right: TRttiProperty): Integer;
 begin
-  Result  := GetSettingsOrder(Left, fWriteOrder) - GetSettingsOrder(Right, fWriteOrder)
+  Result  := GetSettingsOrder(Left, fSaveOrder) - GetSettingsOrder(Right, fSaveOrder)
 end;
 
-constructor TSettingsOrderComparer.Create(const AWriteOrder: Boolean);
+constructor TSettingsOrderComparer.Create(const ASaveOrder: Boolean);
 begin
   inherited Create;
-  fWriteOrder := AWriteOrder;
+  fSaveOrder  := ASaveOrder;
 end;
 
 { SettingsIgnore }
@@ -255,28 +256,71 @@ begin
   Result  := FindAttribute(Prop, SettingsIgnore, Attr)
 end;
 
-{ SettingsOrder }
+//{ SettingsOrder }
+//
+//constructor SettingsOrder.Create(const AReadOrder, AWriteOrder: integer);
+//begin
+//  inherited Create;
+//  fReadOrder  := AReadOrder;
+//  fWriteOrder := AWriteOrder;
+//end;
+//
+//function GetSettingsOrder(const Prop: TRttiProperty; const Write: Boolean): integer;
+//var
+//  Attr: TCustomAttribute;
+//begin
+//  if  not FindAttribute(Prop, SettingsOrder, Attr) then
+//    Result  := 0
+//  else if Write then
+//    Result  := SettingsOrder(Attr).WriteOrder
+//  else
+//    Result  := SettingsOrder(Attr).ReadOrder;
+//end;
 
-constructor SettingsOrder.Create(const AReadOrder, AWriteOrder: integer);
+//function SortAndFilter(const Props: TArray<TRttiProperty>; const Write: Boolean): TArray<TRttiProperty>;
+//var
+//  List: TList<TRttiProperty>;
+//  Prop: TRttiProperty;
+//begin
+//  List  := TList<TRttiProperty>.Create;
+//  try
+//    //  Sort properties
+//    for Prop in Props do
+//      if  Prop.Visibility = TMemberVisibility.mvPublished then
+//        if  not HasSettingsIgnore(Prop)  then
+//          List.Add(Prop);
+//    if  Write then
+//      List.Sort(WriteComparer)
+//    else
+//      List.Sort(ReadComparer);
+//    //  Done
+//    Result  := List.ToArray;
+//  finally
+//    List.Free;
+//  end;
+//end;
+//
+{ SettingsOrderBase }
+
+constructor SettingsOrderBase.Create(const AOrder: integer);
 begin
   inherited Create;
-  fReadOrder  := AReadOrder;
-  fWriteOrder := AWriteOrder;
+  fOrder  := AOrder;
 end;
 
-function GetSettingsOrder(const Prop: TRttiProperty; const Write: Boolean): integer;
+function GetSettingsOrder(const Prop: TRttiProperty; const Save: Boolean): integer;
 var
   Attr: TCustomAttribute;
 begin
-  if  not FindAttribute(Prop, SettingsOrder, Attr) then
+  if  not FindAttribute(Prop, SettingsOrderBase, Attr) then
     Result  := 0
-  else if Write then
-    Result  := SettingsOrder(Attr).WriteOrder
+  else if Save  then
+    Result  := SettingsSaveOrder(Attr).Order
   else
-    Result  := SettingsOrder(Attr).ReadOrder;
+    Result  := SettingsLoadOrder(Attr).Order;
 end;
 
-function SortAndFilter(const Props: TArray<TRttiProperty>; const Write: Boolean): TArray<TRttiProperty>;
+function SortAndFilter(const Props: TArray<TRttiProperty>; const Save: Boolean): TArray<TRttiProperty>;
 var
   List: TList<TRttiProperty>;
   Prop: TRttiProperty;
@@ -288,7 +332,7 @@ begin
       if  Prop.Visibility = TMemberVisibility.mvPublished then
         if  not HasSettingsIgnore(Prop)  then
           List.Add(Prop);
-    if  Write then
+    if  Save  then
       List.Sort(WriteComparer)
     else
       List.Sort(ReadComparer);
@@ -561,7 +605,7 @@ begin
                 (Child as TStrings).DelimitedText := LoadString(SettName)
               end
           //  Load settings list elements as objects
-          else if ObjectLists.IsRegistered(ChildClass, ElemClass) then
+          else if SettingsLists.IsRegistered(ChildClass, ElemClass) then
             begin
               fStore.ListBegin(SettName);
               try
@@ -750,7 +794,7 @@ begin
               //  Write "shallow" TStrings as a single delimited string
               SaveStrings(SettName, Child)
           //  Save settings list elements as objects
-          else if ObjectLists.IsRegistered(Child.ClassType, ElemClass) then
+          else if SettingsLists.IsRegistered(Child.ClassType, ElemClass) then
             begin
               fStore.ListClear(SettName);
               fStore.ListBegin(SettName, not Assigned(Child));
@@ -852,22 +896,22 @@ end;
 
 { ObjectLists }
 
-class constructor ObjectLists.Create;
+class constructor SettingsLists.Create;
 begin
   _Types  := TDictionary<TClass, TClass>.Create;
 end;
 
-class destructor ObjectLists.Destroy;
+class destructor SettingsLists.Destroy;
 begin
   _Types.Free;
 end;
 
-class function ObjectLists.IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean;
+class function SettingsLists.IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean;
 begin
   Result  := _Types.TryGetValue(ListClass, ElemClass)
 end;
 
-class procedure ObjectLists.Register(const ListClass, ElemClass: TClass);
+class procedure SettingsLists.Register(const ListClass, ElemClass: TClass);
 begin
   _Types.Add(ListClass, ElemClass);
 end;

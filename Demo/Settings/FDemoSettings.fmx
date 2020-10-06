@@ -1,108 +1,183 @@
 object frmDemoSettings: TfrmDemoSettings
   Left = 0
   Top = 0
-  Caption = 'Form1'
-  ClientHeight = 320
-  ClientWidth = 653
+  Caption = 'Demo: Settings'
+  ClientHeight = 480
+  ClientWidth = 640
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   DesignerMasterStyle = 0
-  object butSave: TButton
-    Position.X = 24.000000000000000000
-    Position.Y = 16.000000000000000000
-    TabOrder = 0
-    Text = 'butSave'
+  object panUsers: TGroupBox
+    Align = MostLeft
+    Padding.Left = 16.000000000000000000
+    Padding.Top = 24.000000000000000000
+    Padding.Right = 16.000000000000000000
+    Padding.Bottom = 16.000000000000000000
+    Position.Y = 100.000000000000000000
+    Size.Width = 233.000000000000000000
+    Size.Height = 380.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Users'
+    object lstUsers: TListView
+      ItemAppearanceClassName = 'TListItemAppearance'
+      ItemEditAppearanceClassName = 'TListItemShowCheckAppearance'
+      HeaderAppearanceClassName = 'TListHeaderObjects'
+      FooterAppearanceClassName = 'TListHeaderObjects'
+      Align = Client
+      Size.Width = 201.000000000000000000
+      Size.Height = 272.000000000000000000
+      Size.PlatformDefault = False
+      OnDblClick = lstUsersDblClick
+      OnChange = lstUsersChange
+    end
+    object GridLayout1: TGridLayout
+      Align = Bottom
+      ItemHeight = 50.000000000000000000
+      ItemWidth = 58.000000000000000000
+      Padding.Left = 8.000000000000000000
+      Padding.Top = 8.000000000000000000
+      Padding.Right = 8.000000000000000000
+      Padding.Bottom = 8.000000000000000000
+      Orientation = Horizontal
+      Position.X = 16.000000000000000000
+      Position.Y = 296.000000000000000000
+      Size.Width = 201.000000000000000000
+      Size.Height = 68.000000000000000000
+      Size.PlatformDefault = False
+      object butUserAdd: TButton
+        Margins.Right = 8.000000000000000000
+        Position.X = 8.000000000000000000
+        Position.Y = 8.000000000000000000
+        Size.Width = 50.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        Text = '+'
+        OnClick = butUserAddClick
+      end
+      object butUserEdit: TButton
+        Margins.Right = 8.000000000000000000
+        Position.X = 66.000000000000000000
+        Position.Y = 8.000000000000000000
+        Size.Width = 50.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        Text = '^'
+        OnClick = butUserEditClick
+      end
+      object butUserDelete: TButton
+        Margins.Right = 8.000000000000000000
+        Position.X = 124.000000000000000000
+        Position.Y = 8.000000000000000000
+        Size.Width = 50.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        Text = '-'
+        OnClick = butUserDeleteClick
+      end
+    end
   end
-  object butLoad: TButton
-    Position.X = 136.000000000000000000
-    Position.Y = 16.000000000000000000
-    TabOrder = 1
-    Text = 'butLoad'
+  object panControl: TGroupBox
+    Align = MostTop
+    Size.Width = 640.000000000000000000
+    Size.Height = 100.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'panControl'
+    object butSaveINI: TButton
+      Position.X = 16.000000000000000000
+      Position.Y = 32.000000000000000000
+      Size.Width = 129.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Save to INI file...'
+      OnClick = butSaveINIClick
+    end
+    object butSaveJSON: TButton
+      Position.X = 16.000000000000000000
+      Position.Y = 64.000000000000000000
+      Size.Width = 129.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Save to JSON file...'
+      OnClick = butSaveJSONClick
+    end
+    object butLoadINI: TButton
+      Position.X = 200.000000000000000000
+      Position.Y = 32.000000000000000000
+      Size.Width = 129.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Load from INI file...'
+      OnClick = butLoadINIClick
+    end
+    object butLoadJSON: TButton
+      Position.X = 200.000000000000000000
+      Position.Y = 64.000000000000000000
+      Size.Width = 129.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Load from JSON file...'
+      OnClick = butLoadJSONClick
+    end
+    object butSeedData: TButton
+      Position.X = 392.000000000000000000
+      Position.Y = 32.000000000000000000
+      Text = 'Seed data'
+      OnClick = butSeedDataClick
+    end
+    object butClearData: TButton
+      Position.X = 392.000000000000000000
+      Position.Y = 64.000000000000000000
+      Text = 'Clear data'
+      OnClick = butClearDataClick
+    end
   end
-  object chkClearValues: TCheckBox
-    IsChecked = True
-    Position.X = 136.000000000000000000
-    Position.Y = 48.000000000000000000
-    TabOrder = 4
-    Text = 'Clear values'
+  object Splitter1: TSplitter
+    Align = Left
+    Cursor = crHSplit
+    MinSize = 20.000000000000000000
+    Position.X = 233.000000000000000000
+    Position.Y = 100.000000000000000000
+    Size.Width = 8.000000000000000000
+    Size.Height = 380.000000000000000000
+    Size.PlatformDefault = False
   end
-  object butInit1: TButton
-    Position.X = 24.000000000000000000
-    Position.Y = 104.000000000000000000
-    TabOrder = 6
-    Text = 'butInit1'
-    OnClick = butInit1Click
-  end
-  object Button1: TButton
-    Position.X = 24.000000000000000000
-    Position.Y = 192.000000000000000000
-    TabOrder = 7
-    Text = 'Button1'
-    OnClick = Button1Click
-  end
-  object butInit0: TButton
-    Position.X = 24.000000000000000000
-    Position.Y = 72.000000000000000000
-    TabOrder = 9
-    Text = 'butInit0'
-    OnClick = butInit0Click
-  end
-  object OpenDialog: TOpenDialog
-    Left = 200
-    Top = 8
+  object Layout1: TLayout
+    Align = Client
+    Size.Width = 399.000000000000000000
+    Size.Height = 380.000000000000000000
+    Size.PlatformDefault = False
+    object panActiveUser: TGroupBox
+      Align = Top
+      Padding.Left = 16.000000000000000000
+      Padding.Top = 24.000000000000000000
+      Padding.Right = 16.000000000000000000
+      Padding.Bottom = 16.000000000000000000
+      Size.Width = 399.000000000000000000
+      Size.Height = 65.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Active User'
+      object cmbActiveUser: TComboBox
+        Align = Top
+        Position.X = 16.000000000000000000
+        Position.Y = 24.000000000000000000
+        Size.Width = 367.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnExit = cmbActiveUserExit
+      end
+    end
   end
   object SaveDialog: TSaveDialog
-    Left = 88
-    Top = 8
+    Filter = 'Ini file|*.ini|JSON file|*.json|Text file|*.txt|Any file|*.*'
+    Left = 152
+    Top = 40
   end
-  object Button2: TButton
-    Position.X = 24.000000000000000000
-    Position.Y = 224.000000000000000000
-    TabOrder = 13
-    Text = 'Button2'
-    OnClick = Button2Click
-  end
-  object butIniCreate: TButton
-    Position.X = 312.000000000000000000
-    Position.Y = 16.000000000000000000
-    Text = 'butIniCreate'
-  end
-  object butIniLoad: TButton
-    Position.X = 312.000000000000000000
-    Position.Y = 48.000000000000000000
-    Text = 'butIniLoad'
-    OnClick = butIniLoadClick
-  end
-  object butSaveIni: TButton
-    Position.X = 312.000000000000000000
-    Position.Y = 80.000000000000000000
-    Text = 'butSaveIni'
-    OnClick = butSaveIniClick
-  end
-  object butJsonLoad: TButton
-    Position.X = 416.000000000000000000
-    Position.Y = 48.000000000000000000
-    Text = 'butJsonLoad'
-    OnClick = butJsonLoadClick
-  end
-  object butSaveJSON: TButton
-    Position.X = 416.000000000000000000
-    Position.Y = 80.000000000000000000
-    Text = 'butSaveJSON'
-    OnClick = butSaveJSONClick
-  end
-  object butInit2: TButton
-    Position.X = 24.000000000000000000
-    Position.Y = 136.000000000000000000
-    TabOrder = 5
-    Text = 'butInit2'
-    OnClick = butInit2Click
-  end
-  object Button3: TButton
-    Position.X = 312.000000000000000000
-    Position.Y = 144.000000000000000000
-    Text = 'Button3'
-    OnClick = Button3Click
+  object OpenDialog: TOpenDialog
+    Filter = 'Ini file|*.ini|JSON file|*.json|Text file|*.txt|Any file|*.*'
+    Left = 344
+    Top = 40
   end
 end

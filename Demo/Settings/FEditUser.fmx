@@ -1,0 +1,67 @@
+object frmEditUser: TfrmEditUser
+  Left = 0
+  Top = 0
+  Caption = 'User'
+  ClientHeight = 142
+  ClientWidth = 346
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnClose = FormClose
+  DesignerMasterStyle = 0
+  object panUser: TGroupBox
+    Align = Top
+    Padding.Left = 16.000000000000000000
+    Padding.Top = 24.000000000000000000
+    Padding.Right = 16.000000000000000000
+    Padding.Bottom = 16.000000000000000000
+    Size.Width = 346.000000000000000000
+    Size.Height = 97.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'User'
+    object edUserName: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      Position.X = 16.000000000000000000
+      Position.Y = 54.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Size.Width = 314.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object edUserID: TLabel
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      Position.X = 16.000000000000000000
+      Position.Y = 24.000000000000000000
+      Size.Width = 314.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+    end
+  end
+  object Layout1: TLayout
+    Align = Bottom
+    Padding.Left = 16.000000000000000000
+    Padding.Top = 8.000000000000000000
+    Padding.Right = 16.000000000000000000
+    Padding.Bottom = 8.000000000000000000
+    Position.Y = 101.000000000000000000
+    Size.Width = 346.000000000000000000
+    Size.Height = 41.000000000000000000
+    Size.PlatformDefault = False
+    object butOK: TButton
+      Default = True
+      ModalResult = 1
+      Position.X = 160.000000000000000000
+      Position.Y = 8.000000000000000000
+      Text = 'OK'
+    end
+    object butCancel: TButton
+      Cancel = True
+      ModalResult = 2
+      Position.X = 256.000000000000000000
+      Position.Y = 8.000000000000000000
+      Text = 'Cancel'
+    end
+  end
+end

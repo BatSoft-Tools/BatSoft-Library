@@ -199,15 +199,20 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="FDemoSettings.pas">
-            <Form>frmDemoSettings</Form>
-        </DCCReference>
-        <DCCReference Include="uDemoSettings.pas"/>
         <DCCReference Include="..\..\BatLibrary\BatSoft.Settings.pas"/>
         <DCCReference Include="..\..\BatLibrary\BatSoft.Settings.Ini.pas"/>
         <DCCReference Include="..\..\BatLibrary\BatSoft.Classes.pas"/>
         <DCCReference Include="..\..\BatLibrary\BatSoft.Settings.JSON.pas"/>
+        <DCCReference Include="uDemoSettings.pas"/>
+        <DCCReference Include="FDemoSettings.pas">
+            <Form>frmDemoSettings</Form>
+            <FormType>fmx</FormType>
+        </DCCReference>
         <DCCReference Include="..\..\BatLibrary\BatSoft.Settings.Types.pas"/>
+        <DCCReference Include="FEditUser.pas">
+            <Form>frmEditUser</Form>
+            <FormType>fmx</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

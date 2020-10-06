@@ -3,92 +3,68 @@ unit uDemoSettings;
 interface
 
 uses
-  Classes, Generics.Collections, BatSoft.Settings;
+  Generics.Collections, BatSoft.Settings;
 
 type
-  //  Your settings classes must be enclosed with {$M+} so that RTTI exists for
-  //  them.  (Also, they can inherit from classes that have had {$M+})
-  //  Settings that are persisted must be published.
-  //  That means that you can have some properties that are for ease of use (public),
-  //  and other properties that are persisted (published).
+//  Your settings classes must be enclosed with {$M+} so that RTTI exists for
+//  them.  (Also, they can inherit from classes that have had {$M+})
+//  Settings that are persisted must be published.
+//  That means that you can have some properties that are for ease of use (public),
+//  and other properties that are persisted (published).
 
-  TAccess = (accReadOnly, accEdit, accAdmin);
-  TAccesses = set of TAccess;
-
+//  Ensure we have RTTI for the settings classes
 {$M+}
-  TUserSettings = class
+
+  TUser = class
   private
-    fUserName: string;
-    fAccess: TAccess;
-    fAccesses: TAccesses;
+    fID: TGUID;
+    fName: string;
+  public
+    constructor CreateNew(const AName: string = '');
+    constructor CreateSeeded(const AID: TGUID; const AName: string);
   published
-    property  UserName  : string    read fUserName  write fUserName;
-    property  Access    : TAccess   read fAccess    write fAccess;
-    property  Accesses  : TAccesses read fAccesses  write fAccesses;
+    property  ID    : TGUID   read fID    write fID;
+    property  Name  : string  read fName  write fName;
   end;
 
-  TUserSub = class(TUserSettings)
-  private
-    fExtraField: string;
-  published
-    property  ExtraField  : string  read fExtraField  write fExtraField;
+  //  This is registered (as the bottom of this unit) as a list class.
+  //  In some formats (ex. JSON) a list is saved differently from an object,
+  //  therefore properties will not be saved.
+  //  So a registered list object (like this one) must not have any other settings.
+  TUsers = class(TObjectList<TUser>)
+  public
+    function  FindByID(const UserID: TGUID): TUser;
+    procedure DeleteUser(const UserID: TGUID);
+    function  IndexOf(const UserID: TGUID): integer; overload;
   end;
 
-  TUsers = class(TObjectList<TUserSettings>);
-
-  TDemoSettings = class
+  TAppSettings = class
   private
-    fDate: TDate;
-    fInt: integer;
-    fStr: string;
-    fTime: TTime;
-    fCurr: Currency;
-    fBool: Boolean;
-    fDateTime: TDateTime;
-    fDbl: Double;
-    fInt64: Int64;
-    fExt: Extended;
-    fUserNil: TUserSettings;
-    fUserSame: TUserSettings;
-    fUserSub: TUserSettings;
-    fUserNameAll: TStringList;
-    fUserNameCurr: string;
+    fActiveUser: TUser;
     fUsers: TUsers;
-    function GetUserCurr: TUserSettings;
-  //  Ease of use properties (because they're public)
+    function  GetActiveUserID: TGUID;
+    procedure SetActiveUserID(const Value: TGUID);
   public
     constructor Create;
     destructor  Destroy; override;
-    property  UserCurr      : TUserSettings read GetUserCurr;
-  //  Saved properties (because they're published)
   published
-    //  To add a new setting, simply add a new published property
-    property  Prop_Bool     : Boolean   read fBool      write fBool;
-    property  Prop_Str      : string    read fStr       write fStr;
-    property  Prop_Int      : integer   read fInt       write fInt;
-    property  Prop_Int64    : Int64     read fInt64     write fInt64;
-    property  Prop_Dbl      : Double    read fDbl       write fDbl;
-    property  Prop_Ext      : Extended  read fExt       write fExt;
-    property  Prop_Curr     : Currency  read fCurr      write fCurr;
-    property  Prop_Date     : TDate     read fDate      write fDate;
-    property  Prop_Time     : TTime     read fTime      write fTime;
-    property  Prop_DateTime : TDateTime read fDateTime  write fDateTime;
-    //  Here have children
-    property  UserNil   : TUserSettings read fUserNil   write fUserNil;
-    property  UserSame  : TUserSettings read fUserSame  write fUserSame;
-    property  UserSub   : TUserSettings read fUserSub   write fUserSub;
-    //  Here we show how you can ensure that some settings are read/written before others.
-    //  The attribure to use is:  [SettingsOrder(ReadOrder, WriteOrder)]
-    [SettingsOrder(1, 0)] //  Ensures this is read and written before UserNameCurr
-    property  UserNameAll   : TStringList   read fUserNameAll;
-    [SettingsDeepField]
-    [SettingsOrder(2, 0)]
-    property  UserNameDeep  : TStringList   read fUserNameAll;
-    [SettingsOrder(3, 2)]
-    property  UserNameCurr  : string  read fUserNameCurr  write fUserNameCurr;
-    //  Here we persist containers of settings
-    property  Users : TUsers  read fUsers write fUsers;
+    //  Let's not save this.  Rather, let's persist the active user's ID.
+    //  Another way is to make this property public instead of published.
+    [SettingsIgnore]
+    property  ActiveUser    : TUser   read fActiveUser      write fActiveUser;
+
+    //  First load all the users, then load and look up the user ID.
+    //  In this example we don't care about the save order.
+    [SettingsLoadOrder(2)]
+    property  ActiveUserID  : TGUID   read GetActiveUserID  write SetActiveUserID;
+
+    //  Persistance of all the users.
+    //  Do this before looking up the active user.
+    [SettingsLoadOrder(1)]
+    property  Users         : TUsers  read fUsers write fUsers;
   end;
+
+//  Tidy up the RTTI flag
 {$M-}
 
 implementation
@@ -96,39 +72,78 @@ implementation
 uses
   System.SysUtils;
 
-{ TDemoSettings }
+{ TUser }
 
-constructor TDemoSettings.Create;
+constructor TUser.CreateNew(const AName: string);
 begin
-  fDateTime := Now;
-  fDate     := Now;
-  fTime     := Now;
-  fUserSame     := TUserSettings.Create;
-  fUserSub      := TUserSub.Create;
-  fUserNameAll  := TStringList.Create;
-  fUsers        := TUsers.Create(True);
+  CreateSeeded(TGUID.NewGUID, AName)
 end;
 
-destructor TDemoSettings.Destroy;
+constructor TUser.CreateSeeded(const AID: TGUID; const AName: string);
 begin
-  fUserSame.Free;
-  fUserSub.Free;
-  fUserNameAll.Free;
+  inherited Create;
+  fID   := AID;
+  fName := AName;
+end;
+
+{ TUsers }
+
+procedure TUsers.DeleteUser(const UserID: TGUID);
+var
+  i: integer;
+begin
+  i := IndexOf(UserID);
+  if  i >= 0  then
+    Delete(i);
+end;
+
+function TUsers.FindByID(const UserID: TGUID): TUser;
+var
+  i: integer;
+begin
+  i := IndexOf(UserID);
+  if  i >= 0  then
+    Result  := Items[i]
+  else
+    Result  := nil;
+end;
+
+function TUsers.IndexOf(const UserID: TGUID): integer;
+begin
+  Result  := Count - 1;
+  while (Result >= 0) and (UserID <> Items[Result].ID) do
+    dec(Result);
+end;
+
+{ TAppSettings }
+
+constructor TAppSettings.Create;
+begin
+  inherited;
+  fUsers  := TUsers.Create;
+end;
+
+destructor TAppSettings.Destroy;
+begin
   fUsers.Free;
   inherited;
 end;
 
-function TDemoSettings.GetUserCurr: TUserSettings;
-var
-  i: integer;
+function TAppSettings.GetActiveUserID: TGUID;
 begin
-  if  UserNameAll.Find(UserNameCurr, i) then
-    Result  :=UserNameAll.Objects[i] as TUserSettings
+  if  Assigned(fActiveUser)  then
+    Result  := fActiveUser.ID
   else
-    Result  := nil
+    Result  := TGUID.Empty;
+end;
+
+procedure TAppSettings.SetActiveUserID(const Value: TGUID);
+begin
+  fActiveUser := fUsers.FindByID(Value);
 end;
 
 initialization
-  ObjectLists.Register(TUsers, TUserSettings)
+  //  Register TUsers as the list class and TUser as it's element class
+  SettingsLists.Register(TUsers, TUser);
 
 end.

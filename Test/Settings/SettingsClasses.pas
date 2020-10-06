@@ -246,7 +246,7 @@ begin
 end;
 
 initialization
-  ObjectLists.Register(TObjList, TObjBase);
+  SettingsLists.Register(TObjList, TObjBase);
   When  := Now;
 
 end.
