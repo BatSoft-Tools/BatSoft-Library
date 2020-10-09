@@ -29,11 +29,10 @@ type
     fValueEnum: TEnum;
     fValueEnumSet: TEnumSet;
     fValueClass: TClass;
-    [MementoIgnore]
     fDate: TDate;
-    [MementoIgnore]
+    [MementoIgnore] //  Don't do memento comparison because of rounding errors
     fTime: TTime;
-    [MementoIgnore]
+    [MementoIgnore] //  Don't do memento comparison because of rounding errors
     fDateTime: TDateTime;
   public
     function  Init(const A: integer): TSimpleValues; virtual;
@@ -53,15 +52,27 @@ type
     property  DateTime    : TDateTime read fDateTime      write fDateTime;
   end;
 
+  //  This has specific conversion routines in procedure RegisterComplexType
+  TTestRecord = record
+  private
+    fStr: string;
+    fDate: TDate;
+  public
+    property  Str   : string  read fStr   write fStr;
+    property  When  : TDate   read fDate  write fDate;
+  end;
+
   TComplexValues = class
   private
     fGUID: TGUID;
     fRect: TRect;
+    fTestRec: TTestRecord;
   public
     function  Init: TComplexValues;
   published
-    property  ValueGUID   : TGUID     read fGUID          write fGUID;
-    property  ValueRect   : TRect     read fRect          write fRect;
+    property  ValueGUID   : TGUID       read fGUID      write fGUID;
+    property  ValueRect   : TRect       read fRect      write fRect;
+    property  ValueTestRec: TTestRecord read fTestRec   write fTestRec;
   end;
 
   TObjBase = class
@@ -132,10 +143,38 @@ type
 implementation
 
 uses
-  SysUtils;
+  SysUtils, RTTI;
 
 var
   When  : TDateTime;
+
+procedure RegisterComplexType;
+begin
+  SettingsTypes.Register(TypeInfo(TTestRecord),
+    procedure (const Value: TValue; const SaveValue: TSimpleSaver)
+    var
+      TestRec: TTestRecord;
+      Temp: TValue;
+    begin
+      TestRec := Value.AsType<TTestRecord>(True);
+      SaveValue('Str', TestRec.Str);
+      Temp    := TestRec.When;
+      Temp    := SettingsTypes.ConvertToStore(TypeInfo(TDate), Temp);
+      SaveValue('When', Temp);
+    end,
+    function (const LoadValue: TSimpleLoader): TValue
+    var
+      TestRec: TTestRecord;
+      Temp: TValue;
+    begin
+      TestRec.Str   := LoadValue('Str', TypeInfo(string)).AsString;
+      Temp    := LoadValue('When', TypeInfo(string)).AsString;
+      Temp    := SettingsTypes.ConvertToProperty(TypeInfo(TDate), Temp);
+      TestRec.When  := Temp.AsExtended;
+      Result  := TValue.From(TestRec);
+    end
+    );
+end;
 
 { TSimpleValues }
 
@@ -152,8 +191,8 @@ begin
   fValueEnum    := TEnum(A mod EnumCount);
   fValueEnumSet := [enumABC, enumXYZ];
   fValueClass   := TObjBase;
-  fDate         := When;
-  fTime         := When;
+  fDate         := Trunc(When);
+  fTime         := Frac(When);
   fDateTime     := When;
 end;
 
@@ -163,7 +202,9 @@ function TComplexValues.Init: TComplexValues;
 begin
   Result  := Self;
   fGUID   := TGUID.NewGuid;
-  fRect   := Rect(100, 200, 300, 400)
+  fRect   := Rect(100, 200, 300, 400);
+  fTestRec.Str  := 'ABC';
+  fTestRec.When := Date;
 end;
 
 { TObjBase }
@@ -251,6 +292,7 @@ end;
 
 initialization
   SettingsLists.Register(TObjList, TObjBase);
+  RegisterComplexType;
   When  := Now;
 
 end.

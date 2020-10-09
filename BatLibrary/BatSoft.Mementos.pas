@@ -34,6 +34,7 @@ type
 
   TChanges = class(TList<TChange>)
   public
+    function IndexOf(const Name: string): integer;
     function ToString: string; override;
   end;
 
@@ -223,6 +224,13 @@ begin
     end
   else
     Result  := Value.ToString
+end;
+
+function TChanges.IndexOf(const Name: string): integer;
+begin
+  Result  := Count - 1;
+  while (Result >= 0) and not SameText(Items[Result].Name, Name)  do
+    dec(Result)
 end;
 
 function TChanges.ToString: string;

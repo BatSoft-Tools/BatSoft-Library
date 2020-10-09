@@ -15,6 +15,7 @@ type
     procedure CompareAllSettings(const Settings1, Settings2: TAllTypes);
     procedure CompareCntnrs(const Settings1, Settings2: TCntrTypes);
     procedure CompareFloats(const Name: string; const Float1, Float2: Double);
+    procedure CompareStrs(const Name: string; const Str1, Str2: string);
     procedure CompareWhens(const Name: string; const When1, When2: TDateTime);
     function  CreateStoreReader(const AFileName: string; const AEnumsAsStrings: Boolean): TSettingsStore;
     function  CreateStoreWriter(const AFileName: string; const AEnumsAsStrings: Boolean): TSettingsStore;
@@ -40,20 +41,27 @@ uses
 procedure TTestSettings<TReader, TWriter>.CompareAllSettings(const Settings1, Settings2: TAllTypes);
 var
   Changes: TChanges;
+  i: integer;
 begin
   Changes := TChanges.Create;
   try
     ListFieldDifferences('', Settings1, Settings2, Changes);
+    //  Ignore this and test a lilttle further down
+    i := Changes.IndexOf('fComplex.fTestRec');
+    if  i >= 0  then
+      Changes.Delete(i);
+    //  Do we have obvious changes?
     if  Changes.Count > 0 then
       raise ESettingsTest.Create('Failed with changes:' + sLineBreak + Changes.ToString);
   finally
     Changes.Free;
   end;
   //  Special cases that may fail due to rounding errors
-  CompareFloats('Values.ValueExt',  Settings1.Simple.ValueExt,    Settings2.Simple.ValueExt);
-  CompareWhens ('Values.DateTime',  Settings1.Simple.DateTime,    Settings2.Simple.DateTime);
-  CompareWhens ('Values.Date',      Trunc(Settings1.Simple.Date), Trunc(Settings2.Simple.Date));
-  CompareWhens ('Values.Time',      Frac(Settings1.Simple.Time),  Frac(Settings2.Simple.Time));
+  CompareFloats('Values.ValueExt',            Settings1.Simple.ValueExt,            Settings2.Simple.ValueExt);
+  CompareWhens ('Values.DateTime',            Settings1.Simple.DateTime,            Settings2.Simple.DateTime);
+  CompareWhens ('Values.Time',                Settings1.Simple.Time,                Settings2.Simple.Time);
+  CompareStrs  ('Complex.ValueTestRec.Str',   Settings1.Complex.ValueTestRec.Str,   Settings2.Complex.ValueTestRec.Str);
+  CompareWhens ('Complex.ValueTestRec.When',  Settings1.Complex.ValueTestRec.When,  Settings2.Complex.ValueTestRec.When);
 end;
 
 procedure TTestSettings<TReader, TWriter>.CompareCntnrs(const Settings1, Settings2: TCntrTypes);
@@ -74,6 +82,12 @@ procedure TTestSettings<TReader, TWriter>.CompareFloats(const Name: string; cons
 begin
   if  Float1.ToString <> Float2.ToString  then
     raise ESettingsTest.Create(Name + ': ' + Float1.ToString + ' -> ' + Float2.ToString);
+end;
+
+procedure TTestSettings<TReader, TWriter>.CompareStrs(const Name, Str1, Str2: string);
+begin
+  if  Str1 <> Str2  then
+    raise ESettingsTest.Create(Name + ': ' + Str1 + ' -> ' + Str2);
 end;
 
 procedure TTestSettings<TReader, TWriter>.CompareWhens(const Name: string; const When1, When2: TDateTime);

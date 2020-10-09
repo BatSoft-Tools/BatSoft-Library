@@ -162,13 +162,13 @@ type
     class var _SimpleTypes: TDictionary<PTypeInfo, TSimpleConverters>;
     class var _ComplexTypes: TDictionary<PTypeInfo, TComplexConverters>;
     class function  StoreTypeInfoOf(const PropInfo: PTypeInfo): PTypeInfo;
-    class function  ConvertToProperty(const PropInfo: PTypeInfo; const StoreValue: TValue): TValue;
-    class function  ConvertToStore(const PropInfo: PTypeInfo; const PropValue: TValue): TValue;
   public
     class constructor Create;
     class destructor  Destroy;
     class procedure Register(const PropInfo, StoreInfo: PTypeInfo; const ToProperty, ToStore: TSimpleTypeConverter); overload;
     class procedure Register(const PropInfo: PTypeInfo; const ToStore: TComplexSaver; const ToProperty: TComplexLoader); overload;
+    class function  ConvertToProperty(const PropInfo: PTypeInfo; const StoreValue: TValue): TValue;
+    class function  ConvertToStore(const PropInfo: PTypeInfo; const PropValue: TValue): TValue;
   end;
 
   SettingsLists = class
