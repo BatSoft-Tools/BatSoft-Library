@@ -59,14 +59,14 @@ type
     //  Storage
     procedure LoadBegin;
     procedure LoadEnd;
-    //  Navigation
+    //  Navigate objects and complex values
     procedure NodeChildren(const Names: TStrings);
     function  NodeEnter(const Name: string): Boolean;
     procedure NodeLeave;
-    //  Arrays
+    //  Navigate arrays
     function  ListBegin(const Name: string): Boolean;
     procedure ListEnd;
-    //  Array elements
+    //  Navigate array elements
     function  ElemEnter: Boolean;
     procedure ElemLeave;
     function  ElemNext: Boolean;
@@ -79,15 +79,15 @@ type
     //  Storage
     procedure SaveBegin;
     procedure SaveEnd;
-    //  Navigation
+    //  Navigate objects and complex values
     procedure NodeClear(const Name: string);
     procedure NodeEnter(const Name: string; const IsNil: Boolean);
     procedure NodeLeave;
-    //  Arrays
+    //  Navigate arrays
     procedure ListClear(const Name: string);
     procedure ListBegin(const Name: string; const IsNil: Boolean);
     procedure ListEnd;
-    //  Array elements
+    //  Navigate array elements
     procedure ElemEnter(const Index: integer; const IsNil: Boolean);
     procedure ElemLeave;
     //  Simple values
@@ -112,9 +112,13 @@ type
     procedure CorrectObjectClass(var Obj: TObject; const PropertyClass: TRttiInstanceType);
     function  GetObjClass: TRttiInstanceType;
     procedure LoadProperties(const Obj: TObject);
-    procedure LoadList(const Obj: TObject; const ElemClass: TClass);
+    procedure LoadProperty(const Obj: TObject; const RTTIProp: TRttiProperty);
+    procedure LoadObject(const Obj: TObject; const RTTIProp: TRttiProperty);
+    procedure LoadList(const Obj: TObject; const ElemClass: TClass; const RTTIProp: TRttiProperty);
     function  LoadString(const Name: string): string;
+    procedure LoadStrings(const Obj: TObject; const RTTIProp: TRttiProperty);
     procedure LoadStringsDeep(const Obj: TObject; const RTTIProp: TRttiProperty);
+    function  LoadComplexType(const Obj: TObject; const RTTIProp: TRttiProperty): Boolean;
   public
     constructor Create(ASettingsReader: ISettingsStoreReader); overload;
     procedure Load(var Obj: TObject; const ObjClass: TClass);
@@ -124,9 +128,12 @@ type
   private
     fStore: ISettingsStoreWriter;
     procedure SaveProperties(const Obj: TObject; const PropClass: TClass);
-    procedure SaveList(const Obj: TObject; const ElemClass: TClass);
+    procedure SaveProperty(const Obj: TObject; const RTTIProp: TRttiProperty);
+    procedure SaveObject(const Obj, Child: TObject; const RTTIProp: TRttiProperty);
+    procedure SaveList(const Child: TObject; const ElemClass: TClass; const RTTIProp: TRttiProperty);
     procedure SaveStrings(const Name: string; const Obj: TObject);
-    procedure SaveStringsDeep(const Obj: TObject);
+    procedure SaveStringsDeep(const Obj, Child: TObject; const RTTIProp: TRttiProperty);
+    function  SaveComplexType(const Obj: TObject; const RTTIProp: TRttiProperty): Boolean;
   public
     constructor Create(const ASettingsWriter: ISettingsStoreWriter);
     procedure Save(const Obj: TObject; ObjClass: TClass = nil);
@@ -201,8 +208,7 @@ resourcestring
   SENotSettingsList   = 'List is not a settings list.';
   SENotByteArray      = 'Property %s cannot be loaded because it is a dynamic array, but not TArray<Byte>.';
   SEUnsupportedType   = 'Property %s cannot be loaded because it is of type %s.';
-  SNotImplementedLoad = 'Does not implement ISettingsStoreReader.';
-  SNotImplementedSave = 'Does not implement ISettingsStoreWriter.';
+  SNotImplements      = 'Does not implement %s.';
   SNotRegisteredClass = 'Class %s is not registered.';
   SPropertyIsNil      = 'Property %s is nil';
   SPropertyIsWrongType= 'Object in property %s is of type %s but %s is expected.';
@@ -425,7 +431,7 @@ begin
   TValue.Make(Value, Info, Result)
 end;
 
-{ TSettingsStore }
+{ TSettingsStoreBase }
 
 constructor TSettingsStore.Create(const AFileName: string; const AEnumsAsStrings: Boolean);
 begin
@@ -439,7 +445,7 @@ var
   Reader: TSettingsReader;
 begin
   if  not Supports(Self, ISettingsStoreReader)  then
-    raise ESettings.Create(SNotImplementedLoad);
+    raise ESettings.Create(SNotImplements, ['ISettingsStoreReader']);
   Reader  := TSettingsReader.Create(Self.Create(AFileName, AEnumsAsStrings) as ISettingsStoreReader);
   try
     Reader.Load(TObject(Obj), DefaultClass);
@@ -458,7 +464,7 @@ var
   Writer: TSettingsWriter;
 begin
   if  not Supports(Self, ISettingsStoreWriter)  then
-    raise ESettings.Create(SNotImplementedSave);
+    raise ESettings.Create(SNotImplements, ['ISettingsStoreWriter']);
   Writer  := TSettingsWriter.Create(Self.Create(AFileName, AEnumsAsStrings) as ISettingsStoreWriter);
   try
     Writer.Save(Obj);
@@ -534,25 +540,74 @@ begin
   end;
 end;
 
-procedure TSettingsReader.LoadList(const Obj: TObject; const ElemClass: TClass);
+function TSettingsReader.LoadComplexType(const Obj: TObject; const RTTIProp: TRttiProperty): Boolean;
+var
+  ComplexConverter: SettingsTypes.TComplexConverters;
+  Value: TValue;
+begin
+  Result  := SettingsTypes._ComplexTypes.TryGetValue(RTTIProp.PropertyType.Handle, ComplexConverter);
+  if  Result  then
+    begin
+      fStore.NodeEnter(RTTIProp.Name);
+      try
+        Value := ComplexConverter.ToProperty(
+          function (const Name: string; const TypeInfo: PTypeInfo): TValue
+          begin
+            Result  := SettingsTypes.ConvertToProperty(TypeInfo, fStore.LoadValue(Name, TypeInfo))
+          end);
+        RTTIProp.SetValue(Obj, Value);
+      finally
+        fStore.NodeLeave;
+      end;
+    end;
+end;
+
+procedure TSettingsReader.LoadList(const Obj: TObject; const ElemClass: TClass; const RTTIProp: TRttiProperty);
 var
   RTTIElemClass: TRttiInstanceType;
   List: TObjectList<TObject> absolute Obj;
   Elem: TObject;
 begin
-  RTTIElemClass := RTTI.GetType(ElemClass).AsInstance;
-  while fStore.ElemNext do
-    if  not fStore.ElemEnter  then
-      List.Add(nil)
-    else
-      try
-        Elem  := nil;
-        CorrectObjectClass(Elem, RTTIElemClass);
-        List.Add(Elem);
-        LoadProperties(Elem);
-      finally
-        fStore.ElemLeave;
-      end;
+  fStore.ListBegin(RTTIProp.Name);
+  try
+    RTTIElemClass := RTTI.GetType(ElemClass).AsInstance;
+    while fStore.ElemNext do
+      if  not fStore.ElemEnter  then
+        List.Add(nil)
+      else
+        try
+          Elem  := nil;
+          CorrectObjectClass(Elem, RTTIElemClass);
+          List.Add(Elem);
+          LoadProperties(Elem);
+        finally
+          fStore.ElemLeave;
+        end;
+  finally
+    fStore.ListEnd;
+  end;
+end;
+
+procedure TSettingsReader.LoadObject(const Obj: TObject; const RTTIProp: TRttiProperty);
+var
+  ChildClass: TClass;
+  Child: TObject;
+begin
+  if  RTTIProp.IsReadable then
+    try
+      ChildClass  := RTTIProp.PropertyType.AsInstance.MetaclassType;
+      Child       := RTTIProp.GetValue(Obj).AsObject;
+      if  not RTTIProp.IsWritable then
+        if  not Assigned(Child) then
+          raise ESettings.Create(SPropertyIsNil, [RTTIProp.Name])
+        else if not (Child is ChildClass) then
+          raise ESettings.Create(SPropertyIsWrongType, [RTTIProp.Name, Child.ClassName, ChildClass.ClassName]);
+      CorrectObjectClass(Child, RTTIProp.PropertyType.AsInstance);
+      RTTIProp.SetValue(Obj, Child);
+      LoadProperties(Child);
+    finally
+      fStore.NodeLeave;
+    end;
 end;
 
 procedure TSettingsReader.LoadProperties(const Obj: TObject);
@@ -560,13 +615,6 @@ var
   RTTIType: TRttiType;
   RTTIProps: TArray<TRttiProperty>;
   RTTIProp: TRttiProperty;
-  Kind: TTypeKind;
-  SettName, ClassName: string;
-  ChildClass: TClass;
-  ElemClass: TClass;
-  Value: TValue;
-  ComplexConverter: SettingsTypes.TComplexConverters;
-  Child: TObject;
 begin
   if  not Assigned(Obj) then
     Exit;
@@ -574,102 +622,82 @@ begin
   RTTIProps := RTTIType.GetProperties;
   RTTIProps := SortAndFilter(RTTIProps, False);
   for RTTIProp in RTTIProps do
+    LoadProperty(Obj, RTTIProp)
+end;
+
+procedure TSettingsReader.LoadProperty(const Obj: TObject; const RTTIProp: TRttiProperty);
+var
+  Kind: TTypeKind;
+  SettName, ClassName: string;
+  ChildClass: TClass;
+  ElemClass: TClass;
+  Value: TValue;
+begin
+  //  Get the correct settings name
+  SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
+  //  Manage complex types separately
+  if  LoadComplexType(Obj, RTTIProp)  then
+    Exit;
+  //  Examine type kind
+  Kind  := RTTIProp.PropertyType.TypeKind;
+  //  Load simple type
+  if Kind in SupportedTypes then
     begin
-      //  Get the correct settings name
-      SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
-      //  Manage complex types separately
-      if SettingsTypes._ComplexTypes.TryGetValue(RTTIProp.PropertyType.Handle, ComplexConverter)  then
-        begin
-          fStore.NodeEnter(SettName);
-          try
-            Value := ComplexConverter.ToProperty(
-              function (const Name: string; const TypeInfo: PTypeInfo): TValue
-              begin
-                Result  := SettingsTypes.ConvertToProperty(TypeInfo, fStore.LoadValue(Name, TypeInfo))
-              end);
-            RTTIProp.SetValue(Obj, Value);
-          finally
-            fStore.NodeLeave;
-          end;
-          Continue;
-        end;
-      //  Examine type kind
-      Kind  := RTTIProp.PropertyType.TypeKind;
-      //  Load simple type
-      if Kind in SupportedTypes then
-        begin
-          if  not RTTIProp.IsWritable then
-            Continue;
-          //  Determine what to load
-          Value := fStore.LoadValue(SettName, SettingsTypes.StoreTypeInfoOf(RTTIProp.PropertyType.Handle));
-          //  Find specific converter
-          Value := SettingsTypes.ConvertToProperty(RTTIProp.PropertyType.Handle, Value);
-          //  Set the value
-          RTTIProp.SetValue(Obj, Value);
-        end
-      //  Load TClass
-      else if Kind = tkClassRef then
-        begin
-          ClassName := LoadString(SettName);
-          if  ClassName.IsEmpty then
-            RTTIProp.SetValue(Obj, nil)
-          else
-            RTTIProp.SetValue(Obj, RTTI.FindType(ClassName).AsInstance.MetaclassType)
-        end
-      //  Save sub-object
-      else if Kind = tkClass then
-        begin
-          ChildClass  := RTTIProp.PropertyType.AsInstance.MetaclassType;
-          //  TStrings are special
-          if  ChildClass.InheritsFrom(TStrings) then
-            //  Read "deep" TStrings elements as separate named children
-            if  TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField)  then
-              LoadStringsDeep(Obj, RTTIProp)
-            else
-              //  Read "shallow" TStrings as a single delimited string
-              begin
-                Child := RTTIProp.GetValue(Obj).AsObject;
-                if  not Assigned(Child) then
-                  raise ESettings.Create(SPropertyIsNil, [SettName]);
-                (Child as TStrings).DelimitedText := LoadString(SettName)
-              end
-          //  Load settings list elements as objects
-          else if SettingsLists.IsRegistered(ChildClass, ElemClass) then
-            begin
-              fStore.ListBegin(SettName);
-              try
-                LoadList(RTTIProp.GetValue(Obj).AsObject, ElemClass);
-              finally
-                fStore.ListEnd;
-              end;
-            end
-          //  Not a list
-          else if fStore.NodeEnter(SettName)  then
-            if  RTTIProp.IsReadable then
-              try
-                ChildClass  := RTTIProp.PropertyType.AsInstance.MetaclassType;
-                Child       := RTTIProp.GetValue(Obj).AsObject;
-                if  not RTTIProp.IsWritable then
-                  if  not Assigned(Child) then
-                    raise ESettings.Create(SPropertyIsNil, [SettName])
-                  else if not (Child is ChildClass) then
-                    raise ESettings.Create(SPropertyIsWrongType, [SettName, Child.ClassName, ChildClass.ClassName]);
-                CorrectObjectClass(Child, RTTIProp.PropertyType.AsInstance);
-                RTTIProp.SetValue(Obj, Child);
-                LoadProperties(Child);
-              finally
-                fStore.NodeLeave;
-              end;
-        end
-      //  - Unhandled
+      if  not RTTIProp.IsWritable then
+        Exit;
+      //  Determine what to load
+      Value := fStore.LoadValue(SettName, SettingsTypes.StoreTypeInfoOf(RTTIProp.PropertyType.Handle));
+      //  Apply simple converter
+      Value := SettingsTypes.ConvertToProperty(RTTIProp.PropertyType.Handle, Value);
+      //  Set the value
+      RTTIProp.SetValue(Obj, Value);
+    end
+  //  Load TClass
+  else if Kind = tkClassRef then
+    begin
+      ClassName := LoadString(SettName);
+      if  ClassName.IsEmpty then
+        RTTIProp.SetValue(Obj, nil)
       else
-        raise ESettings.Create(SEUnsupportedType, [SettName, EnumToStr(TValue.From(Kind))]);
-    end;
+        RTTIProp.SetValue(Obj, RTTI.FindType(ClassName).AsInstance.MetaclassType)
+    end
+  //  Save sub-object
+  else if Kind = tkClass then
+    begin
+      ChildClass  := RTTIProp.PropertyType.AsInstance.MetaclassType;
+      //  TStrings are special
+      if  ChildClass.InheritsFrom(TStrings) then
+        //  Read "deep" TStrings elements as separate named children
+        if  TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField)  then
+          LoadStringsDeep(Obj, RTTIProp)
+        //  Read "shallow" TStrings as a single delimited string
+        else
+          LoadStrings(Obj, RTTIProp)
+      //  Load settings list elements as objects
+      else if SettingsLists.IsRegistered(ChildClass, ElemClass) then
+        LoadList(RTTIProp.GetValue(Obj).AsObject, ElemClass, RTTIProp)
+      //  Child object
+      else if fStore.NodeEnter(SettName)  then
+        LoadObject(Obj, RTTIProp)
+    end
+  //  - Unhandled
+  else
+    raise ESettings.Create(SEUnsupportedType, [SettName, EnumToStr(TValue.From(Kind))]);
 end;
 
 function TSettingsReader.LoadString(const Name: string): string;
 begin
   Result  := fStore.LoadValue(Name, TypeInfo(string)).AsString
+end;
+
+procedure TSettingsReader.LoadStrings(const Obj: TObject; const RTTIProp: TRttiProperty);
+var
+  Child: TObject;
+begin
+  Child := RTTIProp.GetValue(Obj).AsObject;
+  if  not Assigned(Child) then
+    raise ESettings.Create(SPropertyIsNil, [RTTIProp.Name]);
+  (Child as TStrings).DelimitedText := LoadString(RTTIProp.Name)
 end;
 
 procedure TSettingsReader.LoadStringsDeep(const Obj: TObject; const RTTIProp: TRttiProperty);
@@ -742,20 +770,58 @@ begin
   end;
 end;
 
-procedure TSettingsWriter.SaveList(const Obj: TObject; const ElemClass: TClass);
+function TSettingsWriter.SaveComplexType(const Obj: TObject; const RTTIProp: TRttiProperty): Boolean;
 var
-  List: TObjectList<TObject> absolute Obj;
-  i: integer;
+  ComplexConverter: SettingsTypes.TComplexConverters;
+  Child: TValue;
 begin
-  for i := 0 to List.Count - 1 do
+  Result  := SettingsTypes._ComplexTypes.TryGetValue(RTTIProp.PropertyType.Handle, ComplexConverter);
+  if  Result  then
     begin
-      fStore.ElemEnter(i, not Assigned(List[i]));
+      Child := RTTIProp.GetValue(Obj);
+      fStore.NodeEnter(RTTIProp.Name, False);
       try
-        SaveProperties(List[i], ElemClass)
+        ComplexConverter.ToStore(Child,
+          procedure (const Name: string; const Value: TValue)
+          begin
+            fStore.SaveValue(Name, SettingsTypes.ConvertToStore(Value.TypeInfo, Value))
+          end);
       finally
-        fStore.ElemLeave;
+        fStore.NodeLeave;
       end;
     end;
+end;
+
+procedure TSettingsWriter.SaveList(const Child: TObject; const ElemClass: TClass; const RTTIProp: TRttiProperty);
+var
+  List: TObjectList<TObject> absolute Child;
+  i: integer;
+begin
+  fStore.ListClear(RTTIProp.Name);
+  fStore.ListBegin(RTTIProp.Name, not Assigned(Child));
+  try
+    for i := 0 to List.Count - 1 do
+      begin
+        fStore.ElemEnter(i, not Assigned(List[i]));
+        try
+          SaveProperties(List[i], ElemClass)
+        finally
+          fStore.ElemLeave;
+        end;
+      end;
+  finally
+    fStore.ListEnd;
+  end;
+end;
+
+procedure TSettingsWriter.SaveObject(const Obj, Child: TObject; const RTTIProp: TRttiProperty);
+begin
+  fStore.NodeEnter(RTTIProp.Name, not Assigned(Child));
+  try
+    SaveProperties(Child, RTTIProp.PropertyType.AsInstance.MetaclassType);
+  finally
+    fStore.NodeLeave;
+  end;
 end;
 
 procedure TSettingsWriter.SaveProperties(const Obj: TObject; const PropClass: TClass);
@@ -763,12 +829,6 @@ var
   RTTIType: TRttiType;
   RTTIProps: TArray<TRttiProperty>;
   RTTIProp: TRttiProperty;
-  Kind: TTypeKind;
-  SettName: string;
-  Child: TObject;
-  ElemClass: TClass;
-  Value: TValue;
-  ComplexConverter: SettingsTypes.TComplexConverters;
 begin
   if  not Assigned(Obj) then
     Exit;
@@ -778,90 +838,64 @@ begin
   RTTIProps := RTTIType.GetProperties;
   RTTIProps := SortAndFilter(RTTIProps, True);
   for RTTIProp in RTTIProps do
+    SaveProperty(Obj, RTTIProp)
+end;
+
+procedure TSettingsWriter.SaveProperty(const Obj: TObject; const RTTIProp: TRttiProperty);
+var
+  Kind: TTypeKind;
+  SettName: string;
+  Child: TObject;
+  ElemClass: TClass;
+  Value: TValue;
+begin
+  if  not RTTIProp.IsReadable then
+    Exit;
+  //  Get the correct settings name
+  SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
+  //  Manage complex types separately
+  if  SaveComplexType(Obj, RTTIProp)  then
+    Exit;
+  //  Determine what to save
+  Value := RTTIProp.GetValue(Obj);
+  //  Apply simple converter
+  Value := SettingsTypes.ConvertToStore(RTTIProp.PropertyType.Handle, Value);
+  //  Examine type kind
+  Kind  := Value.Kind;
+  //  Save simple type
+  if Kind in SupportedTypes then
+    fStore.SaveValue(SettName, Value)
+  //  Save TClass
+  else if Kind = tkClassRef then
+    fStore.SaveValue(SettName, Value.AsClass.QualifiedClassName)
+  //  Save sub-object
+  else if Kind = tkClass then
     begin
-      if  not RTTIProp.IsReadable then
-        Continue;
-      //  Get the correct settings name
-      SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
-      //  Determine what to save
-      Value     := RTTIProp.GetValue(Obj);
-      //  Manage complex types separately
-      if SettingsTypes._ComplexTypes.TryGetValue(RTTIProp.PropertyType.Handle, ComplexConverter)  then
+      Child := RTTIProp.GetValue(Obj).AsObject;
+      //  Handle nil objects
+      if  not Assigned(Child) then
         begin
-          fStore.NodeEnter(SettName, False);
-          try
-            ComplexConverter.ToStore(Value,
-              procedure (const Name: string; const Value: TValue)
-              begin
-                fStore.SaveValue(Name, SettingsTypes.ConvertToStore(Value.TypeInfo, Value))
-              end);
-          finally
-            fStore.NodeLeave;
-          end;
-          Continue;
-        end;
-      //  Find specific converter
-      Value := SettingsTypes.ConvertToStore(RTTIProp.PropertyType.Handle, Value);
-      //  Examine type kind
-      Kind  := Value.Kind;
-      //  Save simple type
-      if Kind in SupportedTypes then
-        fStore.SaveValue(SettName, Value)
-      //  Save TClass
-      else if Kind = tkClassRef then
-        fStore.SaveValue(SettName, Value.AsClass.QualifiedClassName)
-      //  Save sub-object
-      else if Kind = tkClass then
-        begin
-          Child := RTTIProp.GetValue(Obj).AsObject;
-          //  Handle nil objects
-          if  not Assigned(Child) then
-            begin
-              fStore.NodeEnter(SettName, not Assigned(Child));
-              fStore.NodeLeave;
-            end
-          //  TStrings are special
-          else if  Child is TStrings then
-            //  Write "deep" TStrings elements as separate named children
-            if  TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField)  then
-              begin
-                fStore.NodeClear(SettName);
-                fStore.NodeEnter(SettName, not Assigned(Child));
-                try
-                  SaveStringsDeep(Child);
-                finally
-                  fStore.NodeLeave;
-                end;
-              end
-            else
-              //  Write "shallow" TStrings as a single delimited string
-              SaveStrings(SettName, Child)
-          //  Save settings list elements as objects
-          else if SettingsLists.IsRegistered(Child.ClassType, ElemClass) then
-            begin
-              fStore.ListClear(SettName);
-              fStore.ListBegin(SettName, not Assigned(Child));
-              try
-                SaveList(Child, ElemClass);
-              finally
-                fStore.ListEnd;
-              end;
-            end
-          //  Not a list
-          else
-            begin
-              fStore.NodeEnter(SettName, not Assigned(Child));
-              try
-                SaveProperties(Child, RTTIProp.PropertyType.AsInstance.MetaclassType);
-              finally
-                fStore.NodeLeave;
-              end;
-            end
+          fStore.NodeEnter(SettName, not Assigned(Child));
+          fStore.NodeLeave;
         end
-      //  - Unhandled
+      //  TStrings are special
+      else if  Child is TStrings then
+        //  Write "deep" TStrings elements as separate named children
+        if  TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField)  then
+          SaveStringsDeep(Child, Child, RTTIProp)
+        //  Write "shallow" TStrings as a single delimited string
+        else
+          SaveStrings(SettName, Child)
+      //  Save settings list elements as objects
+      else if SettingsLists.IsRegistered(Child.ClassType, ElemClass) then
+        SaveList(Child, ElemClass, RTTIProp)
+      //  Child object
       else
-        raise ESettings.Create(SEUnsupportedType, [SettName, EnumToStr(TValue.From(Kind))]);
-    end;
+        SaveObject(Obj, Child, RTTIProp)
+    end
+  //  - Unhandled
+  else
+    raise ESettings.Create(SEUnsupportedType, [SettName, EnumToStr(TValue.From(Kind))]);
 end;
 
 procedure TSettingsWriter.SaveStrings(const Name: string; const Obj: TObject);
@@ -871,20 +905,26 @@ begin
   fStore.SaveValue(Name, Strs.DelimitedText);
 end;
 
-procedure TSettingsWriter.SaveStringsDeep(const Obj: TObject);
+procedure TSettingsWriter.SaveStringsDeep(const Obj, Child: TObject; const RTTIProp: TRttiProperty);
 var
   Strs: TStrings absolute Obj;
   i: integer;
 begin
-  for i := 0 to Strs.Count - 1 do
-    begin
-      fStore.NodeEnter(Strs[i], not Assigned(Strs.Objects[i]));
-      try
-        SaveProperties(Strs.Objects[i], TObject);
-      finally
-        fStore.NodeLeave;
+  fStore.NodeClear(RTTIProp.Name);
+  fStore.NodeEnter(RTTIProp.Name, not Assigned(Child));
+  try
+    for i := 0 to Strs.Count - 1 do
+      begin
+        fStore.NodeEnter(Strs[i], not Assigned(Strs.Objects[i]));
+        try
+          SaveProperties(Strs.Objects[i], TObject);
+        finally
+          fStore.NodeLeave;
+        end;
       end;
-    end;
+  finally
+    fStore.NodeLeave;
+  end;
 end;
 
 { SettingsTypes }
