@@ -16,9 +16,9 @@ object frmDemoSettings: TfrmDemoSettings
     Padding.Top = 24.000000000000000000
     Padding.Right = 16.000000000000000000
     Padding.Bottom = 16.000000000000000000
-    Position.Y = 100.000000000000000000
+    Position.Y = 105.000000000000000000
     Size.Width = 233.000000000000000000
-    Size.Height = 380.000000000000000000
+    Size.Height = 375.000000000000000000
     Size.PlatformDefault = False
     Text = 'Users'
     object lstUsers: TListView
@@ -28,7 +28,7 @@ object frmDemoSettings: TfrmDemoSettings
       FooterAppearanceClassName = 'TListHeaderObjects'
       Align = Client
       Size.Width = 201.000000000000000000
-      Size.Height = 272.000000000000000000
+      Size.Height = 267.000000000000000000
       Size.PlatformDefault = False
       OnDblClick = lstUsersDblClick
       OnChange = lstUsersChange
@@ -43,7 +43,7 @@ object frmDemoSettings: TfrmDemoSettings
       Padding.Bottom = 8.000000000000000000
       Orientation = Horizontal
       Position.X = 16.000000000000000000
-      Position.Y = 296.000000000000000000
+      Position.Y = 291.000000000000000000
       Size.Width = 201.000000000000000000
       Size.Height = 68.000000000000000000
       Size.PlatformDefault = False
@@ -82,11 +82,11 @@ object frmDemoSettings: TfrmDemoSettings
   object panControl: TGroupBox
     Align = MostTop
     Size.Width = 640.000000000000000000
-    Size.Height = 100.000000000000000000
+    Size.Height = 105.000000000000000000
     Size.PlatformDefault = False
     Text = 'panControl'
     object butSaveINI: TButton
-      Position.X = 16.000000000000000000
+      Position.X = 168.000000000000000000
       Position.Y = 32.000000000000000000
       Size.Width = 129.000000000000000000
       Size.Height = 22.000000000000000000
@@ -95,7 +95,7 @@ object frmDemoSettings: TfrmDemoSettings
       OnClick = butSaveINIClick
     end
     object butSaveJSON: TButton
-      Position.X = 16.000000000000000000
+      Position.X = 168.000000000000000000
       Position.Y = 64.000000000000000000
       Size.Width = 129.000000000000000000
       Size.Height = 22.000000000000000000
@@ -104,7 +104,7 @@ object frmDemoSettings: TfrmDemoSettings
       OnClick = butSaveJSONClick
     end
     object butLoadINI: TButton
-      Position.X = 200.000000000000000000
+      Position.X = 360.000000000000000000
       Position.Y = 32.000000000000000000
       Size.Width = 129.000000000000000000
       Size.Height = 22.000000000000000000
@@ -113,7 +113,7 @@ object frmDemoSettings: TfrmDemoSettings
       OnClick = butLoadINIClick
     end
     object butLoadJSON: TButton
-      Position.X = 200.000000000000000000
+      Position.X = 360.000000000000000000
       Position.Y = 64.000000000000000000
       Size.Width = 129.000000000000000000
       Size.Height = 22.000000000000000000
@@ -122,13 +122,13 @@ object frmDemoSettings: TfrmDemoSettings
       OnClick = butLoadJSONClick
     end
     object butSeedData: TButton
-      Position.X = 392.000000000000000000
+      Position.X = 40.000000000000000000
       Position.Y = 32.000000000000000000
       Text = 'Seed data'
       OnClick = butSeedDataClick
     end
     object butClearData: TButton
-      Position.X = 392.000000000000000000
+      Position.X = 40.000000000000000000
       Position.Y = 64.000000000000000000
       Text = 'Clear data'
       OnClick = butClearDataClick
@@ -139,15 +139,15 @@ object frmDemoSettings: TfrmDemoSettings
     Cursor = crHSplit
     MinSize = 20.000000000000000000
     Position.X = 233.000000000000000000
-    Position.Y = 100.000000000000000000
+    Position.Y = 105.000000000000000000
     Size.Width = 8.000000000000000000
-    Size.Height = 380.000000000000000000
+    Size.Height = 375.000000000000000000
     Size.PlatformDefault = False
   end
   object Layout1: TLayout
     Align = Client
     Size.Width = 399.000000000000000000
-    Size.Height = 380.000000000000000000
+    Size.Height = 375.000000000000000000
     Size.PlatformDefault = False
     object panActiveUser: TGroupBox
       Align = Top
@@ -172,12 +172,12 @@ object frmDemoSettings: TfrmDemoSettings
   end
   object SaveDialog: TSaveDialog
     Filter = 'Ini file|*.ini|JSON file|*.json|Text file|*.txt|Any file|*.*'
-    Left = 152
-    Top = 40
+    Left = 304
+    Top = 32
   end
   object OpenDialog: TOpenDialog
     Filter = 'Ini file|*.ini|JSON file|*.json|Text file|*.txt|Any file|*.*'
-    Left = 344
-    Top = 40
+    Left = 496
+    Top = 32
   end
 end

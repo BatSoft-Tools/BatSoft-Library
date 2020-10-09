@@ -7,10 +7,10 @@ unit BatSoft.Mementos;
 ///   - TVersionsProperties
 ///  The <Backup> classes hold only one backup of the originator, whereas
 ///  the <Versions> classes enable a multiple-version history of changes.
-///  The <Fields> classes back up the originator's field values. Better use these.
-///  The <Properties> classes back up the property values. Not advisable
+///  The <Fields> classes back up the originator's field values. Generally the best option.
+///  The <Properties> classes back up the property values. Not advisable.
 ///
-///  NOTE:  I'd advise NOT using the Properties classes because of potentially
+///  NOTE:  I'd advise you do NOT use the Properties mementos because of potentially
 ///         unknown consequenses when calling property getters and setters.
 ///
 ///  This implementation will compare the contents of records and arrays,
@@ -26,6 +26,15 @@ uses
   SysUtils, RTTI, Generics.Collections;
 
 type
+{$region 'Attributes'}
+
+  MementoDeep   = class(TCustomAttribute);
+  MementoIgnore = class(TCustomAttribute);
+
+{$endregion}
+
+{$region 'Used for identifying changes between versions.'}
+
   TChange = record
   public
     Name: string;
@@ -37,6 +46,8 @@ type
     function IndexOf(const Name: string): integer;
     function ToString: string; override;
   end;
+
+{$endregion}
 
   TMemento = class abstract
     constructor Create(const AOriginator: TObject); virtual; abstract;
@@ -132,13 +143,6 @@ type
     procedure ListChanges(const Changes: TChanges); override;
     function  HasChanges: Boolean; override;
   end;
-
-{$endregion}
-
-{$region 'Attributes'}
-
-  MementoDeepField  = class(TCustomAttribute);
-  MementoIgnore     = class(TCustomAttribute);
 
 {$endregion}
 
@@ -283,22 +287,22 @@ end;
 
 function IgnoreField(const Field: TRttiField): Boolean; overload;
 begin
-  Result := TCustomAttribute.HasAttribute<MementoIgnore>(Field.GetAttributes)
+  Result := Field.GetAttributes.Has<MementoIgnore>()
 end;
 
 function IgnoreProp(const Prop: TRttiProperty): Boolean; overload;
 begin
-  Result := TCustomAttribute.HasAttribute<MementoIgnore>(Prop.GetAttributes)
+  Result := Prop.GetAttributes.Has<MementoIgnore>()
 end;
 
 function IsDeepField(const Field: TRttiField): Boolean; overload;
 begin
-  Result := (Field.FieldType.TypeKind = tkClass) and TCustomAttribute.HasAttribute<MementoDeepField>(Field.GetAttributes)
+  Result := (Field.FieldType.TypeKind = tkClass) and Field.GetAttributes.Has<MementoDeep>()
 end;
 
 function IsDeepProp(const Prop: TRttiProperty): Boolean; overload;
 begin
-  Result := (Prop.PropertyType.TypeKind = tkClass) and TCustomAttribute.HasAttribute<MementoDeepField>(Prop.GetAttributes)
+  Result := (Prop.PropertyType.TypeKind = tkClass) and Prop.GetAttributes.Has<MementoDeep>()
 end;
 
 {$region 'TStrings compatibility'}
@@ -373,7 +377,7 @@ procedure ReleaseMemento(const Memento: TObject);
         if  IsMementoStrs(Field.FieldType)  then
           ClearMementoStrs(Field, Memento)
         //  Free in depth
-        else if  TCustomAttribute.HasAttribute(Field.GetAttributes, MementoDeepField) then
+        else if  Field.GetAttributes.Has(MementoDeep) then
           begin
             Value := Field.GetValue(Memento).AsObject;
             ReleaseMemento(Value);

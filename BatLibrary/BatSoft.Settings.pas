@@ -6,13 +6,15 @@ uses
   System.SysUtils, System.TypInfo, System.RTTI, System.Classes, Generics.Collections;
 
 {$region 'Settings attributes'}
-type
 
-  SettingsDeepField = class(TCustomAttribute);
+type
+  /// Indicates that objects in this TStrings property should be saved too.
+  SettingsDeep = class(TCustomAttribute);
 
 {$region 'Ignore'}
 
 type
+  /// Indicates that BatSoft.Settings should ignore this property.
   SettingsIgnore = class(TCustomAttribute);
 
 function HasSettingsIgnore(const Prop: TRttiProperty): Boolean;
@@ -30,7 +32,9 @@ type
     property  Order : integer read fOrder;
   end;
 
+  /// Used for specifying load order.  Default is 0.
   SettingsLoadOrder = class(SettingsOrderBase);
+  /// Used for specifying save order.  Default is 0.
   SettingsSaveOrder = class(SettingsOrderBase);
 
 function GetSettingsOrder(const Prop: TRttiProperty; const Save: Boolean): integer;
@@ -41,7 +45,7 @@ function SortAndFilter(const Props: TArray<TRttiProperty>; const Save: Boolean):
 {$region 'SettingName'}
 
 type
-  SettingsStoreName = class(TCustomAttribute)
+  SettingsName = class(TCustomAttribute)
   private
     fStoreName: string;
   public
@@ -239,21 +243,6 @@ var
   ReadComparer: IComparer<TRttiProperty>;
   WriteComparer: IComparer<TRttiProperty>;
 
-function FindAttribute(const Prop: TRttiProperty; const AttributeClass: TClass; out Attribute: TCustomAttribute): Boolean;
-var
-  Attrs: TArray<TCustomAttribute>;
-  Attr: TCustomAttribute;
-begin
-  Attrs   := Prop.GetAttributes;
-  for Attr in Attrs do
-    if  Attr is AttributeClass  then
-      begin
-        Attribute := Attr;
-        Exit(True);
-      end;
-  Result  := False;
-end;
-
 { TSettingsOrderComparer }
 
 function TSettingsOrderComparer.Compare(const Left, Right: TRttiProperty): Integer;
@@ -270,56 +259,10 @@ end;
 { SettingsIgnore }
 
 function HasSettingsIgnore(const Prop: TRttiProperty): Boolean;
-var
-  Attr: TCustomAttribute;
 begin
-  Result  := FindAttribute(Prop, SettingsIgnore, Attr)
+  Result  := Prop.GetAttributes.Has<SettingsIgnore>()
 end;
 
-//{ SettingsOrder }
-//
-//constructor SettingsOrder.Create(const AReadOrder, AWriteOrder: integer);
-//begin
-//  inherited Create;
-//  fReadOrder  := AReadOrder;
-//  fWriteOrder := AWriteOrder;
-//end;
-//
-//function GetSettingsOrder(const Prop: TRttiProperty; const Write: Boolean): integer;
-//var
-//  Attr: TCustomAttribute;
-//begin
-//  if  not FindAttribute(Prop, SettingsOrder, Attr) then
-//    Result  := 0
-//  else if Write then
-//    Result  := SettingsOrder(Attr).WriteOrder
-//  else
-//    Result  := SettingsOrder(Attr).ReadOrder;
-//end;
-
-//function SortAndFilter(const Props: TArray<TRttiProperty>; const Write: Boolean): TArray<TRttiProperty>;
-//var
-//  List: TList<TRttiProperty>;
-//  Prop: TRttiProperty;
-//begin
-//  List  := TList<TRttiProperty>.Create;
-//  try
-//    //  Sort properties
-//    for Prop in Props do
-//      if  Prop.Visibility = TMemberVisibility.mvPublished then
-//        if  not HasSettingsIgnore(Prop)  then
-//          List.Add(Prop);
-//    if  Write then
-//      List.Sort(WriteComparer)
-//    else
-//      List.Sort(ReadComparer);
-//    //  Done
-//    Result  := List.ToArray;
-//  finally
-//    List.Free;
-//  end;
-//end;
-//
 { SettingsOrderBase }
 
 constructor SettingsOrderBase.Create(const AOrder: integer);
@@ -330,14 +273,19 @@ end;
 
 function GetSettingsOrder(const Prop: TRttiProperty; const Save: Boolean): integer;
 var
-  Attr: TCustomAttribute;
+  Attr: SettingsOrderBase;
 begin
-  if  not FindAttribute(Prop, SettingsOrderBase, Attr) then
-    Result  := 0
-  else if Save  then
-    Result  := SettingsSaveOrder(Attr).Order
+  Result  := 0;
+  if  Save  then
+    begin
+      if  Prop.GetAttributes.Has<SettingsSaveOrder>(Attr) then
+        Result  := Attr.Order
+    end
   else
-    Result  := SettingsLoadOrder(Attr).Order;
+    begin
+      if  Prop.GetAttributes.Has<SettingsLoadOrder>(Attr) then
+        Result  := Attr.Order
+    end;
 end;
 
 function SortAndFilter(const Props: TArray<TRttiProperty>; const Save: Boolean): TArray<TRttiProperty>;
@@ -365,18 +313,18 @@ end;
 
 { SettingsStoreName }
 
-constructor SettingsStoreName.Create(const ASettingName: string);
+constructor SettingsName.Create(const ASettingName: string);
 begin
   inherited Create;
   fStoreName  := ASettingName;
 end;
 
-class function SettingsStoreName.StoreNameOf(const Prop: TRttiProperty): string;
+class function SettingsName.StoreNameOf(const Prop: TRttiProperty): string;
 var
-  Attr: TCustomAttribute;
+  Attr: SettingsName;
 begin
-  if  FindAttribute(Prop, SettingsStoreName, Attr) then
-    Result  := SettingsStoreName(Attr).StoreName
+  if  Prop.GetAttributes.Has<SettingsName>(Attr) then
+    Result  := Attr.StoreName
   else
     Result  := Prop.Name;
 end;
@@ -634,7 +582,7 @@ var
   Value: TValue;
 begin
   //  Get the correct settings name
-  SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
+  SettName  := SettingsName.StoreNameOf(RTTIProp);
   //  Manage complex types separately
   if  LoadComplexType(Obj, RTTIProp)  then
     Exit;
@@ -668,7 +616,7 @@ begin
       //  TStrings are special
       if  ChildClass.InheritsFrom(TStrings) then
         //  Read "deep" TStrings elements as separate named children
-        if  TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField)  then
+        if  RTTIProp.GetAttributes.Has(SettingsDeep) then
           LoadStringsDeep(Obj, RTTIProp)
         //  Read "shallow" TStrings as a single delimited string
         else
@@ -852,7 +800,7 @@ begin
   if  not RTTIProp.IsReadable then
     Exit;
   //  Get the correct settings name
-  SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
+  SettName  := SettingsName.StoreNameOf(RTTIProp);
   //  Manage complex types separately
   if  SaveComplexType(Obj, RTTIProp)  then
     Exit;
@@ -881,7 +829,7 @@ begin
       //  TStrings are special
       else if  Child is TStrings then
         //  Write "deep" TStrings elements as separate named children
-        if  TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField)  then
+        if  RTTIProp.GetAttributes.Has(SettingsDeep)  then
           SaveStringsDeep(Child, Child, RTTIProp)
         //  Write "shallow" TStrings as a single delimited string
         else

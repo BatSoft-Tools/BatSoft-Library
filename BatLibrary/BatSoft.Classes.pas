@@ -99,17 +99,16 @@ type
     property  Duplicates: TDuplicates read fDuplicates write fDuplicates;
 
     property  Comparer: IComparer<T> read FComparer;
-//    procedure Prepopulate(const Value: T);
 
     property OnNotify: TCollectionNotifyEvent<T> read GetOnNotify write SetOnNotify;
     function GetEnumerator: TList<T>.TEnumerator; reintroduce; inline;
   end;
 
-  TAttributeHelper = class helper for TCustomAttribute
+  TAttributeArrayHelper = record helper for TArray<TCustomAttribute>
   public
-    class function HasAttribute(const Attributes: TArray<TCustomAttribute>; const AttributeClass: TClass): Boolean; overload;
-    class function HasAttribute<T: TCustomAttribute>(const Attributes: TArray<TCustomAttribute>): Boolean; overload;
-    class function HasAttribute<T: TCustomAttribute>(const Attributes: TArray<TCustomAttribute>; out Attribute: T): Boolean; overload;
+    class function Has(const AttributeClass: TClass): Boolean; overload;
+    class function Has<T: TCustomAttribute>(): Boolean; overload; inline;
+    class function Has<T: TCustomAttribute>(const [ref] FoundAttribute: TCustomAttribute): Boolean; overload;
   end;
 
 implementation
@@ -443,11 +442,6 @@ begin
     end;
 end;
 
-//procedure TBinaryList<T>.Prepopulate(const Value: T);
-//begin
-//  fList.Add(Value);
-//end;
-
 function TBinaryList<T>.Remove(const Value: T): integer;
 begin
   Result  := fList.Remove(Value)
@@ -458,40 +452,37 @@ begin
   fList.OnNotify  := Value
 end;
 
-{ TAttributeHelper }
+{ TAttributeArrayHelper }
 
-class function TAttributeHelper.HasAttribute(const Attributes: TArray<TCustomAttribute>;
-  const AttributeClass: TClass): Boolean;
+class function TAttributeArrayHelper.Has(const AttributeClass: TClass): Boolean;
 var
   Attribute: TCustomAttribute;
 begin
   Result := True;
-  for Attribute in Attributes do
+  for Attribute in Self do
     if Attribute is AttributeClass then
       Exit;
   Result := False;
 end;
 
-class function TAttributeHelper.HasAttribute<T>(const Attributes: TArray<TCustomAttribute>;
-  out Attribute: T): Boolean;
+class function TAttributeArrayHelper.Has<T>(const [ref] FoundAttribute: TCustomAttribute): Boolean;
 var
   Attr: TCustomAttribute;
 begin
   Result  := True;
-  for Attr in Attributes do
+  for Attr in Self do
     if Attr is T then
       begin
-        Attribute := Attr as T;
+        TObject(Pointer(@FoundAttribute)^) := Attr;
         Exit;
       end;
   Result  := False;
+  TObject(Pointer(@FoundAttribute)^) := nil;
 end;
 
-class function TAttributeHelper.HasAttribute<T>(const Attributes: TArray<TCustomAttribute>): Boolean;
-var
-  Attribute: T;
+class function TAttributeArrayHelper.Has<T>(): Boolean;
 begin
-  Result  := HasAttribute<T>(Attributes, Attribute)
+  Result  := Has(T);
 end;
 
 end.
