@@ -142,6 +142,7 @@
         <DCCReference Include="TestMementos.pas"/>
         <DCCReference Include="..\..\BatLibrary\BatSoft.Classes.pas"/>
         <DCCReference Include="..\..\BatLibrary\BatSoft.Mementos.pas"/>
+        <DCCReference Include="TestInterfaces.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
