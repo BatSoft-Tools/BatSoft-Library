@@ -6,90 +6,41 @@ uses
   System.Types, System.Generics.Defaults, Generics.Collections;
 
 type
-  ///  Sometimes I want interfaced objects to free when the RefCount = 1, such as
-  ///  when I'm writing factories that keep track of multitons.
+  ///  Like TInterfacedObject but without reference counting.
+  TInterfacedObjectNoRefCount = class(TObject, IInterface)
+  protected
+    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+  end;
+
+  ///  Sometimes I want interfaced objects to free when the RefCount is something
+  ///  other than 0, such as when writing factories that keep track of multitons.
   ///
   TMinRefCountObject = class(TInterfacedObject, IInterface)
   public
     constructor Create(const AMinRefCount: integer = 0);
   end;
 
-  ///  Like TInterfacedObject but without reference counting.
-  TNoRefCountObject = class(TObject, IInterface)
-  protected
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-  end;
+  //  Did you ever have a class that you want to add an interface to, but can't
+  //  change the root class to TInterfacedObject?  Well, here is your solution.
+  //
+  //  Add the following to your class declaration:
+  //    private
+  //      fIntf: IInterface;
+  //    public
+  //      property  Intf: IInterface  read fIntf  implements IInterface;
+  //
+  //  In the constructor add:
+  //    fIntf := TRefCountMyOwner.Create(Self);
 
-  ///  Did you ever have a class that you want to add an interface to, but can't
-  ///  change the root class to TInterfacedObject?  Well, here is your solution.
-  ///
-  ///  Add the following to your class declaration:
-  ///    private
-  ///      fIntf: IInterface;
-  ///    public
-  ///      property  Intf: IInterface  read fIntf  implements IInterface;
-  ///
-  ///  In the constructor add:
-  ///    fIntf := TRefCountMyOwner.Create(Self);
-  ///
+  /// Add interfaces to a class that is not a TInterfacedObject.
   TRefCountMyOwner = class(TMinRefCountObject, IInterface)
   private
     fOwner: TObject;
   public
     constructor Create(const AOwner: TObject);
     destructor  Destroy; override;
-  end;
-
-  //  This is a reference counted TList<T> that can be used to implement interfaces
-  //  It is a combination of TInterfacedObject and TList<>
-  TInterfacedList<T: class> = class(TList<T>, IInterface)
-{$IFNDEF AUTOREFCOUNT}
-  private const
-    objDestroyingFlag = Integer($80000000);
-    function GetRefCount: Integer; inline;
-{$ENDIF}
-  protected
-{$IFNDEF AUTOREFCOUNT}
-    [Volatile] FRefCount: Integer;
-    class procedure __MarkDestroying(const Obj); static; inline;
-{$ENDIF}
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-  public
-{$IFNDEF AUTOREFCOUNT}
-    procedure AfterConstruction; override;
-    procedure BeforeDestruction; override;
-    class function NewInstance: TObject; override;
-    property RefCount: Integer read GetRefCount;
-{$ENDIF}
-  end;
-
-  //  This is a reference counted TObjectList<T> that can be used to implement interfaces
-  //  It is a combination of TInterfacedObject and TObjectList<>
-  TInterfacedObjectList<T: class> = class(TObjectList<T>, IInterface)
-{$IFNDEF AUTOREFCOUNT}
-  private const
-    objDestroyingFlag = Integer($80000000);
-    function GetRefCount: Integer; inline;
-{$ENDIF}
-  protected
-{$IFNDEF AUTOREFCOUNT}
-    [Volatile] FRefCount: Integer;
-    class procedure __MarkDestroying(const Obj); static; inline;
-{$ENDIF}
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-  public
-{$IFNDEF AUTOREFCOUNT}
-    procedure AfterConstruction; override;
-    procedure BeforeDestruction; override;
-    class function NewInstance: TObject; override;
-    property RefCount: Integer read GetRefCount;
-{$ENDIF}
   end;
 
   //  This is a container that stores items in proper order using binary search.
@@ -145,17 +96,9 @@ implementation
 uses
   System.SysUtils, System.RTLConsts;
 
-{ TMinRefCountObject }
+{ TInterfacedObjectNoRefCount }
 
-constructor TMinRefCountObject.Create(const AMinRefCount: integer);
-begin
-  inherited Create();
-  dec(FRefCount, AMinRefCount)
-end;
-
-{ TNoRefCountObject }
-
-function TNoRefCountObject.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TInterfacedObjectNoRefCount.QueryInterface(const IID: TGUID; out Obj): HResult;
 begin
   if GetInterface(IID, Obj) then
     Result := 0
@@ -163,16 +106,24 @@ begin
     Result := E_NOINTERFACE;
 end;
 
-function TNoRefCountObject._AddRef: Integer;
+function TInterfacedObjectNoRefCount._AddRef: Integer;
 begin
   //  Do nothing
   Result  := 0;
 end;
 
-function TNoRefCountObject._Release: Integer;
+function TInterfacedObjectNoRefCount._Release: Integer;
 begin
   //  Do nothing
   Result  := 0;
+end;
+
+{ TMinRefCountObject }
+
+constructor TMinRefCountObject.Create(const AMinRefCount: integer);
+begin
+  inherited Create();
+  dec(FRefCount, AMinRefCount)
 end;
 
 { TRefCountMyOwner }
@@ -188,156 +139,6 @@ begin
   fOwner.Free;
   inherited;
 end;
-
-{ TInterfacedList<T> }
-
-{$IFNDEF AUTOREFCOUNT}
-
-procedure TInterfacedList<T>.AfterConstruction;
-begin
-// Release the constructor's implicit refcount
-  AtomicDecrement(FRefCount);
-end;
-
-procedure TInterfacedList<T>.BeforeDestruction;
-begin
-  if RefCount <> 0 then
-    System.Error(reInvalidPtr);
-end;
-
-function TInterfacedList<T>.GetRefCount: Integer;
-begin
-  Result := FRefCount and not objDestroyingFlag;
-end;
-
-// Set an implicit refcount so that refcounting during construction won't destroy the object.
-class function TInterfacedList<T>.NewInstance: TObject;
-begin
-  Result := inherited NewInstance;
-  TInterfacedList<T>(Result).FRefCount := 1;
-end;
-
-{$ENDIF AUTOREFCOUNT}
-
-function TInterfacedList<T>.QueryInterface(const IID: TGUID; out Obj): HResult;
-begin
-  if GetInterface(IID, Obj) then
-    Result := 0
-  else
-    Result := E_NOINTERFACE;
-end;
-
-function TInterfacedList<T>._AddRef: Integer;
-begin
-{$IFNDEF AUTOREFCOUNT}
-  Result := AtomicIncrement(FRefCount);
-{$ELSE}
-  Result := __ObjAddRef;
-{$ENDIF}
-end;
-
-function TInterfacedList<T>._Release: Integer;
-begin
-{$IFNDEF AUTOREFCOUNT}
-  Result := AtomicDecrement(FRefCount);
-  if Result = 0 then
-  begin
-    // Mark the refcount field so that any refcounting during destruction doesn't infinitely recurse.
-    __MarkDestroying(Self);
-    Destroy;
-  end;
-{$ELSE}
-  Result := __ObjRelease;
-{$ENDIF}
-end;
-
-{$IFNDEF AUTOREFCOUNT}
-
-class procedure TInterfacedList<T>.__MarkDestroying(const Obj);
-var
-  LRef: Integer;
-begin
-  repeat
-    LRef := TInterfacedList<T>(Obj).FRefCount;
-  until AtomicCmpExchange(TInterfacedList<T>(Obj).FRefCount, LRef or objDestroyingFlag, LRef) = LRef;
-end;
-
-{$ENDIF AUTOREFCOUNT}
-
-{ TInterfacedObjectList<T> }
-
-{$IFNDEF AUTOREFCOUNT}
-
-procedure TInterfacedObjectList<T>.AfterConstruction;
-begin
-// Release the constructor's implicit refcount
-  AtomicDecrement(FRefCount);
-end;
-
-procedure TInterfacedObjectList<T>.BeforeDestruction;
-begin
-  if RefCount <> 0 then
-    System.Error(reInvalidPtr);
-end;
-
-function TInterfacedObjectList<T>.GetRefCount: Integer;
-begin
-  Result := FRefCount and not objDestroyingFlag;
-end;
-
-// Set an implicit refcount so that refcounting during construction won't destroy the object.
-class function TInterfacedObjectList<T>.NewInstance: TObject;
-begin
-  Result := inherited NewInstance;
-  TInterfacedObjectList<T>(Result).FRefCount := 1;
-end;
-
-{$ENDIF AUTOREFCOUNT}
-
-function TInterfacedObjectList<T>.QueryInterface(const IID: TGUID; out Obj): HResult;
-begin
-  if GetInterface(IID, Obj) then
-    Result := 0
-  else
-    Result := E_NOINTERFACE;
-end;
-
-function TInterfacedObjectList<T>._AddRef: Integer;
-begin
-{$IFNDEF AUTOREFCOUNT}
-  Result := AtomicIncrement(FRefCount);
-{$ELSE}
-  Result := __ObjAddRef;
-{$ENDIF}
-end;
-
-function TInterfacedObjectList<T>._Release: Integer;
-begin
-{$IFNDEF AUTOREFCOUNT}
-  Result := AtomicDecrement(FRefCount);
-  if Result = 0 then
-  begin
-    // Mark the refcount field so that any refcounting during destruction doesn't infinitely recurse.
-    __MarkDestroying(Self);
-    Destroy;
-  end;
-{$ELSE}
-  Result := __ObjRelease;
-{$ENDIF}
-end;
-
-{$IFNDEF AUTOREFCOUNT}
-
-class procedure TInterfacedObjectList<T>.__MarkDestroying(const Obj);
-var
-  LRef: Integer;
-begin
-  repeat
-    LRef := TInterfacedObjectList<T>(Obj).FRefCount;
-  until AtomicCmpExchange(TInterfacedObjectList<T>(Obj).FRefCount, LRef or objDestroyingFlag, LRef) = LRef;
-end;
-
-{$ENDIF AUTOREFCOUNT}
 
 { TBinaryList<T> }
 

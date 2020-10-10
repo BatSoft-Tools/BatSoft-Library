@@ -7,8 +7,7 @@ uses
 
 type
   [TestFixture]
-  TTestSettingsJSON = class(TTestSettings<TSettingsJSONLoader, TSettingsJSONSaver>)
-  end;
+  TTestSettingsJSON = class(TTestSettings<TSettingsJSONLoader, TSettingsJSONSaver>);
 
 implementation
 

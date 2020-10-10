@@ -1,5 +1,9 @@
 unit BatSoft.Observer.Base;
 
+//  Ignore this unit as it only contains base classes for the units:
+//  - BatSoft.Observer.Managed
+//  - BatSoft.Observer.Manual
+
 interface
 
 uses

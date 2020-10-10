@@ -24,6 +24,7 @@ function HasSettingsIgnore(const Prop: TRttiProperty): Boolean;
 {$region 'Settings Load/Save Order'}
 
 type
+  /// Base class.  Don't use this.  Use SettingsLoadOrder or SettingsSaveOrder.
   SettingsOrderBase = class abstract(TCustomAttribute)
   private
     fOrder: integer;
@@ -45,6 +46,8 @@ function SortAndFilter(const Props: TArray<TRttiProperty>; const Save: Boolean):
 {$region 'SettingName'}
 
 type
+  ///  Store the setting with a different name.
+  ///  Don't use 'Class', because that's already used by BatSoft.Settings.
   SettingsName = class(TCustomAttribute)
   private
     fStoreName: string;
@@ -58,6 +61,8 @@ type
 
 {$endregion}
 type
+  ///  Implement ISettingsStoreReader to load settings from other store types.
+  ///  Use TSettingsStore as the base class.
   ISettingsStoreReader = interface
     ['{42508E64-EC8C-44C9-A2F6-9C666BE84230}']
     //  Storage
@@ -78,6 +83,8 @@ type
     function  LoadValue(const Name: string; const TypeInfo: PTypeInfo): TValue;
   end;
 
+  ///  Implement ISettingsStoreWriter to save settings to other store types.
+  ///  Use TSettingsStore as the base class.
   ISettingsStoreWriter = interface
     ['{DE922225-D7A5-40DF-BAB4-CE84F522328D}']
     //  Storage
@@ -98,7 +105,8 @@ type
     procedure SaveValue(const Name: string; const Value: TValue);
   end;
 
-  TSettingsStore = class(TInterfacedObject)
+  ///  Base class for implementations of ISettingsStoreReader and ISettingsStoreWriter.
+  TSettingsStore = class abstract (TInterfacedObject)
   protected
     fFileName: string;
     fEnumsAsStrings: Boolean;
@@ -110,6 +118,7 @@ type
   end;
   TSettingsStoreClass = class of TSettingsStore;
 
+  ///  This contains the smarts for loading.  It uses implementations of ISettingsStoreReader to read from stores.
   TSettingsReader = class
   private
     fStore: ISettingsStoreReader;
@@ -128,6 +137,7 @@ type
     procedure Load(var Obj: TObject; const ObjClass: TClass);
   end;
 
+  ///  This contains the smarts for saving.  It uses implementations of ISettingsStoreWriter to write to stores.
   TSettingsWriter = class
   private
     fStore: ISettingsStoreWriter;
@@ -151,6 +161,9 @@ type
   TComplexLoader  = reference to function (const LoadValue: TSimpleLoader): TValue;
   TComplexSaver   = reference to procedure (const Value: TValue; const SaveValue: TSimpleSaver);
 
+  ///  Register conversion functions here, that convert values between what's in memory and what's in storage.
+  ///  This works for both simple types (ex. TDateTime is a float in memory but may be a string in files) and also complex types (such as records).
+  ///  For examples, look in BatSoft.Settings.Types unit.
   SettingsTypes = class
   private type
     TSimpleConverters = record
@@ -175,6 +188,8 @@ type
     class function  ConvertToStore(const PropInfo: PTypeInfo; const PropValue: TValue): TValue;
   end;
 
+  ///  Register TObjectList<> classes here. No further conversion routines are necessary.
+  ///  This does not take TList<> classes.
   SettingsLists = class
   private
     class var _Types: TDictionary<TClass, TClass>;
@@ -190,6 +205,9 @@ type
     constructor Create(const AMessage: string); overload;
     constructor Create(const AMessage: string; const Args: array of const); overload;
   end;
+
+//  Conversion routines that are necessary in implementation of ISettingsStoreReader.LoadValue() and ISettingsStoreWriter.SaveValue().
+//  Not using some of these will cause problems when converting enums and sets, because of how TValue works.
 
 function  EnumToStr(const Value: TValue): string;
 function  StrToEnum(const Value: string; const Info: PTypeInfo): TValue;

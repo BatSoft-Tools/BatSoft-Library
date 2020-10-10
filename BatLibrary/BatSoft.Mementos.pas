@@ -1,24 +1,24 @@
 unit BatSoft.Mementos;
 
-///  This unit contains four implementations of the Memento pattern:
-///   - TBackupFields
-///   - TBackupProperties
-///   - TVersionsFields
-///   - TVersionsProperties
-///  The <Backup> classes hold only one backup of the originator, whereas
-///  the <Versions> classes enable a multiple-version history of changes.
-///  The <Fields> classes back up the originator's field values. Generally the best option.
-///  The <Properties> classes back up the property values. Not advisable.
-///
-///  NOTE:  I'd advise you do NOT use the Properties mementos because of potentially
-///         unknown consequenses when calling property getters and setters.
-///
-///  This implementation will compare the contents of records and arrays,
-///  but NOT what they point to (such as string contents).
-///
-///  TChanges.ToString will not show *what* changes there are in records and arrays,
-///  only *that* there are changes. If you would like more detail, then ask at:
-///     peter@batsoft.com.au
+//  This unit contains four implementations of the Memento pattern:
+//   - TBackupFields
+//   - TBackupProperties
+//   - TVersionsFields
+//   - TVersionsProperties
+//  The <Backup> classes hold only one backup of the originator, whereas
+//  the <Versions> classes enable a multiple-version history of changes.
+//  The <Fields> classes back up the originator's field values. Generally the best option.
+//  The <Properties> classes back up the property values. Not advisable.
+//
+//  NOTE:  I'd advise you do NOT use the Properties mementos because of potentially
+//         unknown consequenses when calling property getters and setters.
+//
+//  This implementation will compare the contents of records and arrays,
+//  but NOT what they point to (such as string contents).
+//
+//  TChanges.ToString will not show *what* changes there are in records and arrays,
+//  only *that* there are changes. If you would like more detail, then ask at:
+//     peter@batsoft.com.au
 
 interface
 
@@ -28,7 +28,11 @@ uses
 type
 {$region 'Attributes'}
 
+  /// Specifies backing up and comparing of sub-objects, rather than their pointers.
+  /// (Does NOT apply to properties.)
   MementoDeep   = class(TCustomAttribute);
+
+  /// Mementos will ignore this field/property.
   MementoIgnore = class(TCustomAttribute);
 
 {$endregion}
@@ -49,6 +53,7 @@ type
 
 {$endregion}
 
+  /// Base class.  Don't instantiate this.
   TMemento = class abstract
     constructor Create(const AOriginator: TObject); virtual; abstract;
     procedure Backup; overload; virtual; abstract;
@@ -61,6 +66,7 @@ type
 
 {$region 'Single version backup'}
 
+  /// Base class.  Don't instantiate this.
   TMementoBackup = class abstract (TMemento)
   private
     fOriginator: TObject;
@@ -77,6 +83,7 @@ type
   end;
   TMementoBackupClass = class of TMementoBackup;
 
+  /// Single version memento of an object's internal values.
   TBackupFields = class(TMementoBackup)
   private
     procedure CopyValues(const FromObj, ToObj: TObject); override;
@@ -85,6 +92,7 @@ type
     function  HasChanges: Boolean; override;
   end;
 
+  /// Single version memento of an object's property values.
   TBackupProperties = class(TMementoBackup)
   private
     procedure CopyValues(const FromObj, ToObj: TObject); override;
@@ -97,6 +105,7 @@ type
 
 {$region 'Multiple version backup'}
 
+  /// Base class.  Don't instantiate this.
   TMementoVersions = class abstract (TMemento)
   private type
 
@@ -128,6 +137,7 @@ type
   end;
   TMementoVersionsClass = class of TMementoVersions;
 
+  /// Multi-version memento of an object's internal values.
   TVersionsFields = class(TMementoVersions)
   private
     procedure CopyValues(const FromObj, ToObj: TObject); override;
@@ -136,6 +146,7 @@ type
     function  HasChanges: Boolean; override;
   end;
 
+  /// Multi-version memento of an object's property values.
   TVersionsProperties = class(TMementoVersions)
   private
     procedure CopyValues(const FromObj, ToObj: TObject); override;
