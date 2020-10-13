@@ -102,7 +102,7 @@ type
     [MementoIgnore]
     fObjList: TObjList;
     fStrs: TStringList;
-    [MementoDeepField]
+    [MementoDeep]
     fStrsDeep: TStringList;
   public
     constructor Create;
@@ -112,21 +112,21 @@ type
   published
     property  ObjList   : TObjList        read fObjList   write fObjList;
     property  Strs      : TStringList     read fStrs      write fStrs;
-    [SettingsDeepField]
+    [SettingsDeep]
     property  StrsDeep  : TStringList     read fStrsDeep  write fStrsDeep;
   end;
 
   TAllTypes = class(TCntrTypes)
   private
-    [MementoDeepField]
+    [MementoDeep]
     fSimple: TSimpleValues;
-    [MementoDeepField]
+    [MementoDeep]
     fComplex: TComplexValues;
-    [MementoDeepField]
+    [MementoDeep]
     fObj: TObjBase;
-    [MementoDeepField]
+    [MementoDeep]
     fObjExt: TObjBase;
-    [MementoDeepField]
+    [MementoDeep]
     fObjNil: TObjBase;
   public
     destructor  Destroy; override;

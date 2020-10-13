@@ -1,5 +1,46 @@
 unit BatSoft.Observer.Managed;
 
+//  This unit implements the observer pattern.
+//  (This pattern is like component events such as OnClick, OnChanged, etc.)
+//
+//  TManagedEventHandler enables multiple objects to subscribe to the same event.
+//
+//  When an observer subscribes to a TManagedEventHandler event, it recieves an
+//  interface that represents the subscription.
+//  - When either the observer or the event handler releases the subscription object, the subscription ends.
+//  - When the subscription ends, the event ISubscription.OnEnd() fires.
+//  - You can see the state of the subscription by calling ISubscription.IsActive().
+//
+//  Use TNotifyEvents or implement one of the generics or use them as examples
+//  for writing your own explicit event handlers.
+//
+//  To add an event handler to a subject (the object that observers are observing)
+//  do the following, in this example a TNotifyEvents (which does not take parameters)...
+//
+//  In the subject add:
+//    TMySubject = class
+//    private
+//      fOnChanged: TNotifyEvents;
+//    public
+//      property  OnChanged: TNotifyEvents  read fOnChanged;
+//
+//  In the constructor add:
+//      fOnChanged  := TNotifyEvents.Create(Self);
+//  ...and don't forget to free it in the destructor.
+//
+//  The observers subscribe by calling:
+//    Declarations...
+//      MySubj: TMySubject;
+//      fSubscription: ISubscription;
+//    Code...
+//      fSubscription := MySubj.Subscribe(CallbackMethod);
+//
+//  To unsubscribe:
+//      fSubscription := nil;
+//
+//  To fire the event, the TMySubject object calls:
+//    fOnChanged.Call();
+
 interface
 
 uses

@@ -25,7 +25,7 @@ type
     fPerName: string;
     fCounter: IRefCounter;
     fNotes: TStrings;
-    [MementoDeepField]
+    [MementoDeep]
     fAddress: TAddress;
   public
     constructor Create;

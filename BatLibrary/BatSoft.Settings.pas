@@ -6,13 +6,15 @@ uses
   System.SysUtils, System.TypInfo, System.RTTI, System.Classes, Generics.Collections;
 
 {$region 'Settings attributes'}
-type
 
-  SettingsDeepField = class(TCustomAttribute);
+type
+  /// Indicates that objects in this TStrings property should be saved too.
+  SettingsDeep = class(TCustomAttribute);
 
 {$region 'Ignore'}
 
 type
+  /// Indicates that BatSoft.Settings should ignore this property.
   SettingsIgnore = class(TCustomAttribute);
 
 function HasSettingsIgnore(const Prop: TRttiProperty): Boolean;
@@ -22,6 +24,7 @@ function HasSettingsIgnore(const Prop: TRttiProperty): Boolean;
 {$region 'Settings Load/Save Order'}
 
 type
+  /// Base class.  Don't use this.  Use SettingsLoadOrder or SettingsSaveOrder.
   SettingsOrderBase = class abstract(TCustomAttribute)
   private
     fOrder: integer;
@@ -30,7 +33,9 @@ type
     property  Order : integer read fOrder;
   end;
 
+  /// Used for specifying load order.  Default is 0.
   SettingsLoadOrder = class(SettingsOrderBase);
+  /// Used for specifying save order.  Default is 0.
   SettingsSaveOrder = class(SettingsOrderBase);
 
 function GetSettingsOrder(const Prop: TRttiProperty; const Save: Boolean): integer;
@@ -41,7 +46,9 @@ function SortAndFilter(const Props: TArray<TRttiProperty>; const Save: Boolean):
 {$region 'SettingName'}
 
 type
-  SettingsStoreName = class(TCustomAttribute)
+  ///  Store the setting with a different name.
+  ///  Don't use 'Class', because that's already used by BatSoft.Settings.
+  SettingsName = class(TCustomAttribute)
   private
     fStoreName: string;
   public
@@ -54,6 +61,8 @@ type
 
 {$endregion}
 type
+  ///  Implement ISettingsStoreReader to load settings from other store types.
+  ///  Use TSettingsStore as the base class.
   ISettingsStoreReader = interface
     ['{42508E64-EC8C-44C9-A2F6-9C666BE84230}']
     //  Storage
@@ -74,6 +83,8 @@ type
     function  LoadValue(const Name: string; const TypeInfo: PTypeInfo): TValue;
   end;
 
+  ///  Implement ISettingsStoreWriter to save settings to other store types.
+  ///  Use TSettingsStore as the base class.
   ISettingsStoreWriter = interface
     ['{DE922225-D7A5-40DF-BAB4-CE84F522328D}']
     //  Storage
@@ -94,7 +105,8 @@ type
     procedure SaveValue(const Name: string; const Value: TValue);
   end;
 
-  TSettingsStore = class(TInterfacedObject)
+  ///  Base class for implementations of ISettingsStoreReader and ISettingsStoreWriter.
+  TSettingsStore = class abstract (TInterfacedObject)
   protected
     fFileName: string;
     fEnumsAsStrings: Boolean;
@@ -106,6 +118,7 @@ type
   end;
   TSettingsStoreClass = class of TSettingsStore;
 
+  ///  This contains the smarts for loading.  It uses implementations of ISettingsStoreReader to read from stores.
   TSettingsReader = class
   private
     fStore: ISettingsStoreReader;
@@ -124,6 +137,7 @@ type
     procedure Load(var Obj: TObject; const ObjClass: TClass);
   end;
 
+  ///  This contains the smarts for saving.  It uses implementations of ISettingsStoreWriter to write to stores.
   TSettingsWriter = class
   private
     fStore: ISettingsStoreWriter;
@@ -147,6 +161,9 @@ type
   TComplexLoader  = reference to function (const LoadValue: TSimpleLoader): TValue;
   TComplexSaver   = reference to procedure (const Value: TValue; const SaveValue: TSimpleSaver);
 
+  ///  Register conversion functions here, that convert values between what's in memory and what's in storage.
+  ///  This works for both simple types (ex. TDateTime is a float in memory but may be a string in files) and also complex types (such as records).
+  ///  For examples, look in BatSoft.Settings.Types unit.
   SettingsTypes = class
   private type
     TSimpleConverters = record
@@ -171,6 +188,8 @@ type
     class function  ConvertToStore(const PropInfo: PTypeInfo; const PropValue: TValue): TValue;
   end;
 
+  ///  Register TObjectList<> classes here. No further conversion routines are necessary.
+  ///  This does not take TList<> classes.
   SettingsLists = class
   private
     class var _Types: TDictionary<TClass, TClass>;
@@ -186,6 +205,9 @@ type
     constructor Create(const AMessage: string); overload;
     constructor Create(const AMessage: string; const Args: array of const); overload;
   end;
+
+//  Conversion routines that are necessary in implementation of ISettingsStoreReader.LoadValue() and ISettingsStoreWriter.SaveValue().
+//  Not using some of these will cause problems when converting enums and sets, because of how TValue works.
 
 function  EnumToStr(const Value: TValue): string;
 function  StrToEnum(const Value: string; const Info: PTypeInfo): TValue;
@@ -239,21 +261,6 @@ var
   ReadComparer: IComparer<TRttiProperty>;
   WriteComparer: IComparer<TRttiProperty>;
 
-function FindAttribute(const Prop: TRttiProperty; const AttributeClass: TClass; out Attribute: TCustomAttribute): Boolean;
-var
-  Attrs: TArray<TCustomAttribute>;
-  Attr: TCustomAttribute;
-begin
-  Attrs   := Prop.GetAttributes;
-  for Attr in Attrs do
-    if  Attr is AttributeClass  then
-      begin
-        Attribute := Attr;
-        Exit(True);
-      end;
-  Result  := False;
-end;
-
 { TSettingsOrderComparer }
 
 function TSettingsOrderComparer.Compare(const Left, Right: TRttiProperty): Integer;
@@ -270,56 +277,10 @@ end;
 { SettingsIgnore }
 
 function HasSettingsIgnore(const Prop: TRttiProperty): Boolean;
-var
-  Attr: TCustomAttribute;
 begin
-  Result  := FindAttribute(Prop, SettingsIgnore, Attr)
+  Result  := Prop.GetAttributes.Has<SettingsIgnore>()
 end;
 
-//{ SettingsOrder }
-//
-//constructor SettingsOrder.Create(const AReadOrder, AWriteOrder: integer);
-//begin
-//  inherited Create;
-//  fReadOrder  := AReadOrder;
-//  fWriteOrder := AWriteOrder;
-//end;
-//
-//function GetSettingsOrder(const Prop: TRttiProperty; const Write: Boolean): integer;
-//var
-//  Attr: TCustomAttribute;
-//begin
-//  if  not FindAttribute(Prop, SettingsOrder, Attr) then
-//    Result  := 0
-//  else if Write then
-//    Result  := SettingsOrder(Attr).WriteOrder
-//  else
-//    Result  := SettingsOrder(Attr).ReadOrder;
-//end;
-
-//function SortAndFilter(const Props: TArray<TRttiProperty>; const Write: Boolean): TArray<TRttiProperty>;
-//var
-//  List: TList<TRttiProperty>;
-//  Prop: TRttiProperty;
-//begin
-//  List  := TList<TRttiProperty>.Create;
-//  try
-//    //  Sort properties
-//    for Prop in Props do
-//      if  Prop.Visibility = TMemberVisibility.mvPublished then
-//        if  not HasSettingsIgnore(Prop)  then
-//          List.Add(Prop);
-//    if  Write then
-//      List.Sort(WriteComparer)
-//    else
-//      List.Sort(ReadComparer);
-//    //  Done
-//    Result  := List.ToArray;
-//  finally
-//    List.Free;
-//  end;
-//end;
-//
 { SettingsOrderBase }
 
 constructor SettingsOrderBase.Create(const AOrder: integer);
@@ -330,14 +291,19 @@ end;
 
 function GetSettingsOrder(const Prop: TRttiProperty; const Save: Boolean): integer;
 var
-  Attr: TCustomAttribute;
+  Attr: SettingsOrderBase;
 begin
-  if  not FindAttribute(Prop, SettingsOrderBase, Attr) then
-    Result  := 0
-  else if Save  then
-    Result  := SettingsSaveOrder(Attr).Order
+  Result  := 0;
+  if  Save  then
+    begin
+      if  Prop.GetAttributes.Has<SettingsSaveOrder>(Attr) then
+        Result  := Attr.Order
+    end
   else
-    Result  := SettingsLoadOrder(Attr).Order;
+    begin
+      if  Prop.GetAttributes.Has<SettingsLoadOrder>(Attr) then
+        Result  := Attr.Order
+    end;
 end;
 
 function SortAndFilter(const Props: TArray<TRttiProperty>; const Save: Boolean): TArray<TRttiProperty>;
@@ -365,18 +331,18 @@ end;
 
 { SettingsStoreName }
 
-constructor SettingsStoreName.Create(const ASettingName: string);
+constructor SettingsName.Create(const ASettingName: string);
 begin
   inherited Create;
   fStoreName  := ASettingName;
 end;
 
-class function SettingsStoreName.StoreNameOf(const Prop: TRttiProperty): string;
+class function SettingsName.StoreNameOf(const Prop: TRttiProperty): string;
 var
-  Attr: TCustomAttribute;
+  Attr: SettingsName;
 begin
-  if  FindAttribute(Prop, SettingsStoreName, Attr) then
-    Result  := SettingsStoreName(Attr).StoreName
+  if  Prop.GetAttributes.Has<SettingsName>(Attr) then
+    Result  := Attr.StoreName
   else
     Result  := Prop.Name;
 end;
@@ -634,7 +600,7 @@ var
   Value: TValue;
 begin
   //  Get the correct settings name
-  SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
+  SettName  := SettingsName.StoreNameOf(RTTIProp);
   //  Manage complex types separately
   if  LoadComplexType(Obj, RTTIProp)  then
     Exit;
@@ -668,7 +634,7 @@ begin
       //  TStrings are special
       if  ChildClass.InheritsFrom(TStrings) then
         //  Read "deep" TStrings elements as separate named children
-        if  TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField)  then
+        if  RTTIProp.GetAttributes.Has(SettingsDeep) then
           LoadStringsDeep(Obj, RTTIProp)
         //  Read "shallow" TStrings as a single delimited string
         else
@@ -852,7 +818,7 @@ begin
   if  not RTTIProp.IsReadable then
     Exit;
   //  Get the correct settings name
-  SettName  := SettingsStoreName.StoreNameOf(RTTIProp);
+  SettName  := SettingsName.StoreNameOf(RTTIProp);
   //  Manage complex types separately
   if  SaveComplexType(Obj, RTTIProp)  then
     Exit;
@@ -881,7 +847,7 @@ begin
       //  TStrings are special
       else if  Child is TStrings then
         //  Write "deep" TStrings elements as separate named children
-        if  TCustomAttribute.HasAttribute(RTTIProp.GetAttributes, SettingsDeepField)  then
+        if  RTTIProp.GetAttributes.Has(SettingsDeep)  then
           SaveStringsDeep(Child, Child, RTTIProp)
         //  Write "shallow" TStrings as a single delimited string
         else

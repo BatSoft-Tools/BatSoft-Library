@@ -1,5 +1,45 @@
 unit BatSoft.Observer.Manual;
 
+//  This unit implements the observer pattern.
+//  (This pattern is like component events such as OnClick, OnChanged, etc.)
+//
+//  TManualEventHandler enables multiple objects to subscribe to the same event.
+//
+//  With TManualEventHandler the lifetime of a subscription must happen in the following order:
+//  - Observer calls Subscribe()
+//  - [The event handler is called... however many times.]
+//  - Observer calls Unsubscribe()
+//  - Observer and event handler can now be freed at will, as they're no longer connected.
+//
+//  Use TNotifyEvents or implement one of the generics or use them as examples
+//  for writing your own explicit event handlers.
+//
+//  To add an event handler to a subject (the object that observers are observing)
+//  do the following, in this example a TNotifyEvents (which does not take parameters)...
+//
+//  In the subject add:
+//    TMySubject = class
+//    private
+//      fOnChanged: TNotifyEvents;
+//    public
+//      property  OnChanged: TNotifyEvents  read fOnChanged;
+//
+//  In the constructor add:
+//      fOnChanged  := TNotifyEvents.Create(Self);
+//  ...and don't forget to free it in the destructor.
+//
+//  The observers subscribe by calling:
+//    Declarations...
+//      MySubj: TMySubject;
+//    Code...
+//      MySubj.Subscribe(CallbackMethod);
+//
+//  To unsubscribe:
+//      MySubj.Unsubscribe(CallbackMethod);
+//
+//  To fire the event, the TMySubject object calls:
+//    fOnChanged.Call();
+
 interface
 
 uses

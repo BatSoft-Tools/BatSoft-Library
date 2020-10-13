@@ -6,61 +6,41 @@ uses
   System.Types, System.Generics.Defaults, Generics.Collections;
 
 type
-  TNoRefInterfacedObject = class(TObject, IInterface)
+  ///  Like TInterfacedObject but without reference counting.
+  TInterfacedObjectNoRefCount = class(TObject, IInterface)
   protected
     function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
   end;
 
-  //  This is a reference counted TList<T> that can be used to implement interfaces
-  //  It is a combination of TInterfacedObject and TList<>
-  TInterfacedList<T: class> = class(TList<T>, IInterface)
-{$IFNDEF AUTOREFCOUNT}
-  private const
-    objDestroyingFlag = Integer($80000000);
-    function GetRefCount: Integer; inline;
-{$ENDIF}
-  protected
-{$IFNDEF AUTOREFCOUNT}
-    [Volatile] FRefCount: Integer;
-    class procedure __MarkDestroying(const Obj); static; inline;
-{$ENDIF}
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
+  ///  Sometimes I want interfaced objects to free when the RefCount is something
+  ///  other than 0, such as when writing factories that keep track of multitons.
+  ///
+  TMinRefCountObject = class(TInterfacedObject, IInterface)
   public
-{$IFNDEF AUTOREFCOUNT}
-    procedure AfterConstruction; override;
-    procedure BeforeDestruction; override;
-    class function NewInstance: TObject; override;
-    property RefCount: Integer read GetRefCount;
-{$ENDIF}
+    constructor Create(const AMinRefCount: integer = 0);
   end;
 
-  //  This is a reference counted TObjectList<T> that can be used to implement interfaces
-  //  It is a combination of TInterfacedObject and TObjectList<>
-  TInterfacedObjectList<T: class> = class(TObjectList<T>, IInterface)
-{$IFNDEF AUTOREFCOUNT}
-  private const
-    objDestroyingFlag = Integer($80000000);
-    function GetRefCount: Integer; inline;
-{$ENDIF}
-  protected
-{$IFNDEF AUTOREFCOUNT}
-    [Volatile] FRefCount: Integer;
-    class procedure __MarkDestroying(const Obj); static; inline;
-{$ENDIF}
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
+  //  Did you ever have a class that you want to add an interface to, but can't
+  //  change the root class to TInterfacedObject?  Well, here is your solution.
+  //
+  //  Add the following to your class declaration:
+  //    private
+  //      fIntf: IInterface;
+  //    public
+  //      property  Intf: IInterface  read fIntf  implements IInterface;
+  //
+  //  In the constructor add:
+  //    fIntf := TRefCountMyOwner.Create(Self);
+
+  /// Add interfaces to a class that is not a TInterfacedObject.
+  TRefCountMyOwner = class(TMinRefCountObject, IInterface)
+  private
+    fOwner: TObject;
   public
-{$IFNDEF AUTOREFCOUNT}
-    procedure AfterConstruction; override;
-    procedure BeforeDestruction; override;
-    class function NewInstance: TObject; override;
-    property RefCount: Integer read GetRefCount;
-{$ENDIF}
+    constructor Create(const AOwner: TObject);
+    destructor  Destroy; override;
   end;
 
   //  This is a container that stores items in proper order using binary search.
@@ -99,17 +79,16 @@ type
     property  Duplicates: TDuplicates read fDuplicates write fDuplicates;
 
     property  Comparer: IComparer<T> read FComparer;
-//    procedure Prepopulate(const Value: T);
 
     property OnNotify: TCollectionNotifyEvent<T> read GetOnNotify write SetOnNotify;
     function GetEnumerator: TList<T>.TEnumerator; reintroduce; inline;
   end;
 
-  TAttributeHelper = class helper for TCustomAttribute
+  TAttributeArrayHelper = record helper for TArray<TCustomAttribute>
   public
-    class function HasAttribute(const Attributes: TArray<TCustomAttribute>; const AttributeClass: TClass): Boolean; overload;
-    class function HasAttribute<T: TCustomAttribute>(const Attributes: TArray<TCustomAttribute>): Boolean; overload;
-    class function HasAttribute<T: TCustomAttribute>(const Attributes: TArray<TCustomAttribute>; out Attribute: T): Boolean; overload;
+    class function Has(const AttributeClass: TClass): Boolean; overload;
+    class function Has<T: TCustomAttribute>(): Boolean; overload; inline;
+    class function Has<T: TCustomAttribute>(const [ref] FoundAttribute: TCustomAttribute): Boolean; overload;
   end;
 
 implementation
@@ -117,9 +96,9 @@ implementation
 uses
   System.SysUtils, System.RTLConsts;
 
-{ TNoRefInterfacedObject }
+{ TInterfacedObjectNoRefCount }
 
-function TNoRefInterfacedObject.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TInterfacedObjectNoRefCount.QueryInterface(const IID: TGUID; out Obj): HResult;
 begin
   if GetInterface(IID, Obj) then
     Result := 0
@@ -127,167 +106,39 @@ begin
     Result := E_NOINTERFACE;
 end;
 
-function TNoRefInterfacedObject._AddRef: Integer;
+function TInterfacedObjectNoRefCount._AddRef: Integer;
 begin
   //  Do nothing
   Result  := 0;
 end;
 
-function TNoRefInterfacedObject._Release: Integer;
+function TInterfacedObjectNoRefCount._Release: Integer;
 begin
   //  Do nothing
   Result  := 0;
 end;
 
-{ TInterfacedList<T> }
+{ TMinRefCountObject }
 
-{$IFNDEF AUTOREFCOUNT}
-
-procedure TInterfacedList<T>.AfterConstruction;
+constructor TMinRefCountObject.Create(const AMinRefCount: integer);
 begin
-// Release the constructor's implicit refcount
-  AtomicDecrement(FRefCount);
+  inherited Create();
+  dec(FRefCount, AMinRefCount)
 end;
 
-procedure TInterfacedList<T>.BeforeDestruction;
+{ TRefCountMyOwner }
+
+constructor TRefCountMyOwner.Create(const AOwner: TObject);
 begin
-  if RefCount <> 0 then
-    System.Error(reInvalidPtr);
+  inherited Create(1);
+  fOwner  := AOwner;
 end;
 
-function TInterfacedList<T>.GetRefCount: Integer;
+destructor TRefCountMyOwner.Destroy;
 begin
-  Result := FRefCount and not objDestroyingFlag;
+  fOwner.Free;
+  inherited;
 end;
-
-// Set an implicit refcount so that refcounting during construction won't destroy the object.
-class function TInterfacedList<T>.NewInstance: TObject;
-begin
-  Result := inherited NewInstance;
-  TInterfacedList<T>(Result).FRefCount := 1;
-end;
-
-{$ENDIF AUTOREFCOUNT}
-
-function TInterfacedList<T>.QueryInterface(const IID: TGUID; out Obj): HResult;
-begin
-  if GetInterface(IID, Obj) then
-    Result := 0
-  else
-    Result := E_NOINTERFACE;
-end;
-
-function TInterfacedList<T>._AddRef: Integer;
-begin
-{$IFNDEF AUTOREFCOUNT}
-  Result := AtomicIncrement(FRefCount);
-{$ELSE}
-  Result := __ObjAddRef;
-{$ENDIF}
-end;
-
-function TInterfacedList<T>._Release: Integer;
-begin
-{$IFNDEF AUTOREFCOUNT}
-  Result := AtomicDecrement(FRefCount);
-  if Result = 0 then
-  begin
-    // Mark the refcount field so that any refcounting during destruction doesn't infinitely recurse.
-    __MarkDestroying(Self);
-    Destroy;
-  end;
-{$ELSE}
-  Result := __ObjRelease;
-{$ENDIF}
-end;
-
-{$IFNDEF AUTOREFCOUNT}
-
-class procedure TInterfacedList<T>.__MarkDestroying(const Obj);
-var
-  LRef: Integer;
-begin
-  repeat
-    LRef := TInterfacedList<T>(Obj).FRefCount;
-  until AtomicCmpExchange(TInterfacedList<T>(Obj).FRefCount, LRef or objDestroyingFlag, LRef) = LRef;
-end;
-
-{$ENDIF AUTOREFCOUNT}
-
-{ TInterfacedObjectList<T> }
-
-{$IFNDEF AUTOREFCOUNT}
-
-procedure TInterfacedObjectList<T>.AfterConstruction;
-begin
-// Release the constructor's implicit refcount
-  AtomicDecrement(FRefCount);
-end;
-
-procedure TInterfacedObjectList<T>.BeforeDestruction;
-begin
-  if RefCount <> 0 then
-    System.Error(reInvalidPtr);
-end;
-
-function TInterfacedObjectList<T>.GetRefCount: Integer;
-begin
-  Result := FRefCount and not objDestroyingFlag;
-end;
-
-// Set an implicit refcount so that refcounting during construction won't destroy the object.
-class function TInterfacedObjectList<T>.NewInstance: TObject;
-begin
-  Result := inherited NewInstance;
-  TInterfacedObjectList<T>(Result).FRefCount := 1;
-end;
-
-{$ENDIF AUTOREFCOUNT}
-
-function TInterfacedObjectList<T>.QueryInterface(const IID: TGUID; out Obj): HResult;
-begin
-  if GetInterface(IID, Obj) then
-    Result := 0
-  else
-    Result := E_NOINTERFACE;
-end;
-
-function TInterfacedObjectList<T>._AddRef: Integer;
-begin
-{$IFNDEF AUTOREFCOUNT}
-  Result := AtomicIncrement(FRefCount);
-{$ELSE}
-  Result := __ObjAddRef;
-{$ENDIF}
-end;
-
-function TInterfacedObjectList<T>._Release: Integer;
-begin
-{$IFNDEF AUTOREFCOUNT}
-  Result := AtomicDecrement(FRefCount);
-  if Result = 0 then
-  begin
-    // Mark the refcount field so that any refcounting during destruction doesn't infinitely recurse.
-    __MarkDestroying(Self);
-    Destroy;
-  end;
-{$ELSE}
-  Result := __ObjRelease;
-{$ENDIF}
-end;
-
-{$IFNDEF AUTOREFCOUNT}
-
-class procedure TInterfacedObjectList<T>.__MarkDestroying(const Obj);
-var
-  LRef: Integer;
-begin
-  repeat
-    LRef := TInterfacedObjectList<T>(Obj).FRefCount;
-  until AtomicCmpExchange(TInterfacedObjectList<T>(Obj).FRefCount, LRef or objDestroyingFlag, LRef) = LRef;
-end;
-
-{$ENDIF AUTOREFCOUNT}
 
 { TBinaryList<T> }
 
@@ -443,11 +294,6 @@ begin
     end;
 end;
 
-//procedure TBinaryList<T>.Prepopulate(const Value: T);
-//begin
-//  fList.Add(Value);
-//end;
-
 function TBinaryList<T>.Remove(const Value: T): integer;
 begin
   Result  := fList.Remove(Value)
@@ -458,40 +304,37 @@ begin
   fList.OnNotify  := Value
 end;
 
-{ TAttributeHelper }
+{ TAttributeArrayHelper }
 
-class function TAttributeHelper.HasAttribute(const Attributes: TArray<TCustomAttribute>;
-  const AttributeClass: TClass): Boolean;
+class function TAttributeArrayHelper.Has(const AttributeClass: TClass): Boolean;
 var
   Attribute: TCustomAttribute;
 begin
   Result := True;
-  for Attribute in Attributes do
+  for Attribute in Self do
     if Attribute is AttributeClass then
       Exit;
   Result := False;
 end;
 
-class function TAttributeHelper.HasAttribute<T>(const Attributes: TArray<TCustomAttribute>;
-  out Attribute: T): Boolean;
+class function TAttributeArrayHelper.Has<T>(const [ref] FoundAttribute: TCustomAttribute): Boolean;
 var
   Attr: TCustomAttribute;
 begin
   Result  := True;
-  for Attr in Attributes do
+  for Attr in Self do
     if Attr is T then
       begin
-        Attribute := Attr as T;
+        TObject(Pointer(@FoundAttribute)^) := Attr;
         Exit;
       end;
   Result  := False;
+  TObject(Pointer(@FoundAttribute)^) := nil;
 end;
 
-class function TAttributeHelper.HasAttribute<T>(const Attributes: TArray<TCustomAttribute>): Boolean;
-var
-  Attribute: T;
+class function TAttributeArrayHelper.Has<T>(): Boolean;
 begin
-  Result  := HasAttribute<T>(Attributes, Attribute)
+  Result  := Has(T);
 end;
 
 end.

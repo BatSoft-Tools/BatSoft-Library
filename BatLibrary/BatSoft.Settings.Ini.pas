@@ -1,5 +1,30 @@
 unit BatSoft.Settings.Ini;
 
+//  Streams objects to/from .ini files.
+//
+//  type
+//  {$M+}   <- Ensure that we have RTTI for these classes.
+//    TMySubSettings = class
+//    published
+//      property  Value1  : string  read fValue1  write fValue1;
+//    end;
+//
+//    TMySettings = class
+//    published
+//      property  Value2  : integer         read fValue2  write SetValue2;
+//      property  Value3  : TMySubSettings  read fValue3  write fValue3;
+//    end;
+//  {$M-}   <- Don't generate more RTTI than necessary.
+//
+//  Save settings:
+//    TSettingsIniSaver.Save(Settings, FileName, True)
+//
+//  Load settings:
+//    TSettingsIniLoader.Load(Settings, FileName, True);
+//
+//  It is possible to store object lists, string lists and other more complex or
+//  specific types.  To see how, look at the unit tests and the demos.
+
 interface
 
 uses
@@ -7,6 +32,7 @@ uses
   System.Generics.Collections, BatSoft.Settings;
 
 type
+  /// Base class.  Don't instantiate this.
   TSettingsIni = class abstract(TSettingsStore)
   public
     const DefaultPathDelimiter  = '/';

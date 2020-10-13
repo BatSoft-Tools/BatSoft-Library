@@ -62,7 +62,7 @@ type
     property  Rec   : TSomeRecord   read fRec     write fRec;
     property  ArrDyn: TDynamicArray read fArrDyn  write fArrDyn;
     property  ArrFix: TFixedArray   read fArrFix  write fArrFix;
-    [MementoDeepField]
+    [MementoDeep]
     property  Child : TTestBase   read fChild write fChild;
   end;
 
