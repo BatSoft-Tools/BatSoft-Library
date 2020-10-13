@@ -37,7 +37,7 @@ type
 
 {$endregion}
 
-{$region 'Used for identifying changes between versions.'}
+{$region 'Changes'}
 
   TChange = record
   public
@@ -47,6 +47,7 @@ type
 
   TChanges = class(TList<TChange>)
   public
+    function Ignore(const ChangeName: string): Boolean;
     function IndexOf(const Name: string): integer;
     function ToString: string; override;
   end;
@@ -239,6 +240,16 @@ begin
     end
   else
     Result  := Value.ToString
+end;
+
+function TChanges.Ignore(const ChangeName: string): Boolean;
+var
+  i: integer;
+begin
+  i := IndexOf(ChangeName);
+  Result  := i >= 0;
+  if  Result  then
+    Delete(i);
 end;
 
 function TChanges.IndexOf(const Name: string): integer;

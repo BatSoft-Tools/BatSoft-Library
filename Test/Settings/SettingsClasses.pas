@@ -62,6 +62,20 @@ type
     property  When  : TDate   read fDate  write fDate;
   end;
 
+//  Streaming of TList<> is not yet supported.
+//  It might actually work, but I haven't implementted comparison of TList<> in
+//  memento's yet, so the unit test don't work.
+//
+//  NOTE: Ask me if you want it, and I'll make it happen.
+//
+//  TRecList = class(TRegisteredList<TTestRecord>)
+//  public
+//    procedure Init;
+//    function  AddRec(const Value: integer): integer;
+//  end;
+//
+//  TIntList = class(TList<integer>);
+
   TComplexValues = class
   private
     fGUID: TGUID;
@@ -104,16 +118,19 @@ type
     fStrs: TStringList;
     [MementoDeep]
     fStrsDeep: TStringList;
+//    fRecList: TRecList;
   public
     constructor Create;
     destructor  Destroy; override;
     procedure Init1; virtual;
     procedure Init2;
   published
-    property  ObjList   : TObjList        read fObjList   write fObjList;
-    property  Strs      : TStringList     read fStrs      write fStrs;
+    property  ObjList   : TObjList      read fObjList   write fObjList;
+    property  Strs      : TStringList   read fStrs      write fStrs;
     [SettingsDeep]
-    property  StrsDeep  : TStringList     read fStrsDeep  write fStrsDeep;
+    property  StrsDeep  : TStringList   read fStrsDeep  write fStrsDeep;
+//    //  Record list
+//    property  RecList   : TRecList   read fRecList   write fRecList;
   end;
 
   TAllTypes = class(TCntrTypes)
@@ -196,6 +213,24 @@ begin
   fDateTime     := When;
 end;
 
+//{ TRecList }
+//
+//function TRecList.AddRec(const Value: integer): integer;
+//var
+//  Rec: TTestRecord;
+//begin
+//  Rec.fStr  := 'Rec Str ' + Value.ToString;
+//  Rec.fDate := Date + Value;
+//  Result    := Add(Rec)
+//end;
+//
+//procedure TRecList.Init;
+//begin
+//  AddRec(1);
+//  AddRec(2);
+//  AddRec(3);
+//end;
+
 { TComplexValues }
 
 function TComplexValues.Init: TComplexValues;
@@ -232,6 +267,7 @@ begin
   fStrs     := TStringList.Create;
   fStrsDeep := TStringList.Create;
   fObjList  := TObjList.Create;
+//  fRecList  := TRecList.Create;
 end;
 
 destructor TCntrTypes.Destroy;
@@ -243,6 +279,7 @@ begin
   fStrs.Free;
   fStrsDeep.Free;
   fObjList.Free;
+//  fRecList.Free;
   inherited;
 end;
 

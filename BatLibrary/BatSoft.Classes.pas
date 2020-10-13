@@ -66,6 +66,7 @@ type
 
   //  Helpers for registered lists.
   //  Use these instead of TList<> and TObjectList<> for automatic registration.
+  //  If you don't want to use these, then it's fine to call RegisteredLists.Register() directly.
 
   TRegisteredList<T> = class(TList<T>)
   private
@@ -225,7 +226,7 @@ var
 begin
   Result  := IsRegistered(ListClass, RTTIType);
   if  Result  then
-    TypeInfo  := RTTIType.ClassInfo
+    TypeInfo  := RTTIType.Handle
 end;
 
 class procedure RegisteredLists.Register(const ListClass, ElemClass: TClass);

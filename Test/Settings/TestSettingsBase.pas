@@ -3,7 +3,8 @@ unit TestSettingsBase;
 interface
 
 uses
-  System.SysUtils, DUnitX.TestFramework, BatSoft.Settings, SettingsClasses;
+  System.SysUtils, DUnitX.TestFramework, BatSoft.Mementos,
+  BatSoft.Settings, SettingsClasses;
 
 type
   [TestFixture]
@@ -34,7 +35,7 @@ type
 implementation
 
 uses
-  System.IOUtils, BatSoft.Mementos;
+  System.IOUtils;
 
 { TTestSettings<TReader, TWriter> }
 
@@ -46,10 +47,9 @@ begin
   Changes := TChanges.Create;
   try
     ListFieldDifferences('', Settings1, Settings2, Changes);
-    //  Ignore this and test a lilttle further down
-    i := Changes.IndexOf('fComplex.fTestRec');
-    if  i >= 0  then
-      Changes.Delete(i);
+    //  Ignore these and test a lilttle further down
+    Changes.Ignore('fComplex.fTestRec');
+//    Changes.Ignore('fRecList');
     //  Do we have obvious changes?
     if  Changes.Count > 0 then
       raise ESettingsTest.Create('Failed with changes:' + sLineBreak + Changes.ToString);
@@ -62,6 +62,12 @@ begin
   CompareWhens ('Values.Time',                Settings1.Simple.Time,                Settings2.Simple.Time);
   CompareStrs  ('Complex.ValueTestRec.Str',   Settings1.Complex.ValueTestRec.Str,   Settings2.Complex.ValueTestRec.Str);
   CompareWhens ('Complex.ValueTestRec.When',  Settings1.Complex.ValueTestRec.When,  Settings2.Complex.ValueTestRec.When);
+//  Assert.AreEqual(Settings1.RecList.Count, Settings2.RecList.Count);
+//  for i := 0 to Settings1.RecList.Count - 1 do
+//    begin
+//      CompareStrs ('RecList['+i.ToString+'].Str',   Settings1.RecList[i].Str,   Settings2.RecList[i].Str);
+//      CompareWhens('RecList['+i.ToString+'].When',  Settings1.RecList[i].When,  Settings2.RecList[i].When);
+//    end;
 end;
 
 procedure TTestSettings<TReader, TWriter>.CompareCntnrs(const Settings1, Settings2: TCntrTypes);
