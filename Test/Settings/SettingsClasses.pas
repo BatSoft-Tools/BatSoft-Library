@@ -4,7 +4,7 @@ interface
 
 uses
   System.Types, System.Classes, System.Generics.Collections,
-  BatSoft.Settings, BatSoft.Mementos;
+  BatSoft.Classes, BatSoft.Settings, BatSoft.Mementos;
 
 type
   TEnum = (enumABC, enumDEF, enumXYZ);
@@ -95,7 +95,7 @@ type
     property  ValueEnum   : TEnum     read fValueEnum     write fValueEnum;
   end;
 
-  TObjList = class(TObjectList<TObjBase>);
+  TObjList = class(TRegisteredObjectList<TObjBase>);
 
   TCntrTypes = class
   private
@@ -291,7 +291,6 @@ begin
 end;
 
 initialization
-  SettingsLists.Register(TObjList, TObjBase);
   RegisterComplexType;
   When  := Now;
 

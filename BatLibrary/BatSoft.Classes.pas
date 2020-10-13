@@ -53,16 +53,6 @@ type
   ///  This does not take TList<> classes.
   RegisteredLists = class
   private
-    class var _Types: TDictionary<TClass, TClass>;
-  public
-    class constructor Create;
-    class destructor  Destroy;
-    class procedure Register(const ListClass, ElemClass: TClass);
-    class function  IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean; overload;
-  end;
-
-  RegisteredLists2 = class
-  private
     class var _Types: TDictionary<TClass, TRttiType>;
   public
     class constructor Create;
@@ -205,7 +195,7 @@ end;
 
 class constructor RegisteredLists.Create;
 begin
-  _Types  := TDictionary<TClass, TClass>.Create;
+  _Types  := TDictionary<TClass, TRttiType>.Create;
 end;
 
 class destructor RegisteredLists.Destroy;
@@ -214,28 +204,6 @@ begin
 end;
 
 class function RegisteredLists.IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean;
-begin
-  Result  := _Types.TryGetValue(ListClass, ElemClass)
-end;
-
-class procedure RegisteredLists.Register(const ListClass, ElemClass: TClass);
-begin
-  _Types.Add(ListClass, ElemClass);
-end;
-
-{ RegisteredLists2 }
-
-class constructor RegisteredLists2.Create;
-begin
-  _Types  := TDictionary<TClass, TRttiType>.Create;
-end;
-
-class destructor RegisteredLists2.Destroy;
-begin
-  _Types.Free;
-end;
-
-class function RegisteredLists2.IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean;
 var
   RTTIType: TRttiType;
 begin
@@ -246,12 +214,12 @@ begin
     Result    := False;
 end;
 
-class function  RegisteredLists2.IsRegistered(const ListClass: TClass; out RTTIType: TRttiType): Boolean;
+class function  RegisteredLists.IsRegistered(const ListClass: TClass; out RTTIType: TRttiType): Boolean;
 begin
   Result  := _Types.TryGetValue(ListClass, RTTIType);
 end;
 
-class function RegisteredLists2.IsRegistered(const ListClass: TClass; out TypeInfo: PTypeInfo): Boolean;
+class function RegisteredLists.IsRegistered(const ListClass: TClass; out TypeInfo: PTypeInfo): Boolean;
 var
   RTTIType: TRttiType;
 begin
@@ -260,12 +228,12 @@ begin
     TypeInfo  := RTTIType.ClassInfo
 end;
 
-class procedure RegisteredLists2.Register(const ListClass, ElemClass: TClass);
+class procedure RegisteredLists.Register(const ListClass, ElemClass: TClass);
 begin
   _Types.Add(ListClass, RTTI.GetType(ElemClass));
 end;
 
-class procedure RegisteredLists2.Register(const ListClass: TClass; const TypeInfo: PTypeInfo);
+class procedure RegisteredLists.Register(const ListClass: TClass; const TypeInfo: PTypeInfo);
 begin
   _Types.Add(ListClass, RTTI.GetType(TypeInfo));
 end;
