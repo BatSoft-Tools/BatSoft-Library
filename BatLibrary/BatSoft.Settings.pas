@@ -188,18 +188,6 @@ type
     class function  ConvertToStore(const PropInfo: PTypeInfo; const PropValue: TValue): TValue;
   end;
 
-  ///  Register TObjectList<> classes here. No further conversion routines are necessary.
-  ///  This does not take TList<> classes.
-  SettingsLists = class
-  private
-    class var _Types: TDictionary<TClass, TClass>;
-  public
-    class constructor Create;
-    class destructor  Destroy;
-    class procedure Register(const ListClass, ElemClass: TClass);
-    class function  IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean; overload;
-  end;
-
   ESettings = class(Exception)
   public
     constructor Create(const AMessage: string); overload;
@@ -640,7 +628,7 @@ begin
         else
           LoadStrings(Obj, RTTIProp)
       //  Load settings list elements as objects
-      else if SettingsLists.IsRegistered(ChildClass, ElemClass) then
+      else if RegisteredLists.IsRegistered(ChildClass, ElemClass) then
         LoadList(RTTIProp.GetValue(Obj).AsObject, ElemClass, RTTIProp)
       //  Child object
       else if fStore.NodeEnter(SettName)  then
@@ -853,7 +841,7 @@ begin
         else
           SaveStrings(SettName, Child)
       //  Save settings list elements as objects
-      else if SettingsLists.IsRegistered(Child.ClassType, ElemClass) then
+      else if RegisteredLists.IsRegistered(Child.ClassType, ElemClass) then
         SaveList(Child, ElemClass, RTTIProp)
       //  Child object
       else
@@ -955,28 +943,6 @@ begin
     Result  := Converters.StoreInfo
   else
     Result  := PropInfo
-end;
-
-{ ObjectLists }
-
-class constructor SettingsLists.Create;
-begin
-  _Types  := TDictionary<TClass, TClass>.Create;
-end;
-
-class destructor SettingsLists.Destroy;
-begin
-  _Types.Free;
-end;
-
-class function SettingsLists.IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean;
-begin
-  Result  := _Types.TryGetValue(ListClass, ElemClass)
-end;
-
-class procedure SettingsLists.Register(const ListClass, ElemClass: TClass);
-begin
-  _Types.Add(ListClass, ElemClass);
 end;
 
 { ESettings }
