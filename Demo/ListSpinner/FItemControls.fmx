@@ -1,0 +1,249 @@
+object frmItemControls: TfrmItemControls
+  Left = 0
+  Top = 0
+  Caption = 'frmItemControls'
+  ClientHeight = 558
+  ClientWidth = 558
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object edDisplayOnly: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    Position.X = 32.000000000000000000
+    Position.Y = 56.000000000000000000
+  end
+  object Label2: TLabel
+    Position.X = 32.000000000000000000
+    Position.Y = 32.000000000000000000
+    Size.Width = 257.000000000000000000
+    Size.Height = 17.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'This TEdit is used for read-only display.'
+  end
+  object Label3: TLabel
+    Position.X = 296.000000000000000000
+    Position.Y = 32.000000000000000000
+    Size.Width = 233.000000000000000000
+    Size.Height = 65.000000000000000000
+    Size.PlatformDefault = False
+    Text = 
+      'This TEdit is used for editing. We can'#39't use the same control fo' +
+      'r showing read-only values while at the same time using it for e' +
+      'diting, hence it'#39's another control.'
+  end
+  object edEditable: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    Position.X = 296.000000000000000000
+    Position.Y = 104.000000000000000000
+  end
+  object Label1: TLabel
+    Position.X = 32.000000000000000000
+    Position.Y = 104.000000000000000000
+    Size.Width = 225.000000000000000000
+    Size.Height = 17.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'This TLabel is used for read-only display.'
+  end
+  object labDisplayOnly: TLabel
+    Position.X = 32.000000000000000000
+    Position.Y = 128.000000000000000000
+    Text = 'labDisplayOnly'
+  end
+  inline frameEmpContractShow: TframeEmpContract
+    Position.X = 32.000000000000000000
+    Position.Y = 160.000000000000000000
+    Size.Width = 193.000000000000000000
+    Size.Height = 130.000000000000000000
+    Size.PlatformDefault = False
+    inherited Line1: TLine
+      Position.Y = 122.000000000000000000
+      Size.Width = 188.000000000000000000
+    end
+    inherited Line2: TLine
+      Size.Height = 130.000000000000000000
+    end
+    inherited Layout1: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edStartDate: TDateEdit
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Layout2: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edHourlyRate: TSpinBox
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Layout3: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edDeadline: TDateEdit
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Label4: TLabel
+      Size.Width = 188.000000000000000000
+    end
+    inherited Circle1: TCircle
+      Fill.Color = claGray
+    end
+  end
+  inline frameEmpFullTimeShow: TframeEmpFullTime
+    Position.X = 32.000000000000000000
+    Position.Y = 300.000000000000000000
+    Size.Width = 193.000000000000000000
+    Size.Height = 97.000000000000000000
+    Size.PlatformDefault = False
+    inherited Line1: TLine
+      Position.Y = 89.000000000000000000
+      Size.Width = 188.000000000000000000
+    end
+    inherited Line2: TLine
+      Size.Height = 97.000000000000000000
+    end
+    inherited Layout1: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edStartDate: TDateEdit
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Layout2: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edSalary: TSpinBox
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Label4: TLabel
+      Size.Width = 188.000000000000000000
+    end
+    inherited Circle1: TCircle
+      Fill.Color = claGray
+    end
+  end
+  inline frameEmpPartTimeShow: TframeEmpPartTime
+    Position.X = 32.000000000000000000
+    Position.Y = 416.000000000000000000
+    Size.Width = 193.000000000000000000
+    Size.Height = 97.000000000000000000
+    Size.PlatformDefault = False
+    inherited Layout2: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edHourlyRate: TSpinBox
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Layout1: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edHoursPerWeek: TSpinBox
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Line2: TLine
+      Size.Height = 97.000000000000000000
+    end
+    inherited Line1: TLine
+      Position.Y = 89.000000000000000000
+      Size.Width = 188.000000000000000000
+    end
+    inherited Label4: TLabel
+      Size.Width = 188.000000000000000000
+    end
+    inherited Circle1: TCircle
+      Fill.Color = claGray
+    end
+  end
+  inline frameEmpContractEdit: TframeEmpContract
+    Position.X = 296.000000000000000000
+    Position.Y = 160.000000000000000000
+    Size.Width = 193.000000000000000000
+    Size.Height = 113.000000000000000000
+    Size.PlatformDefault = False
+    inherited Line1: TLine
+      Position.Y = 105.000000000000000000
+      Size.Width = 188.000000000000000000
+    end
+    inherited Line2: TLine
+      Size.Height = 113.000000000000000000
+    end
+    inherited Layout1: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edStartDate: TDateEdit
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Layout2: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edHourlyRate: TSpinBox
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Layout3: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edDeadline: TDateEdit
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Label4: TLabel
+      Size.Width = 188.000000000000000000
+    end
+  end
+  inline frameEmpFullTimeEdit: TframeEmpFullTime
+    Position.X = 296.000000000000000000
+    Position.Y = 300.000000000000000000
+    Size.Width = 193.000000000000000000
+    Size.Height = 97.000000000000000000
+    Size.PlatformDefault = False
+    inherited Line1: TLine
+      Position.Y = 89.000000000000000000
+      Size.Width = 188.000000000000000000
+    end
+    inherited Line2: TLine
+      Size.Height = 97.000000000000000000
+    end
+    inherited Layout1: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edStartDate: TDateEdit
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Layout2: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edSalary: TSpinBox
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Label4: TLabel
+      Size.Width = 188.000000000000000000
+    end
+  end
+  inline frameEmpPartTimeEdit: TframeEmpPartTime
+    Position.X = 296.000000000000000000
+    Position.Y = 416.000000000000000000
+    Size.Width = 193.000000000000000000
+    Size.Height = 97.000000000000000000
+    Size.PlatformDefault = False
+    inherited Layout2: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edHourlyRate: TSpinBox
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Layout1: TLayout
+      Size.Width = 188.000000000000000000
+      inherited edHoursPerWeek: TSpinBox
+        Size.Width = 68.000000000000000000
+      end
+    end
+    inherited Line2: TLine
+      Size.Height = 97.000000000000000000
+    end
+    inherited Line1: TLine
+      Position.Y = 89.000000000000000000
+      Size.Width = 188.000000000000000000
+    end
+    inherited Label4: TLabel
+      Size.Width = 188.000000000000000000
+    end
+  end
+end

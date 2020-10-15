@@ -3,7 +3,7 @@ unit BatSoft.Classes;
 interface
 
 uses
-  System.Types, System.Generics.Defaults, Generics.Collections;
+  System.SysUtils, System.Types, System.Generics.Defaults, Generics.Collections;
 
 type
   ///  Like TInterfacedObject but without reference counting.
@@ -91,10 +91,31 @@ type
     class function Has<T: TCustomAttribute>(const [ref] FoundAttribute: TCustomAttribute): Boolean; overload;
   end;
 
+  EBatSoft = class(Exception);
+
+//  Please be very careful with this.  Make certain you know what you're doing.
+/// Change the class of an object. Certain rules apply to reduce the risk of bugs.
+procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
+
+resourcestring
+  SEIncompatibleClasses = 'Incompatible classes.';
+
 implementation
 
 uses
-  System.SysUtils, System.RTLConsts;
+  System.RTLConsts;
+
+procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
+var
+  FromClass: TClass;
+begin
+  FromClass := Obj.ClassType;
+  if  ((ToClass <> FromClass) and not ToClass.InheritsFrom(FromClass)) or
+      (FromClass.InstanceSize <> ToClass.InstanceSize)
+  then
+    raise EBatSoft.Create(SEIncompatibleClasses);
+  Pointer(Pointer(Obj)^)  := Pointer(ToClass);
+end;
 
 { TInterfacedObjectNoRefCount }
 

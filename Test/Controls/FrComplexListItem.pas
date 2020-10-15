@@ -18,6 +18,7 @@ type
     fValue: integer;
     procedure SetValue(const Value: integer);
   public
+    constructor Create(AOwner: TComponent); override;
     property  Value : integer read fValue write SetValue;
   end;
 
@@ -26,6 +27,12 @@ implementation
 {$R *.fmx}
 
 { TframeComplexListItem }
+
+constructor TframeComplexListItem.Create(AOwner: TComponent);
+begin
+  inherited;
+//  Edit1.ApplyStyleLookup;
+end;
 
 procedure TframeComplexListItem.SetValue(const Value: integer);
 begin

@@ -55,6 +55,7 @@ type
     property  Scale;  //  Specifies the scale of the control.
     property  ShowHint; //  Specifies whether the Hint can be shown.
     property  Size;
+    property  StyleLookup;  //
     property  StyleName;  //  Specifies the style name for this FMX component.
     property  TabOrder; //  Indicates the position of the control in its parent's tab order.
     property  TabStop;  //
@@ -71,7 +72,7 @@ type
 
   TListSpinner = class;
 
-  TObtainItemEvent = function (Sender: TListSpinner; Index: integer): TControl of object;
+  TListSpinnerEvent = function (Sender: TListSpinner; Index: integer): TControl of object;
 
   TListSpinner = class(TSpinner)
   //  Read only code
@@ -80,7 +81,7 @@ type
     fItemHeight: integer;
     fOnPaintBegin: TNotifyEvent;
     fOnPaintEnd: TNotifyEvent;
-    fOnObtainItem: TObtainItemEvent;
+    fOnGetShowItem: TListSpinnerEvent;
     procedure SetItemCount(const Value: integer);
     procedure SetItemHeight(const Value: integer);
   protected
@@ -93,21 +94,33 @@ type
     property  ItemHeight    : integer           read fItemHeight      write SetItemHeight default DefaultSpinnerItemHeight;
     property  OnPaintBegin  : TNotifyEvent      read fOnPaintBegin    write fOnPaintBegin;
     property  OnPaintEnd    : TNotifyEvent      read fOnPaintEnd      write fOnPaintEnd;
-    property  OnObtainItem  : TObtainItemEvent  read fOnObtainItem    write fOnObtainItem;
+    property  OnGetShowItem : TListSpinnerEvent read fOnGetShowItem   write fOnGetShowItem;
   //  Editor  code
   private
     fItemIndex: integer;
     fEditor: TControl;
-    fOnItemIndexChange: TObtainItemEvent;
+    fOnGetEditItem: TListSpinnerEvent;
     procedure SetItemIndex(const Value: integer);
     procedure PlaceEditor;
   protected
     procedure Loaded; override;
     procedure MouseClick(Button: TMouseButton; Shift: TShiftState; X: Single; Y: Single); override;
   published
-    property  ItemIndex         : integer           read fItemIndex         write SetItemIndex  default -1;
-    property  OnItemIndexChange : TObtainItemEvent  read fOnItemIndexChange write fOnItemIndexChange;
+    property  ItemIndex     : integer           read fItemIndex       write SetItemIndex  default -1;
+    property  OnGetEditItem : TListSpinnerEvent read fOnGetEditItem   write fOnGetEditItem;
   end;
+
+//  NOTE: Due to a "quirk" in the Delphi libraries, ApplyStyleLookup() *must*
+//  be called at least once before the OnGetShowItem() controls will show.
+//
+//  Some controls, such as TLabel, will do this when you set the Text property,
+//  but edit controls do not (TEdit, TDateEdit).
+//
+//  So, call ApplyStyleLookupToAll() once on objects that will be returned by
+//  OnGetShowItem() to ensure that they will be shown as intended.
+//  If you have them all on the same form, then to keep it simple, you can simply
+//  call this on the form itself in the FormCreate() event.
+procedure ApplyStyleLookupToAll(const Control: TFmxObject);
 
 procedure Register;
 
@@ -119,6 +132,17 @@ uses
 procedure Register;
 begin
   RegisterComponents('BatControls', [TListSpinner]);
+end;
+
+procedure ApplyStyleLookupToAll(const Control: TFmxObject);
+var
+  Child: TFmxObject;
+begin
+  if  Control is TStyledControl then
+    (Control as TStyledControl).ApplyStyleLookup;
+  if  Assigned(Control.Children)  then
+    for Child in Control.Children do
+      ApplyStyleLookupToAll(Child);
 end;
 
 { TSpinner }
@@ -236,7 +260,7 @@ var
   Nx: integer;
 begin
   inherited;
-  //  If ItemIndex was set before OnItemIndexChange, then set ItemIndex again
+  //  If ItemIndex was set before OnGetEditItem, then set ItemIndex again
   if  not Assigned(fEditor) then
     begin
       Nx          := fItemIndex;
@@ -267,9 +291,9 @@ begin
     while (Index < fItemCount) and (Top < Self.Height) do
       begin
         Item  := nil;
-        if  Assigned(fOnObtainItem) and (0 <= Index) and (Index < ItemCount)  then
-          if  not Assigned(fOnItemIndexChange) or (Index <> fItemIndex) then
-            Item  := fOnObtainItem(Self, Index);
+        if  Assigned(fOnGetShowItem) and (0 <= Index) and (Index < ItemCount)  then
+          if  not Assigned(fOnGetEditItem) or (Index <> fItemIndex) then
+            Item  := fOnGetShowItem(Self, Index);
         if  Assigned(Item)  then
           begin
             Item.Width  := Self.Width;
@@ -332,8 +356,8 @@ begin
   fItemIndex  := Value;
   if  ((fItemIndex < 0) or (fItemCount <= fItemIndex)) and Assigned(fEditor)  then
     fEditor.Visible := False;
-  if  Assigned(fOnItemIndexChange) then
-    fEditor := fOnItemIndexChange(Self, fItemIndex);
+  if  Assigned(fOnGetEditItem) then
+    fEditor := fOnGetEditItem(Self, fItemIndex);
   if  (fItemIndex < 0) or (fItemCount <= fItemIndex)  then
     fEditor := nil;
   PlaceEditor;

@@ -14,6 +14,7 @@ type
     CheckBox1: TCheckBox;
     frameComplexListItem1: TframeComplexListItem;
     Label1: TLabel;
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -26,5 +27,11 @@ var
 implementation
 
 {$R *.fmx}
+
+procedure TfrmListControls.FormCreate(Sender: TObject);
+begin
+  Edit1.ApplyStyleLookup;
+  frameComplexListItem1.Edit1.ApplyStyleLookup;
+end;
 
 end.

@@ -17,8 +17,8 @@ object frmTestSpinners: TfrmTestSpinners
     Size.PlatformDefault = False
     TabOrder = 1
     ItemCount = 100
-    OnObtainItem = ListSpinner1ObtainItem
-    OnItemIndexChange = ListSpinner1ItemIndexChange
+    OnGetShowItem = ListSpinner1ObtainItem
+    OnGetEditItem = ListSpinner1ItemIndexChange
   end
   object PopupMenu1: TPopupMenu
     Left = 288
@@ -114,7 +114,7 @@ object frmTestSpinners: TfrmTestSpinners
     TabOrder = 8
     ItemCount = 256
     ItemHeight = 120
-    OnObtainItem = ListSpinner2ObtainItem
+    OnGetEditItem = ListSpinner2ObtainItem
   end
   object butShowListControls: TButton
     Position.X = 392.000000000000000000
@@ -140,12 +140,12 @@ object frmTestSpinners: TfrmTestSpinners
     Position.Y = 152.000000000000000000
     Visible = False
   end
-  object Button1: TButton
+  object butEditVisible: TButton
     Position.X = 272.000000000000000000
     Position.Y = 104.000000000000000000
     TabOrder = 18
-    Text = 'Button1'
-    OnClick = Button1Click
+    Text = 'butEditVisible'
+    OnClick = butEditVisibleClick
   end
   object Button2: TButton
     Position.X = 272.000000000000000000
@@ -181,5 +181,19 @@ object frmTestSpinners: TfrmTestSpinners
     TabOrder = 25
     Text = 'butChangeClass'
     OnClick = butChangeClassClick
+  end
+  object chkAbort: TCheckBox
+    Position.X = 272.000000000000000000
+    Position.Y = 296.000000000000000000
+    Size.Width = 81.000000000000000000
+    Size.Height = 19.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'chkAbort'
+  end
+  object Button1: TButton
+    Position.X = 280.000000000000000000
+    Position.Y = 352.000000000000000000
+    Text = 'Button1'
+    OnClick = Button1Click
   end
 end

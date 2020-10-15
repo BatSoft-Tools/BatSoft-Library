@@ -1,0 +1,87 @@
+object frameEmpPartTime: TframeEmpPartTime
+  Size.Width = 320.000000000000000000
+  Size.Height = 240.000000000000000000
+  Size.PlatformDefault = False
+  object Layout2: TLayout
+    Align = Top
+    Position.X = 5.000000000000000000
+    Position.Y = 25.000000000000000000
+    Size.Width = 315.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    object edHourlyRate: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Client
+      Cursor = crIBeam
+      Max = 10000000.000000000000000000
+      Size.Width = 195.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = edHourlyRateChange
+    end
+    object Label2: TLabel
+      Align = Left
+      Size.Width = 120.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Hourly Rate'
+    end
+  end
+  object Layout1: TLayout
+    Align = Top
+    Position.X = 5.000000000000000000
+    Position.Y = 58.000000000000000000
+    Size.Width = 315.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    object edHoursPerWeek: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Client
+      Cursor = crIBeam
+      Max = 10000000.000000000000000000
+      Size.Width = 195.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = edHoursPerWeekChange
+    end
+    object Label1: TLabel
+      Align = Left
+      Size.Width = 120.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Hours/Week'
+    end
+  end
+  object Line2: TLine
+    Align = MostLeft
+    LineType = Left
+    Size.Width = 5.000000000000000000
+    Size.Height = 240.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object Line1: TLine
+    Align = Bottom
+    LineType = Bottom
+    Position.X = 5.000000000000000000
+    Position.Y = 232.000000000000000000
+    Size.Width = 315.000000000000000000
+    Size.Height = 8.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object Label4: TLabel
+    Align = Top
+    Position.X = 5.000000000000000000
+    Size.Width = 315.000000000000000000
+    Size.Height = 25.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Part time'
+  end
+  object Circle1: TCircle
+    Fill.Color = claRed
+    Position.X = 120.000000000000000000
+    Position.Y = 3.000000000000000000
+    Size.Width = 24.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+  end
+end

@@ -27,12 +27,14 @@ type
     butShowListControls: TButton;
     butCompare1: TButton;
     Edit1: TEdit;
-    Button1: TButton;
+    butEditVisible: TButton;
     Button2: TButton;
     butCompare2: TButton;
     butCopy: TButton;
     butRestore: TButton;
     butChangeClass: TButton;
+    chkAbort: TCheckBox;
+    Button1: TButton;
     function ListSpinner1ObtainItem(Sender: TListSpinner; Index: Integer): TControl;
     function ListSpinner1ItemIndexChange(Sender: TListSpinner; Index: Integer): TControl;
     procedure edItemCountChange(Sender: TObject);
@@ -41,12 +43,13 @@ type
     function ListSpinner2ObtainItem(Sender: TListSpinner; Index: Integer): TControl;
     procedure butShowListControlsClick(Sender: TObject);
     procedure butCompare1Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    procedure butEditVisibleClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure butCompare2Click(Sender: TObject);
     procedure butCopyClick(Sender: TObject);
     procedure butRestoreClick(Sender: TObject);
     procedure butChangeClassClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     fCopy: TObject;
     function  CloneObject(const Obj: TObject; const Path: string): TObject;
@@ -60,7 +63,7 @@ implementation
 {$R *.fmx}
 
 uses
-  RTTI, FListControls, BatSoft.Mementos, FMX.Text;
+  RTTI, FListControls, BatSoft.Classes, BatSoft.Mementos, FMX.Text;
 
 var
   Ctx: TRttiContext;
@@ -86,7 +89,7 @@ end;
 
 procedure TfrmTestSpinners.butChangeClassClick(Sender: TObject);
 begin
-  Pointer(Pointer(Edit1)^)  := Pointer(TDudEdit);
+  ChangeClass(Edit1, TDudEdit);
 end;
 
 procedure TfrmTestSpinners.butCompare1Click(Sender: TObject);
@@ -97,7 +100,7 @@ var
 begin
   Changes := TChanges.Create;
   try
-    ListFieldChanges('', Edit1, frmListControls.Edit1, Changes);
+    ListFieldDifferences('', Edit1, frmListControls.Edit1, Changes);
     for i := 0 to Changes.Count - 1 do
       Msg := Msg + sLineBreak + Changes[i].Name;
     ShowMessage(Msg);
@@ -200,9 +203,14 @@ begin
   frmListControls.Show
 end;
 
-procedure TfrmTestSpinners.Button1Click(Sender: TObject);
+procedure TfrmTestSpinners.butEditVisibleClick(Sender: TObject);
 begin
   Edit1.Visible := not Edit1.Visible
+end;
+
+procedure TfrmTestSpinners.Button1Click(Sender: TObject);
+begin
+  Edit1.ApplyStyleLookup;
 end;
 
 procedure TfrmTestSpinners.Button2Click(Sender: TObject);
@@ -329,13 +337,10 @@ begin
     end
   else
     begin
-      Result  := Edit1;
+//      Result  := Edit1;
+      Result  := frmListControls.Edit1;
       Edit1.Text  := 'Item ' + IntToStr(Index);
     end;
-//    begin
-//      Result  := frmListControls.Edit1;
-//      frmListControls.Edit1.Text  := 'Item ' + IntToStr(Index);
-//    end;
 end;
 
 function TfrmTestSpinners.ListSpinner2ObtainItem(Sender: TListSpinner; Index: Integer): TControl;
