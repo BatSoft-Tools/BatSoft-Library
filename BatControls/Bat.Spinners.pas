@@ -98,6 +98,8 @@ type
     procedure CalcsChanged(Sender: TObject); override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor  Destroy; override;
+    procedure JumpTo(Index: integer);
   published
     property  ItemCount     : integer           read fItemCount       write SetItemCount;
     property  ItemHeight    : integer           read fItemHeight      write SetItemHeight default DefaultSpinnerItemHeight;
@@ -271,9 +273,24 @@ begin
   fItemHeight := DefaultSpinnerItemHeight;
 end;
 
+destructor TListSpinner.Destroy;
+begin
+  fScrollbar.Free;
+  inherited;
+end;
+
 function TListSpinner.GetShowScrollbar: Boolean;
 begin
   Result  := Assigned(fScrollbar)
+end;
+
+procedure TListSpinner.JumpTo(Index: integer);
+begin
+  if  ItemCount <= Index  then
+    Index := ItemCount - 1;
+  if  Index < 0 then
+    Index := 0;
+  fCalcs.ViewportPositionF  := Point(0, Index * ItemHeight);
 end;
 
 procedure TListSpinner.Loaded;

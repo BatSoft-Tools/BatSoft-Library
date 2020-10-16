@@ -22,6 +22,8 @@ type
     frameEmpContractEdit: TframeEmpContract;
     frameEmpFullTimeEdit: TframeEmpFullTime;
     frameEmpPartTimeEdit: TframeEmpPartTime;
+    Label4: TLabel;
+    Label5: TLabel;
     procedure FormCreate(Sender: TObject);
   end;
 

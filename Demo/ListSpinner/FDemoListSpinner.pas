@@ -39,6 +39,7 @@ type
     Label7: TLabel;
     edDifferentItemIndex: TSpinBox;
     Label8: TLabel;
+    butJumpTo: TButton;
     procedure edCountChange(Sender: TObject);
     procedure edHeightChange(Sender: TObject);
     procedure edItemIndexChange(Sender: TObject);
@@ -48,8 +49,8 @@ type
     function lstROEditorsGetShowItem(Sender: TListSpinner; Index: Integer): TControl;
     function lstWritableGetEditItem(Sender: TListSpinner; Index: Integer): TControl;
     function lstWritableGetShowItem(Sender: TListSpinner; Index: Integer): TControl;
-    function lstDifferentGetEditItem(Sender: TListSpinner;
-      Index: Integer): TControl;
+    function lstDifferentGetEditItem(Sender: TListSpinner; Index: Integer): TControl;
+    procedure butJumpToClick(Sender: TObject);
   private
     fEmployments: TEmploymentList;
     function AssociatedListSpinner(Sender: TObject): TListSpinner;
@@ -79,6 +80,14 @@ begin
   raise Exception.Create('Didn''t find the list spinner.');
 end;
 
+procedure TfrmDemoListSpinner.butJumpToClick(Sender: TObject);
+var
+  Spinner: TListSpinner;
+begin
+  Spinner := AssociatedListSpinner(Sender);
+  Spinner.JumpTo(Spinner.ItemIndex);
+end;
+
 procedure TfrmDemoListSpinner.edCountChange(Sender: TObject);
 begin
   AssociatedListSpinner(Sender).ItemCount   := Trunc(TSpinBox(Sender).Value);
@@ -105,6 +114,7 @@ begin
   //  Create some demo data
   fEmployments  := TEmploymentList.Create;
   fEmployments.Populate(100);
+  lstDifferent.ItemCount  := fEmployments.Count;
 end;
 
 procedure TfrmDemoListSpinner.FormDestroy(Sender: TObject);
@@ -116,8 +126,6 @@ function TfrmDemoListSpinner.lstDifferentGetEditItem(Sender: TListSpinner; Index
 var
   Emp: TEmployment;
 begin
-  if  (Index < 0) or (fEmployments.Count <= Index)  then
-    Exit(nil);
   //  Obtain the object
   Emp := fEmployments[Index] as TEmployment;
   //  Show the correct frame, and populate it
@@ -145,8 +153,6 @@ function TfrmDemoListSpinner.lstDifferentGetShowItem(Sender: TListSpinner; Index
 var
   Emp: TEmployment;
 begin
-  if  (Index < 0) or (fEmployments.Count <= Index)  then
-    Exit(nil);
   //  Obtain the object
   Emp := fEmployments[Index] as TEmployment;
   //  Show the correct frame, and populate it

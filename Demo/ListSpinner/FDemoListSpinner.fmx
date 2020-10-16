@@ -2,8 +2,8 @@ object frmDemoListSpinner: TfrmDemoListSpinner
   Left = 0
   Top = 0
   Caption = 'Demo: ListSpinner'
-  ClientHeight = 480
-  ClientWidth = 947
+  ClientHeight = 646
+  ClientWidth = 716
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -13,7 +13,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
   object loROEditors: TLayout
     Align = Left
     Size.Width = 185.000000000000000000
-    Size.Height = 480.000000000000000000
+    Size.Height = 646.000000000000000000
     Size.PlatformDefault = False
     object loEditorsControls: TLayout
       Align = Top
@@ -69,7 +69,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       Margins.Right = 8.000000000000000000
       Margins.Bottom = 8.000000000000000000
       Size.Width = 169.000000000000000000
-      Size.Height = 222.000000000000000000
+      Size.Height = 388.000000000000000000
       Size.PlatformDefault = False
       ShowScrollbar = True
       ItemCount = 1000000
@@ -100,14 +100,14 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     MinSize = 20.000000000000000000
     Position.X = 185.000000000000000000
     Size.Width = 8.000000000000000000
-    Size.Height = 480.000000000000000000
+    Size.Height = 646.000000000000000000
     Size.PlatformDefault = False
   end
   object loWritable: TLayout
     Align = Left
     Position.X = 193.000000000000000000
     Size.Width = 185.000000000000000000
-    Size.Height = 480.000000000000000000
+    Size.Height = 646.000000000000000000
     Size.PlatformDefault = False
     object Layout2: TLayout
       Align = Top
@@ -184,7 +184,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       Margins.Right = 8.000000000000000000
       Margins.Bottom = 8.000000000000000000
       Size.Width = 169.000000000000000000
-      Size.Height = 167.000000000000000000
+      Size.Height = 333.000000000000000000
       Size.PlatformDefault = False
       ItemCount = 10
       OnGetShowItem = lstWritableGetShowItem
@@ -195,7 +195,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       DataDetectorTypes = []
       Lines.Strings = (
         'Example 2'
-        'Similar to example 1, but now we also have an editable comtol.')
+        'Similar to example 1, but now we also have an editable control.')
       ReadOnly = True
       ShowScrollBars = False
       StyledSettings = [Family, Style, FontColor]
@@ -212,13 +212,13 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     Align = Left
     Position.X = 386.000000000000000000
     Size.Width = 279.000000000000000000
-    Size.Height = 480.000000000000000000
+    Size.Height = 646.000000000000000000
     Size.PlatformDefault = False
     object Layout4: TLayout
       Align = Top
       Position.Y = 121.000000000000000000
       Size.Width = 279.000000000000000000
-      Size.Height = 120.000000000000000000
+      Size.Height = 160.000000000000000000
       Size.PlatformDefault = False
       object edDifferentHeight: TSpinBox
         Touch.InteractiveGestures = [LongTap, DoubleTap]
@@ -261,6 +261,15 @@ object frmDemoListSpinner: TfrmDemoListSpinner
           Text = 'ItemIndex'
         end
       end
+      object butJumpTo: TButton
+        Position.X = 16.000000000000000000
+        Position.Y = 120.000000000000000000
+        Size.Width = 249.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'JumpTo ItemIndex'
+        OnClick = butJumpToClick
+      end
     end
     object lstDifferent: TListSpinner
       Align = Client
@@ -269,7 +278,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       Margins.Right = 8.000000000000000000
       Margins.Bottom = 8.000000000000000000
       Size.Width = 263.000000000000000000
-      Size.Height = 223.000000000000000000
+      Size.Height = 349.000000000000000000
       Size.PlatformDefault = False
       ItemCount = 10
       ItemHeight = 130
@@ -302,7 +311,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     MinSize = 20.000000000000000000
     Position.X = 378.000000000000000000
     Size.Width = 8.000000000000000000
-    Size.Height = 480.000000000000000000
+    Size.Height = 646.000000000000000000
     Size.PlatformDefault = False
   end
   object Splitter3: TSplitter
@@ -311,7 +320,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     MinSize = 20.000000000000000000
     Position.X = 665.000000000000000000
     Size.Width = 8.000000000000000000
-    Size.Height = 480.000000000000000000
+    Size.Height = 646.000000000000000000
     Size.PlatformDefault = False
   end
 end
