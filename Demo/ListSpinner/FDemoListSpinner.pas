@@ -37,7 +37,7 @@ type
     Splitter3: TSplitter;
     edWritableItemIndex: TSpinBox;
     Label7: TLabel;
-    SpinBox1: TSpinBox;
+    edDifferentItemIndex: TSpinBox;
     Label8: TLabel;
     procedure edCountChange(Sender: TObject);
     procedure edHeightChange(Sender: TObject);
@@ -137,6 +137,8 @@ begin
       Result  := frmItemControls.frameEmpPartTimeEdit;
       frmItemControls.frameEmpPartTimeEdit.PartTime   := Emp as TPartTime;
     end;
+  //  Never mind this.  This is only for the demo.
+  edDifferentItemIndex.Value  := Index;
 end;
 
 function TfrmDemoListSpinner.lstDifferentGetShowItem(Sender: TListSpinner; Index: Integer): TControl;

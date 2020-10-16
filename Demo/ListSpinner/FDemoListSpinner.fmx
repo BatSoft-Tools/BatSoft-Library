@@ -209,13 +209,13 @@ object frmDemoListSpinner: TfrmDemoListSpinner
   object loDifferent: TLayout
     Align = Left
     Position.X = 386.000000000000000000
-    Size.Width = 215.000000000000000000
+    Size.Width = 279.000000000000000000
     Size.Height = 480.000000000000000000
     Size.PlatformDefault = False
     object Layout4: TLayout
       Align = Top
       Position.Y = 121.000000000000000000
-      Size.Width = 215.000000000000000000
+      Size.Width = 279.000000000000000000
       Size.Height = 120.000000000000000000
       Size.PlatformDefault = False
       object edDifferentHeight: TSpinBox
@@ -226,7 +226,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
         Value = 130.000000000000000000
         Position.X = 16.000000000000000000
         Position.Y = 32.000000000000000000
-        Size.Width = 183.000000000000000000
+        Size.Width = 247.000000000000000000
         Size.Height = 22.000000000000000000
         Size.PlatformDefault = False
         OnChange = edHeightChange
@@ -238,7 +238,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
           Text = 'Height'
         end
       end
-      object SpinBox1: TSpinBox
+      object edDifferentItemIndex: TSpinBox
         Touch.InteractiveGestures = [LongTap, DoubleTap]
         Anchors = [akLeft, akTop, akRight]
         Cursor = crIBeam
@@ -247,7 +247,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
         Value = -1.000000000000000000
         Position.X = 16.000000000000000000
         Position.Y = 80.000000000000000000
-        Size.Width = 185.000000000000000000
+        Size.Width = 249.000000000000000000
         Size.Height = 22.000000000000000000
         Size.PlatformDefault = False
         OnChange = edItemIndexChange
@@ -266,7 +266,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       Margins.Top = 8.000000000000000000
       Margins.Right = 8.000000000000000000
       Margins.Bottom = 8.000000000000000000
-      Size.Width = 199.000000000000000000
+      Size.Width = 263.000000000000000000
       Size.Height = 223.000000000000000000
       Size.PlatformDefault = False
       ItemCount = 10
@@ -287,10 +287,10 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       StyledSettings = [Family, Style, FontColor]
       TextSettings.Font.Size = 16.000000000000000000
       Align = Top
-      Size.Width = 215.000000000000000000
+      Size.Width = 279.000000000000000000
       Size.Height = 121.000000000000000000
       Size.PlatformDefault = False
-      Viewport.Width = 211.000000000000000000
+      Viewport.Width = 275.000000000000000000
       Viewport.Height = 117.000000000000000000
     end
   end
@@ -307,7 +307,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     Align = Left
     Cursor = crHSplit
     MinSize = 20.000000000000000000
-    Position.X = 601.000000000000000000
+    Position.X = 665.000000000000000000
     Size.Width = 8.000000000000000000
     Size.Height = 480.000000000000000000
     Size.PlatformDefault = False

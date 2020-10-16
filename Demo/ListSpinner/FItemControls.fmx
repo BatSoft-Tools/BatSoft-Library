@@ -86,7 +86,7 @@ object frmItemControls: TfrmItemControls
       Size.Width = 188.000000000000000000
     end
     inherited Circle1: TCircle
-      Fill.Color = claGray
+      Fill.Color = claLightgray
     end
   end
   inline frameEmpFullTimeShow: TframeEmpFullTime
@@ -118,7 +118,7 @@ object frmItemControls: TfrmItemControls
       Size.Width = 188.000000000000000000
     end
     inherited Circle1: TCircle
-      Fill.Color = claGray
+      Fill.Color = claLightgray
     end
   end
   inline frameEmpPartTimeShow: TframeEmpPartTime
@@ -150,21 +150,21 @@ object frmItemControls: TfrmItemControls
       Size.Width = 188.000000000000000000
     end
     inherited Circle1: TCircle
-      Fill.Color = claGray
+      Fill.Color = claLightgray
     end
   end
   inline frameEmpContractEdit: TframeEmpContract
     Position.X = 296.000000000000000000
     Position.Y = 160.000000000000000000
     Size.Width = 193.000000000000000000
-    Size.Height = 113.000000000000000000
+    Size.Height = 130.000000000000000000
     Size.PlatformDefault = False
     inherited Line1: TLine
-      Position.Y = 105.000000000000000000
+      Position.Y = 122.000000000000000000
       Size.Width = 188.000000000000000000
     end
     inherited Line2: TLine
-      Size.Height = 113.000000000000000000
+      Size.Height = 130.000000000000000000
     end
     inherited Layout1: TLayout
       Size.Width = 188.000000000000000000
