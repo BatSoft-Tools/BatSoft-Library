@@ -353,6 +353,8 @@ procedure TListSpinner.SetItemIndex(const Value: integer);
 begin
   if  Value = fItemIndex  then
     Exit;
+  if  Assigned(fEditor) then
+    fEditor.Visible := False;
   fItemIndex  := Value;
   if  ((fItemIndex < 0) or (fItemCount <= fItemIndex)) and Assigned(fEditor)  then
     fEditor.Visible := False;
