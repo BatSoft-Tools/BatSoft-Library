@@ -4,7 +4,7 @@ interface
 
 uses
   System.Types, System.Classes, System.UITypes,
-  FMX.Types, FMX.Controls, FMX.InertialMovement;
+  FMX.Types, FMX.Controls, FMX.InertialMovement, FMX.StdCtrls;
 
 const
   DefaultSpinnerItemHeight = 20;
@@ -23,7 +23,7 @@ type
     procedure DoMouseLeave; override;
     //  Output
     procedure CalcsStart(Sender: TObject);
-    procedure CalcsChanged(Sender: TObject);
+    procedure CalcsChanged(Sender: TObject); virtual;
     procedure CalcsStop(Sender: TObject);
     procedure CMGesture(var EventInfo: TGestureEventInfo); override;
   public
@@ -75,6 +75,14 @@ type
   TListSpinnerEvent = function (Sender: TListSpinner; Index: integer): TControl of object;
 
   TListSpinner = class(TSpinner)
+  //  Scrollbar
+  private
+    fScrollbar: TScrollBar;
+    function  GetShowScrollbar: Boolean; inline;
+    procedure SetShowScrollbar(const Value: Boolean);
+    procedure ScrollbarChange(Sender: TObject);
+  published
+    property  ShowScrollbar : Boolean           read GetShowScrollbar write SetShowScrollbar  default False;
   //  Read only code
   private
     fItemCount: integer;
@@ -87,6 +95,7 @@ type
   protected
     procedure RefreshFloorSize;
     procedure Paint; override;
+    procedure CalcsChanged(Sender: TObject); override;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -127,7 +136,7 @@ procedure Register;
 implementation
 
 uses
-  Math, FMX.Platform, FMX.Graphics;
+  System.SysUtils, Math, FMX.Platform, FMX.Graphics;
 
 procedure Register;
 begin
@@ -248,11 +257,23 @@ end;
 
 { TListSpinner }
 
+procedure TListSpinner.CalcsChanged(Sender: TObject);
+begin
+  inherited;
+  if  ShowScrollbar then
+    fScrollbar.Value  := fCalcs.ViewportPosition.Y;
+end;
+
 constructor TListSpinner.Create(AOwner: TComponent);
 begin
   inherited;
   fItemIndex  := -1;
   fItemHeight := DefaultSpinnerItemHeight;
+end;
+
+function TListSpinner.GetShowScrollbar: Boolean;
+begin
+  Result  := Assigned(fScrollbar)
 end;
 
 procedure TListSpinner.Loaded;
@@ -280,6 +301,7 @@ procedure TListSpinner.Paint;
 var
   Index: integer;
   Top: integer;
+  ItemWidth: Single;
   Item: TControl;
 begin
   if  Assigned(fOnPaintBegin) then
@@ -288,6 +310,9 @@ begin
     inherited;
     Index := Trunc(fCalcs.ViewportPosition.Y / fItemHeight);
     Top   := Trunc(Index * fItemHeight - fCalcs.ViewportPosition.Y);
+    ItemWidth := Self.Width;
+    if  ShowScrollbar then
+      ItemWidth := ItemWidth - fScrollbar.Width;
     while (Index < fItemCount) and (Top < Self.Height) do
       begin
         Item  := nil;
@@ -296,9 +321,9 @@ begin
             Item  := fOnGetShowItem(Self, Index);
         if  Assigned(Item)  then
           begin
-            Item.Width  := Self.Width;
+            Item.Width  := ItemWidth;
             Item.Height := fItemHeight;
-            Item.PaintTo(Self.Canvas, RectF(0, Top, Item.Width, Top + Item.Height), Self);
+            Item.PaintTo(Self.Canvas, RectF(0, Top, ItemWidth, Top + Item.Height), Self);
           end;
         inc(Index);
         inc(Top, fItemHeight);
@@ -334,7 +359,14 @@ begin
   Targets[1].TargetType := TAniCalculations.TTargetType.Max;
   Targets[1].Point      := TPointD.Create(0, Max(0, fItemCount * fItemHeight - Height));
   fCalcs.SetTargets(Targets);
+  if  ShowScrollbar then
+    fScrollbar.Max  := ItemCount * fItemHeight - Height;
   Invalidate;
+end;
+
+procedure TListSpinner.ScrollbarChange(Sender: TObject);
+begin
+  fCalcs.ViewportPositionF  := PointF(0, TScrollBar(Sender).Value);
 end;
 
 procedure TListSpinner.SetItemCount(const Value: integer);
@@ -363,6 +395,23 @@ begin
   if  (fItemIndex < 0) or (fItemCount <= fItemIndex)  then
     fEditor := nil;
   PlaceEditor;
+end;
+
+procedure TListSpinner.SetShowScrollbar(const Value: Boolean);
+begin
+  if  Value = GetShowScrollbar  then
+    Exit;
+  if  Value then
+    begin
+      fScrollbar := TScrollBar.Create(Self);
+      fScrollbar.Parent       := Self;
+      fScrollbar.Orientation  := TOrientation.Vertical;
+      fScrollbar.Align        := TAlignLayout.Right;
+      fScrollbar.Stored       := False;
+      fScrollbar.OnChange     := ScrollbarChange;
+    end
+  else
+    FreeAndNil(fScrollbar);
 end;
 
 end.

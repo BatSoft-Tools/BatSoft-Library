@@ -3,7 +3,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
   Top = 0
   Caption = 'Demo: ListSpinner'
   ClientHeight = 480
-  ClientWidth = 795
+  ClientWidth = 947
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -26,7 +26,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
         Anchors = [akLeft, akTop, akRight]
         Cursor = crIBeam
         Max = 1000000000.000000000000000000
-        Value = 10.000000000000000000
+        Value = 1000000.000000000000000000
         Position.X = 16.000000000000000000
         Position.Y = 32.000000000000000000
         Size.Width = 153.000000000000000000
@@ -71,7 +71,8 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       Size.Width = 169.000000000000000000
       Size.Height = 222.000000000000000000
       Size.PlatformDefault = False
-      ItemCount = 10
+      ShowScrollbar = True
+      ItemCount = 1000000
       OnGetShowItem = lstROEditorsGetShowItem
     end
     object Memo1: TMemo
@@ -79,7 +80,8 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       DataDetectorTypes = []
       Lines.Strings = (
         'Example 1'
-        'Simply shows read-only edit boxes.')
+        'Simply shows read-only edit boxes.'
+        'ShowScrollBox = True')
       ReadOnly = True
       ShowScrollBars = False
       StyledSettings = [Family, Style, FontColor]
