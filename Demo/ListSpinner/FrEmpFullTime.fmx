@@ -1,4 +1,5 @@
 object frameEmpFullTime: TframeEmpFullTime
+  HitTest = False
   Size.Width = 320.000000000000000000
   Size.Height = 117.000000000000000000
   Size.PlatformDefault = False

@@ -40,6 +40,8 @@ type
     edDifferentItemIndex: TSpinBox;
     Label8: TLabel;
     butJumpTo: TButton;
+    chkScrollbar: TCheckBox;
+    CheckBox1: TCheckBox;
     procedure edCountChange(Sender: TObject);
     procedure edHeightChange(Sender: TObject);
     procedure edItemIndexChange(Sender: TObject);
@@ -51,6 +53,7 @@ type
     function lstWritableGetShowItem(Sender: TListSpinner; Index: Integer): TControl;
     function lstDifferentGetEditItem(Sender: TListSpinner; Index: Integer): TControl;
     procedure butJumpToClick(Sender: TObject);
+    procedure chkScrollbarChange(Sender: TObject);
   private
     fEmployments: TEmploymentList;
     function AssociatedListSpinner(Sender: TObject): TListSpinner;
@@ -86,6 +89,11 @@ var
 begin
   Spinner := AssociatedListSpinner(Sender);
   Spinner.JumpTo(Spinner.ItemIndex);
+end;
+
+procedure TfrmDemoListSpinner.chkScrollbarChange(Sender: TObject);
+begin
+  AssociatedListSpinner(Sender).ShowScrollbar := TCheckBox(Sender).IsChecked
 end;
 
 procedure TfrmDemoListSpinner.edCountChange(Sender: TObject);
@@ -126,6 +134,8 @@ function TfrmDemoListSpinner.lstDifferentGetEditItem(Sender: TListSpinner; Index
 var
   Emp: TEmployment;
 begin
+  if  (Index < 0) or (fEmployments.Count <= Index)  then
+    Exit(nil);
   //  Obtain the object
   Emp := fEmployments[Index] as TEmployment;
   //  Show the correct frame, and populate it
@@ -153,6 +163,8 @@ function TfrmDemoListSpinner.lstDifferentGetShowItem(Sender: TListSpinner; Index
 var
   Emp: TEmployment;
 begin
+  if  (Index < 0) or (fEmployments.Count <= Index)  then
+    Exit(nil);
   //  Obtain the object
   Emp := fEmployments[Index] as TEmployment;
   //  Show the correct frame, and populate it

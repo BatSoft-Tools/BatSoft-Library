@@ -1,4 +1,5 @@
 object frameEmpPartTime: TframeEmpPartTime
+  HitTest = False
   Size.Width = 320.000000000000000000
   Size.Height = 240.000000000000000000
   Size.PlatformDefault = False

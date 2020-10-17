@@ -2,7 +2,7 @@ object frmItemControls: TfrmItemControls
   Left = 0
   Top = 0
   Caption = 'frmItemControls'
-  ClientHeight = 604
+  ClientHeight = 619
   ClientWidth = 558
   FormFactor.Width = 320
   FormFactor.Height = 480
@@ -52,8 +52,9 @@ object frmItemControls: TfrmItemControls
     Text = 'labDisplayOnly'
   end
   inline frameEmpContractShow: TframeEmpContract
+    HitTest = False
     Position.X = 32.000000000000000000
-    Position.Y = 216.000000000000000000
+    Position.Y = 248.000000000000000000
     Size.Width = 193.000000000000000000
     Size.Height = 130.000000000000000000
     Size.PlatformDefault = False
@@ -90,8 +91,9 @@ object frmItemControls: TfrmItemControls
     end
   end
   inline frameEmpFullTimeShow: TframeEmpFullTime
+    HitTest = False
     Position.X = 32.000000000000000000
-    Position.Y = 356.000000000000000000
+    Position.Y = 388.000000000000000000
     Size.Width = 193.000000000000000000
     Size.Height = 97.000000000000000000
     Size.PlatformDefault = False
@@ -122,8 +124,9 @@ object frmItemControls: TfrmItemControls
     end
   end
   inline frameEmpPartTimeShow: TframeEmpPartTime
+    HitTest = False
     Position.X = 32.000000000000000000
-    Position.Y = 472.000000000000000000
+    Position.Y = 504.000000000000000000
     Size.Width = 193.000000000000000000
     Size.Height = 97.000000000000000000
     Size.PlatformDefault = False
@@ -154,8 +157,9 @@ object frmItemControls: TfrmItemControls
     end
   end
   inline frameEmpContractEdit: TframeEmpContract
+    HitTest = False
     Position.X = 296.000000000000000000
-    Position.Y = 216.000000000000000000
+    Position.Y = 248.000000000000000000
     Size.Width = 193.000000000000000000
     Size.Height = 130.000000000000000000
     Size.PlatformDefault = False
@@ -189,8 +193,9 @@ object frmItemControls: TfrmItemControls
     end
   end
   inline frameEmpFullTimeEdit: TframeEmpFullTime
+    HitTest = False
     Position.X = 296.000000000000000000
-    Position.Y = 356.000000000000000000
+    Position.Y = 388.000000000000000000
     Size.Width = 193.000000000000000000
     Size.Height = 97.000000000000000000
     Size.PlatformDefault = False
@@ -218,8 +223,9 @@ object frmItemControls: TfrmItemControls
     end
   end
   inline frameEmpPartTimeEdit: TframeEmpPartTime
+    HitTest = False
     Position.X = 296.000000000000000000
-    Position.Y = 472.000000000000000000
+    Position.Y = 504.000000000000000000
     Size.Width = 193.000000000000000000
     Size.Height = 97.000000000000000000
     Size.PlatformDefault = False
@@ -248,7 +254,7 @@ object frmItemControls: TfrmItemControls
   end
   object Label4: TLabel
     Position.X = 32.000000000000000000
-    Position.Y = 176.000000000000000000
+    Position.Y = 208.000000000000000000
     Size.Width = 193.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
@@ -258,10 +264,20 @@ object frmItemControls: TfrmItemControls
   end
   object Label5: TLabel
     Position.X = 296.000000000000000000
-    Position.Y = 176.000000000000000000
+    Position.Y = 168.000000000000000000
     Size.Width = 193.000000000000000000
     Size.Height = 33.000000000000000000
     Size.PlatformDefault = False
     Text = 'These three editors are frames used for editing object values.'
+  end
+  object Label6: TLabel
+    Position.X = 296.000000000000000000
+    Position.Y = 200.000000000000000000
+    Size.Width = 249.000000000000000000
+    Size.Height = 49.000000000000000000
+    Size.PlatformDefault = False
+    Text = 
+      'NOTE: Set the frames'#39' HitTest property to False so that scrollin' +
+      'g and spinning works nicely.'
   end
 end

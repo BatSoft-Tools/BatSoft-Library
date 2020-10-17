@@ -1,4 +1,5 @@
 object frameEmpContract: TframeEmpContract
+  HitTest = False
   Size.Width = 320.000000000000000000
   Size.Height = 129.000000000000000000
   Size.PlatformDefault = False
