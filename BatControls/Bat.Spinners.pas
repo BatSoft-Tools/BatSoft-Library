@@ -90,8 +90,10 @@ type
     fOnPaintBegin: TNotifyEvent;
     fOnPaintEnd: TNotifyEvent;
     fOnGetShowItem: TListSpinnerEvent;
-    procedure SetItemCount(const Value: integer);
+    procedure SetItemCount(Value: integer);
     procedure SetItemHeight(const Value: integer);
+    function  GetItemWidth: Single; inline;
+    function  ScrollSpan: Single; inline;
   protected
     procedure RefreshFloorSize;
     procedure Paint; override;
@@ -279,6 +281,13 @@ begin
   inherited;
 end;
 
+function TListSpinner.GetItemWidth: Single;
+begin
+  Result  := Width;
+  if  ShowScrollbar then
+    Result  := Result - fScrollbar.Width;
+end;
+
 function TListSpinner.GetShowScrollbar: Boolean;
 begin
   Result  := Assigned(fScrollbar)
@@ -327,9 +336,7 @@ begin
     inherited;
     Index := Trunc(fCalcs.ViewportPosition.Y / fItemHeight);
     Top   := Trunc(Index * fItemHeight - fCalcs.ViewportPosition.Y);
-    ItemWidth := Self.Width;
-    if  ShowScrollbar then
-      ItemWidth := ItemWidth - fScrollbar.Width;
+    ItemWidth := GetItemWidth;
     while (Index < fItemCount) and (Top < Self.Height) do
       begin
         Item  := nil;
@@ -361,7 +368,7 @@ begin
   Top   := Trunc(ItemIndex * fItemHeight - fCalcs.ViewportPosition.Y);
   fEditor.Parent  := Self;
   fEditor.Position.Point  := TPointF.Create(0, Top);
-  fEditor.Width   := Self.Width;
+  fEditor.Width   := GetItemWidth;
   fEditor.Height  := fItemHeight;
   fEditor.Visible := True;
 end;
@@ -374,10 +381,10 @@ begin
   Targets[0].TargetType := TAniCalculations.TTargetType.Min;
   Targets[0].Point      := TPointD.Create(0, 0);
   Targets[1].TargetType := TAniCalculations.TTargetType.Max;
-  Targets[1].Point      := TPointD.Create(0, Max(0, fItemCount * fItemHeight - Height));
+  Targets[1].Point      := TPointD.Create(0, Max(0, ScrollSpan));
   fCalcs.SetTargets(Targets);
   if  ShowScrollbar then
-    fScrollbar.Max  := ItemCount * fItemHeight - Height;
+    fScrollbar.Max  := ScrollSpan;
   Invalidate;
 end;
 
@@ -386,9 +393,14 @@ begin
   fCalcs.ViewportPositionF  := PointF(0, TScrollBar(Sender).Value);
 end;
 
-procedure TListSpinner.SetItemCount(const Value: integer);
+function TListSpinner.ScrollSpan: Single;
 begin
-  fItemCount := Value;
+  Result  := fItemCount * fItemHeight - Height
+end;
+
+procedure TListSpinner.SetItemCount(Value: integer);
+begin
+  fItemCount := Max(0, Value);
   RefreshFloorSize;
 end;
 
@@ -425,10 +437,13 @@ begin
       fScrollbar.Orientation  := TOrientation.Vertical;
       fScrollbar.Align        := TAlignLayout.Right;
       fScrollbar.Stored       := False;
+      fScrollbar.Max          := ScrollSpan;
+      fScrollbar.Value        := fCalcs.ViewportPositionF.Y;
       fScrollbar.OnChange     := ScrollbarChange;
     end
   else
     FreeAndNil(fScrollbar);
+  Invalidate;
 end;
 
 end.
