@@ -88,7 +88,7 @@ var
   Spinner: TListSpinner;
 begin
   Spinner := AssociatedListSpinner(Sender);
-  Spinner.JumpTo(Spinner.ItemIndex);
+  Spinner.JumpTo(Spinner.ItemIndex, TTextAlign.Center);
 end;
 
 procedure TfrmDemoListSpinner.chkScrollbarChange(Sender: TObject);
@@ -112,13 +112,7 @@ begin
 end;
 
 procedure TfrmDemoListSpinner.FormCreate(Sender: TObject);
-var
-  i: Integer;
 begin
-  //  The WordWrap property really ought to be published
-  for i := 0 to ComponentCount - 1 do
-    if  Components[i] is TMemo then
-      (Components[i] as TMemo).WordWrap := True;
   //  Create some demo data
   fEmployments  := TEmploymentList.Create;
   fEmployments.Populate(100);

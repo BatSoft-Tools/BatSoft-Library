@@ -101,7 +101,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
-    procedure JumpTo(Index: integer);
+    procedure JumpTo(Index: integer; PreferredPosition: TTextAlign = TTextAlign.Leading);
   published
     property  ItemCount     : integer           read fItemCount       write SetItemCount;
     property  ItemHeight    : integer           read fItemHeight      write SetItemHeight default DefaultSpinnerItemHeight;
@@ -293,13 +293,24 @@ begin
   Result  := Assigned(fScrollbar)
 end;
 
-procedure TListSpinner.JumpTo(Index: integer);
+procedure TListSpinner.JumpTo(Index: integer; PreferredPosition: TTextAlign);
+var
+  NewPos: Single;
 begin
+  //  Ensure Index is in range
   if  ItemCount <= Index  then
     Index := ItemCount - 1;
   if  Index < 0 then
     Index := 0;
-  fCalcs.ViewportPositionF  := Point(0, Index * ItemHeight);
+  //  Calculate preferred position
+  case PreferredPosition of
+    TTextAlign.Leading :  NewPos  := 0;
+    TTextAlign.Center :   NewPos  := (ItemHeight - Self.Height) / 2;
+    TTextAlign.Trailing : NewPos  := ItemHeight - Self.Height;
+  end;
+  NewPos  := NewPos + Index * ItemHeight;
+  //  Move
+  fCalcs.ViewportPositionF  := PointF(0, NewPos);
 end;
 
 procedure TListSpinner.Loaded;

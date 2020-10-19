@@ -92,12 +92,13 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       ShowScrollBars = False
       StyledSettings = [Family, Style, FontColor]
       TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.WordWrap = True
       Align = Top
       Size.Width = 185.000000000000000000
       Size.Height = 121.000000000000000000
       Size.PlatformDefault = False
-      Viewport.Width = 185.000000000000000000
-      Viewport.Height = 121.000000000000000000
+      Viewport.Width = 181.000000000000000000
+      Viewport.Height = 117.000000000000000000
     end
   end
   object Splitter1: TSplitter
@@ -207,12 +208,13 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       ShowScrollBars = False
       StyledSettings = [Family, Style, FontColor]
       TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.WordWrap = True
       Align = Top
       Size.Width = 185.000000000000000000
       Size.Height = 121.000000000000000000
       Size.PlatformDefault = False
-      Viewport.Width = 185.000000000000000000
-      Viewport.Height = 121.000000000000000000
+      Viewport.Width = 181.000000000000000000
+      Viewport.Height = 117.000000000000000000
     end
   end
   object loDifferent: TLayout
@@ -311,12 +313,13 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       ShowScrollBars = False
       StyledSettings = [Family, Style, FontColor]
       TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.WordWrap = True
       Align = Top
       Size.Width = 279.000000000000000000
       Size.Height = 121.000000000000000000
       Size.PlatformDefault = False
-      Viewport.Width = 279.000000000000000000
-      Viewport.Height = 121.000000000000000000
+      Viewport.Width = 275.000000000000000000
+      Viewport.Height = 117.000000000000000000
     end
   end
   object Splitter2: TSplitter
