@@ -3,7 +3,7 @@ unit uDemoSettings;
 interface
 
 uses
-  System.Types, Generics.Collections, BatSoft.Settings;
+  System.Types, Generics.Collections, BatSoft.Classes, BatSoft.Settings;
 
 type
 //  Your settings classes must be enclosed with {$M+} so that RTTI exists for
@@ -151,7 +151,6 @@ begin
 end;
 
 initialization
-  //  Register TUsers as the list class and TUser as it's element class
-  SettingsLists.Register(TUsers, TUser);
+  RegisteredLists.Register(TUsers, TUser);
 
 end.

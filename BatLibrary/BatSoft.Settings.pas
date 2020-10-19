@@ -127,7 +127,9 @@ type
     procedure LoadProperties(const Obj: TObject);
     procedure LoadProperty(const Obj: TObject; const RTTIProp: TRttiProperty);
     procedure LoadObject(const Obj: TObject; const RTTIProp: TRttiProperty);
-    procedure LoadList(const Obj: TObject; const ElemClass: TClass; const RTTIProp: TRttiProperty);
+    procedure LoadObjList(const Obj: TObject; const ElemClass: TClass; const RTTIProp: TRttiProperty);
+    procedure LoadListComplex(const Obj: TObject; const ElemType: TRttiType; const RTTIProp: TRttiProperty);
+    procedure LoadListSimple(const Obj: TObject; const ElemType: TRttiType; const RTTIProp: TRttiProperty);
     function  LoadString(const Name: string): string;
     procedure LoadStrings(const Obj: TObject; const RTTIProp: TRttiProperty);
     procedure LoadStringsDeep(const Obj: TObject; const RTTIProp: TRttiProperty);
@@ -188,25 +190,13 @@ type
     class function  ConvertToStore(const PropInfo: PTypeInfo; const PropValue: TValue): TValue;
   end;
 
-  ///  Register TObjectList<> classes here. No further conversion routines are necessary.
-  ///  This does not take TList<> classes.
-  SettingsLists = class
-  private
-    class var _Types: TDictionary<TClass, TClass>;
-  public
-    class constructor Create;
-    class destructor  Destroy;
-    class procedure Register(const ListClass, ElemClass: TClass);
-    class function  IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean; overload;
-  end;
-
   ESettings = class(Exception)
   public
     constructor Create(const AMessage: string); overload;
     constructor Create(const AMessage: string; const Args: array of const); overload;
   end;
 
-//  Conversion routines that are necessary in implementation of ISettingsStoreReader.LoadValue() and ISettingsStoreWriter.SaveValue().
+//  Conversion routines that are necessary in implementations of ISettingsStoreReader.LoadValue() and ISettingsStoreWriter.SaveValue().
 //  Not using some of these will cause problems when converting enums and sets, because of how TValue works.
 
 function  EnumToStr(const Value: TValue): string;
@@ -226,14 +216,15 @@ const
   SNil    = 'Null';
 
 resourcestring
-  SESettingsNotNil    = 'Settings must not be nil.';
-  SENotSettingsList   = 'List is not a settings list.';
-  SENotByteArray      = 'Property %s cannot be loaded because it is a dynamic array, but not TArray<Byte>.';
-  SEUnsupportedType   = 'Property %s cannot be loaded because it is of type %s.';
-  SNotImplements      = 'Does not implement %s.';
-  SNotRegisteredClass = 'Class %s is not registered.';
-  SPropertyIsNil      = 'Property %s is nil';
-  SPropertyIsWrongType= 'Object in property %s is of type %s but %s is expected.';
+  SESettingsNotNil      = 'Settings must not be nil.';
+  SENotSettingsList     = 'List is not a settings list.';
+  SENotByteArray        = 'Property %s cannot be loaded because it is a dynamic array, but not TArray<Byte>.';
+  SEUnsupportedType     = 'Property %s cannot be loaded because it is of type %s.';
+  SENotImplements       = 'Does not implement %s.';
+  SENotRegisteredClass  = 'Class %s is not registered.';
+  SEPropertyIsNil       = 'Property %s is nil';
+  SEPropertyIsWrongType = 'Object in property %s is of type %s but %s is expected.';
+  SEFailedToEnterElem   = 'Failed to enter list element.';
 
 implementation
 
@@ -411,7 +402,7 @@ var
   Reader: TSettingsReader;
 begin
   if  not Supports(Self, ISettingsStoreReader)  then
-    raise ESettings.Create(SNotImplements, ['ISettingsStoreReader']);
+    raise ESettings.Create(SENotImplements, ['ISettingsStoreReader']);
   Reader  := TSettingsReader.Create(Self.Create(AFileName, AEnumsAsStrings) as ISettingsStoreReader);
   try
     Reader.Load(TObject(Obj), DefaultClass);
@@ -430,7 +421,7 @@ var
   Writer: TSettingsWriter;
 begin
   if  not Supports(Self, ISettingsStoreWriter)  then
-    raise ESettings.Create(SNotImplements, ['ISettingsStoreWriter']);
+    raise ESettings.Create(SENotImplements, ['ISettingsStoreWriter']);
   Writer  := TSettingsWriter.Create(Self.Create(AFileName, AEnumsAsStrings) as ISettingsStoreWriter);
   try
     Writer.Save(Obj);
@@ -485,7 +476,7 @@ begin
     Exit(nil);
   RTTIType  := RTTI.FindType(ClassName);
   if not Assigned(RTTIType) then
-    raise ESettings.Create(SNotRegisteredClass, [ClassName]);
+    raise ESettings.Create(SENotRegisteredClass, [ClassName]);
   Result  := RTTIType.AsInstance;
 end;
 
@@ -528,7 +519,86 @@ begin
     end;
 end;
 
-procedure TSettingsReader.LoadList(const Obj: TObject; const ElemClass: TClass; const RTTIProp: TRttiProperty);
+procedure TSettingsReader.LoadListComplex(const Obj: TObject; const ElemType: TRttiType; const RTTIProp: TRttiProperty);
+var
+  ComplexConverter: SettingsTypes.TComplexConverters;
+  Value: TValue;
+begin
+  if  not SettingsTypes._ComplexTypes.TryGetValue(ElemType.Handle, ComplexConverter) then
+    raise ESettings.Create(SENotImplements, [ElemType.Name]);
+  fStore.ListBegin(RTTIProp.Name);
+  try
+    while fStore.ElemNext do
+      if  not fStore.ElemEnter  then
+        raise ESettings.Create(SEFailedToEnterElem)
+      else
+        try
+          //  Populate element
+          Value := ComplexConverter.ToProperty(
+            function (const Name: string; const TypeInfo: PTypeInfo): TValue
+            begin
+              Result  := SettingsTypes.ConvertToProperty(TypeInfo, fStore.LoadValue(Name, TypeInfo))
+            end);
+          RTTIProp.SetValue(Obj, Value);
+        finally
+          fStore.ElemLeave;
+        end;
+  finally
+    fStore.ListEnd;
+  end;
+end;
+
+procedure TSettingsReader.LoadListSimple(const Obj: TObject; const ElemType: TRttiType; const RTTIProp: TRttiProperty);
+var
+  SimpleConverter: SettingsTypes.TSimpleConverters;
+  Value: TValue;
+begin
+  if  not SettingsTypes._SimpleTypes.TryGetValue(ElemType.Handle, SimpleConverter) then
+    raise ESettings.Create(SENotImplements, [ElemType.Name]);
+  fStore.ListBegin(RTTIProp.Name);
+  try
+    while fStore.ElemNext do
+      if  not fStore.ElemEnter  then
+        raise ESettings.Create(SEFailedToEnterElem)
+      else
+        try
+          //  Determine what to load
+          Value := fStore.LoadValue('_', SettingsTypes.StoreTypeInfoOf(ElemType.Handle));
+          //  Apply simple converter
+          Value := SettingsTypes.ConvertToProperty(RTTIProp.PropertyType.Handle, Value);
+          //  Set the value
+          RTTIProp.SetValue(Obj, Value);
+        finally
+          fStore.ElemLeave;
+        end;
+  finally
+    fStore.ListEnd;
+  end;
+end;
+
+procedure TSettingsReader.LoadObject(const Obj: TObject; const RTTIProp: TRttiProperty);
+var
+  ChildClass: TClass;
+  Child: TObject;
+begin
+  if  RTTIProp.IsReadable then
+    try
+      ChildClass  := RTTIProp.PropertyType.AsInstance.MetaclassType;
+      Child       := RTTIProp.GetValue(Obj).AsObject;
+      if  not RTTIProp.IsWritable then
+        if  not Assigned(Child) then
+          raise ESettings.Create(SEPropertyIsNil, [RTTIProp.Name])
+        else if not (Child is ChildClass) then
+          raise ESettings.Create(SEPropertyIsWrongType, [RTTIProp.Name, Child.ClassName, ChildClass.ClassName]);
+      CorrectObjectClass(Child, RTTIProp.PropertyType.AsInstance);
+      RTTIProp.SetValue(Obj, Child);
+      LoadProperties(Child);
+    finally
+      fStore.NodeLeave;
+    end;
+end;
+
+procedure TSettingsReader.LoadObjList(const Obj: TObject; const ElemClass: TClass; const RTTIProp: TRttiProperty);
 var
   RTTIElemClass: TRttiInstanceType;
   List: TObjectList<TObject> absolute Obj;
@@ -554,28 +624,6 @@ begin
   end;
 end;
 
-procedure TSettingsReader.LoadObject(const Obj: TObject; const RTTIProp: TRttiProperty);
-var
-  ChildClass: TClass;
-  Child: TObject;
-begin
-  if  RTTIProp.IsReadable then
-    try
-      ChildClass  := RTTIProp.PropertyType.AsInstance.MetaclassType;
-      Child       := RTTIProp.GetValue(Obj).AsObject;
-      if  not RTTIProp.IsWritable then
-        if  not Assigned(Child) then
-          raise ESettings.Create(SPropertyIsNil, [RTTIProp.Name])
-        else if not (Child is ChildClass) then
-          raise ESettings.Create(SPropertyIsWrongType, [RTTIProp.Name, Child.ClassName, ChildClass.ClassName]);
-      CorrectObjectClass(Child, RTTIProp.PropertyType.AsInstance);
-      RTTIProp.SetValue(Obj, Child);
-      LoadProperties(Child);
-    finally
-      fStore.NodeLeave;
-    end;
-end;
-
 procedure TSettingsReader.LoadProperties(const Obj: TObject);
 var
   RTTIType: TRttiType;
@@ -598,6 +646,7 @@ var
   ChildClass: TClass;
   ElemClass: TClass;
   Value: TValue;
+  ElemRTTI: TRttiType;
 begin
   //  Get the correct settings name
   SettName  := SettingsName.StoreNameOf(RTTIProp);
@@ -639,9 +688,15 @@ begin
         //  Read "shallow" TStrings as a single delimited string
         else
           LoadStrings(Obj, RTTIProp)
-      //  Load settings list elements as objects
-      else if SettingsLists.IsRegistered(ChildClass, ElemClass) then
-        LoadList(RTTIProp.GetValue(Obj).AsObject, ElemClass, RTTIProp)
+      //  Load object lists
+      else if RegisteredLists.IsRegistered(ChildClass, ElemClass) then
+        LoadObjList(RTTIProp.GetValue(Obj).AsObject, ElemClass, RTTIProp)
+      //  Load non-object lists
+      else if RegisteredLists.IsRegistered(ChildClass, ElemRTTI) then
+        if  ElemRTTI.TypeKind = tkRecord  then
+          LoadListComplex(RTTIProp.GetValue(Obj).AsObject, ElemRTTI, RTTIProp)
+        else
+          LoadListSimple(RTTIProp.GetValue(Obj).AsObject, ElemRTTI, RTTIProp)
       //  Child object
       else if fStore.NodeEnter(SettName)  then
         LoadObject(Obj, RTTIProp)
@@ -662,7 +717,7 @@ var
 begin
   Child := RTTIProp.GetValue(Obj).AsObject;
   if  not Assigned(Child) then
-    raise ESettings.Create(SPropertyIsNil, [RTTIProp.Name]);
+    raise ESettings.Create(SEPropertyIsNil, [RTTIProp.Name]);
   (Child as TStrings).DelimitedText := LoadString(RTTIProp.Name)
 end;
 
@@ -853,7 +908,7 @@ begin
         else
           SaveStrings(SettName, Child)
       //  Save settings list elements as objects
-      else if SettingsLists.IsRegistered(Child.ClassType, ElemClass) then
+      else if RegisteredLists.IsRegistered(Child.ClassType, ElemClass) then
         SaveList(Child, ElemClass, RTTIProp)
       //  Child object
       else
@@ -955,28 +1010,6 @@ begin
     Result  := Converters.StoreInfo
   else
     Result  := PropInfo
-end;
-
-{ ObjectLists }
-
-class constructor SettingsLists.Create;
-begin
-  _Types  := TDictionary<TClass, TClass>.Create;
-end;
-
-class destructor SettingsLists.Destroy;
-begin
-  _Types.Free;
-end;
-
-class function SettingsLists.IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean;
-begin
-  Result  := _Types.TryGetValue(ListClass, ElemClass)
-end;
-
-class procedure SettingsLists.Register(const ListClass, ElemClass: TClass);
-begin
-  _Types.Add(ListClass, ElemClass);
 end;
 
 { ESettings }

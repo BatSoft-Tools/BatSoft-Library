@@ -3,9 +3,11 @@ unit BatSoft.Classes;
 interface
 
 uses
-  System.SysUtils, System.Types, System.Generics.Defaults, Generics.Collections;
+  System.SysUtils, System.Types, System.Generics.Defaults, Generics.Collections, System.TypInfo, System.Rtti;
 
 type
+{$region 'Interfaces'}
+
   ///  Like TInterfacedObject but without reference counting.
   TInterfacedObjectNoRefCount = class(TObject, IInterface)
   protected
@@ -14,9 +16,9 @@ type
     function _Release: Integer; stdcall;
   end;
 
-  ///  Sometimes I want interfaced objects to free when the RefCount is something
-  ///  other than 0, such as when writing factories that keep track of multitons.
-  ///
+  //  Sometimes I want interfaced objects to free when the RefCount is something
+  //  other than 0, such as when writing factories that keep track of multitons.
+  /// TInterfacedObject that free's with a specified reference count.
   TMinRefCountObject = class(TInterfacedObject, IInterface)
   public
     constructor Create(const AMinRefCount: integer = 0);
@@ -42,6 +44,29 @@ type
     constructor Create(const AOwner: TObject);
     destructor  Destroy; override;
   end;
+
+{$endregion}
+
+{$region 'Generic lists'}
+
+  ///  Register TObjectList<> classes here. No further conversion routines are necessary.
+  ///  This does not take TList<> classes.
+  RegisteredLists = class
+  private
+    class var _Types: TDictionary<TClass, TRttiType>;
+  public
+    class constructor Create;
+    class destructor  Destroy;
+    class procedure Register(const ListClass, ElemClass: TClass); overload;
+    class procedure Register(const ListClass: TClass; const TypeInfo: PTypeInfo); overload;
+    class function  IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean; overload;
+    class function  IsRegistered(const ListClass: TClass; out RTTIType: TRttiType): Boolean; overload;
+    class function  IsRegistered(const ListClass: TClass; out TypeInfo: PTypeInfo): Boolean; overload;
+  end;
+
+{$endregion}
+
+{$region 'Binary sorted list'}
 
   //  This is a container that stores items in proper order using binary search.
   TBinaryList<T> = class
@@ -84,12 +109,18 @@ type
     function GetEnumerator: TList<T>.TEnumerator; reintroduce; inline;
   end;
 
+{$endregion}
+
+{$region 'Attributes'}
+
   TAttributeArrayHelper = record helper for TArray<TCustomAttribute>
   public
     class function Has(const AttributeClass: TClass): Boolean; overload;
     class function Has<T: TCustomAttribute>(): Boolean; overload; inline;
     class function Has<T: TCustomAttribute>(const [ref] FoundAttribute: TCustomAttribute): Boolean; overload;
   end;
+
+{$endregion}
 
   EBatSoft = class(Exception);
 
@@ -99,6 +130,9 @@ procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
 
 resourcestring
   SEIncompatibleClasses = 'Incompatible classes.';
+
+var
+  RTTI: TRttiContext;
 
 implementation
 
@@ -151,7 +185,7 @@ end;
 
 constructor TRefCountMyOwner.Create(const AOwner: TObject);
 begin
-  inherited Create(1);
+  inherited Create(1);  //  The 1 is for the fOwner's reference to this object
   fOwner  := AOwner;
 end;
 
@@ -159,6 +193,53 @@ destructor TRefCountMyOwner.Destroy;
 begin
   fOwner.Free;
   inherited;
+end;
+
+{ RegisteredLists }
+
+class constructor RegisteredLists.Create;
+begin
+  _Types  := TDictionary<TClass, TRttiType>.Create;
+end;
+
+class destructor RegisteredLists.Destroy;
+begin
+  _Types.Free;
+end;
+
+class function RegisteredLists.IsRegistered(const ListClass: TClass; out ElemClass: TClass): Boolean;
+var
+  RTTIType: TRttiType;
+begin
+  Result  := IsRegistered(ListClass, RTTIType);
+  if  Result and (RTTIType is TRttiInstanceType)  then
+    ElemClass := (RTTIType as TRttiInstanceType).MetaclassType
+  else
+    Result    := False;
+end;
+
+class function  RegisteredLists.IsRegistered(const ListClass: TClass; out RTTIType: TRttiType): Boolean;
+begin
+  Result  := _Types.TryGetValue(ListClass, RTTIType);
+end;
+
+class function RegisteredLists.IsRegistered(const ListClass: TClass; out TypeInfo: PTypeInfo): Boolean;
+var
+  RTTIType: TRttiType;
+begin
+  Result  := IsRegistered(ListClass, RTTIType);
+  if  Result  then
+    TypeInfo  := RTTIType.Handle
+end;
+
+class procedure RegisteredLists.Register(const ListClass, ElemClass: TClass);
+begin
+  _Types.Add(ListClass, RTTI.GetType(ElemClass));
+end;
+
+class procedure RegisteredLists.Register(const ListClass: TClass; const TypeInfo: PTypeInfo);
+begin
+  _Types.Add(ListClass, RTTI.GetType(TypeInfo));
 end;
 
 { TBinaryList<T> }
@@ -357,5 +438,11 @@ class function TAttributeArrayHelper.Has<T>(): Boolean;
 begin
   Result  := Has(T);
 end;
+
+initialization
+  RTTI  := TRttiContext.Create;
+
+finalization
+  RTTI.Free;
 
 end.
