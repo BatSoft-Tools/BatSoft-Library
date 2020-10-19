@@ -1,0 +1,340 @@
+object frmDemoListSpinner: TfrmDemoListSpinner
+  Left = 0
+  Top = 0
+  Caption = 'Demo: ListSpinner'
+  ClientHeight = 646
+  ClientWidth = 716
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object loROEditors: TLayout
+    Align = Left
+    Size.Width = 185.000000000000000000
+    Size.Height = 646.000000000000000000
+    Size.PlatformDefault = False
+    object loEditorsControls: TLayout
+      Align = Top
+      Position.Y = 121.000000000000000000
+      Size.Width = 185.000000000000000000
+      Size.Height = 144.000000000000000000
+      Size.PlatformDefault = False
+      object edROEditorsCount: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Max = 1000000000.000000000000000000
+        Value = 1000000.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 32.000000000000000000
+        Size.Width = 153.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edCountChange
+        object Label1: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Count'
+        end
+      end
+      object edROEditorsHeight: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Max = 1000.000000000000000000
+        Value = 20.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 80.000000000000000000
+        Size.Width = 153.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edHeightChange
+        object Label2: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Height'
+        end
+      end
+      object chkScrollbar: TCheckBox
+        IsChecked = True
+        Position.X = 16.000000000000000000
+        Position.Y = 112.000000000000000000
+        Text = 'ShowScrollbar'
+        OnChange = chkScrollbarChange
+      end
+    end
+    object lstROEditors: TListSpinner
+      Align = Client
+      Margins.Left = 8.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 8.000000000000000000
+      Size.Width = 169.000000000000000000
+      Size.Height = 365.000000000000000000
+      Size.PlatformDefault = False
+      ShowScrollbar = True
+      ItemCount = 1000000
+      OnGetShowItem = lstROEditorsGetShowItem
+    end
+    object Memo1: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Lines.Strings = (
+        'Example 1'
+        'Simply shows read-only edit boxes.')
+      ReadOnly = True
+      ShowScrollBars = False
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 16.000000000000000000
+      Align = Top
+      Size.Width = 185.000000000000000000
+      Size.Height = 121.000000000000000000
+      Size.PlatformDefault = False
+      Viewport.Width = 185.000000000000000000
+      Viewport.Height = 121.000000000000000000
+    end
+  end
+  object Splitter1: TSplitter
+    Align = Left
+    Cursor = crHSplit
+    MinSize = 20.000000000000000000
+    Position.X = 185.000000000000000000
+    Size.Width = 8.000000000000000000
+    Size.Height = 646.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object loWritable: TLayout
+    Align = Left
+    Position.X = 193.000000000000000000
+    Size.Width = 185.000000000000000000
+    Size.Height = 646.000000000000000000
+    Size.PlatformDefault = False
+    object Layout2: TLayout
+      Align = Top
+      Position.Y = 121.000000000000000000
+      Size.Width = 185.000000000000000000
+      Size.Height = 176.000000000000000000
+      Size.PlatformDefault = False
+      object edWritableCount: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Max = 1000000000.000000000000000000
+        Value = 10.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 32.000000000000000000
+        Size.Width = 153.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edCountChange
+        object Label3: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Count'
+        end
+      end
+      object edWritableHeight: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Max = 1000.000000000000000000
+        Value = 20.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 80.000000000000000000
+        Size.Width = 153.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edHeightChange
+        object Label4: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Height'
+        end
+      end
+      object edWritableItemIndex: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Min = -1.000000000000000000
+        Max = 1000000001.000000000000000000
+        Value = -1.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 128.000000000000000000
+        Size.Width = 153.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edItemIndexChange
+        object Label7: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'ItemIndex'
+        end
+      end
+    end
+    object lstWritable: TListSpinner
+      Align = Client
+      Margins.Left = 8.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 8.000000000000000000
+      Size.Width = 169.000000000000000000
+      Size.Height = 333.000000000000000000
+      Size.PlatformDefault = False
+      ItemCount = 10
+      OnGetShowItem = lstWritableGetShowItem
+      OnGetEditItem = lstWritableGetEditItem
+    end
+    object Memo2: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Lines.Strings = (
+        'Example 2'
+        'Here we show an editable control.'
+        'In this example the editor does not do anything.')
+      ReadOnly = True
+      ShowScrollBars = False
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 16.000000000000000000
+      Align = Top
+      Size.Width = 185.000000000000000000
+      Size.Height = 121.000000000000000000
+      Size.PlatformDefault = False
+      Viewport.Width = 185.000000000000000000
+      Viewport.Height = 121.000000000000000000
+    end
+  end
+  object loDifferent: TLayout
+    Align = Left
+    Position.X = 386.000000000000000000
+    Size.Width = 279.000000000000000000
+    Size.Height = 646.000000000000000000
+    Size.PlatformDefault = False
+    object Layout4: TLayout
+      Align = Top
+      Position.Y = 121.000000000000000000
+      Size.Width = 279.000000000000000000
+      Size.Height = 184.000000000000000000
+      Size.PlatformDefault = False
+      object edDifferentHeight: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Max = 1000.000000000000000000
+        Value = 130.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 32.000000000000000000
+        Size.Width = 247.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edHeightChange
+        object Label6: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Height'
+        end
+      end
+      object edDifferentItemIndex: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Min = -1.000000000000000000
+        Max = 1000000001.000000000000000000
+        Value = -1.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 80.000000000000000000
+        Size.Width = 249.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edItemIndexChange
+        object Label8: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'ItemIndex'
+        end
+      end
+      object butJumpTo: TButton
+        Position.X = 16.000000000000000000
+        Position.Y = 120.000000000000000000
+        Size.Width = 249.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'JumpTo ItemIndex'
+        OnClick = butJumpToClick
+      end
+      object CheckBox1: TCheckBox
+        Position.X = 24.000000000000000000
+        Position.Y = 152.000000000000000000
+        Text = 'ShowScrollbar'
+        OnChange = chkScrollbarChange
+      end
+    end
+    object lstDifferent: TListSpinner
+      Align = Client
+      Margins.Left = 8.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 8.000000000000000000
+      Size.Width = 263.000000000000000000
+      Size.Height = 325.000000000000000000
+      Size.PlatformDefault = False
+      ItemCount = 10
+      ItemHeight = 130
+      OnGetShowItem = lstDifferentGetShowItem
+      OnGetEditItem = lstDifferentGetEditItem
+    end
+    object Memo3: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Lines.Strings = (
+        'Example 3'
+        
+          'We can also display different editors for different items. Very ' +
+          'useful for lists of different types of objects.'
+        'These editors work.')
+      ReadOnly = True
+      ShowScrollBars = False
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 16.000000000000000000
+      Align = Top
+      Size.Width = 279.000000000000000000
+      Size.Height = 121.000000000000000000
+      Size.PlatformDefault = False
+      Viewport.Width = 279.000000000000000000
+      Viewport.Height = 121.000000000000000000
+    end
+  end
+  object Splitter2: TSplitter
+    Align = Left
+    Cursor = crHSplit
+    MinSize = 20.000000000000000000
+    Position.X = 378.000000000000000000
+    Size.Width = 8.000000000000000000
+    Size.Height = 646.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object Splitter3: TSplitter
+    Align = Left
+    Cursor = crHSplit
+    MinSize = 20.000000000000000000
+    Position.X = 665.000000000000000000
+    Size.Width = 8.000000000000000000
+    Size.Height = 646.000000000000000000
+    Size.PlatformDefault = False
+  end
+end

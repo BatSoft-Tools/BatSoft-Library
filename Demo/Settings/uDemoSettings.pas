@@ -31,7 +31,7 @@ type
   //  In some formats (ex. JSON) a list is saved differently from an object,
   //  therefore properties will not be saved.
   //  So a registered list object (like this one) must not have any other settings.
-  TUsers = class(TRegisteredObjectList<TUser>)
+  TUsers = class(TObjectList<TUser>)
   public
     function  FindByID(const UserID: TGUID): TUser;
     procedure DeleteUser(const UserID: TGUID);
@@ -149,5 +149,8 @@ procedure TAppSettings.SetActiveUserID(const Value: TGUID);
 begin
   fActiveUser := fUsers.FindByID(Value);
 end;
+
+initialization
+  RegisteredLists.Register(TUsers, TUser);
 
 end.

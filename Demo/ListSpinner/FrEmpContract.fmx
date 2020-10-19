@@ -1,0 +1,109 @@
+object frameEmpContract: TframeEmpContract
+  HitTest = False
+  Size.Width = 320.000000000000000000
+  Size.Height = 129.000000000000000000
+  Size.PlatformDefault = False
+  object Line1: TLine
+    Align = Bottom
+    LineType = Bottom
+    Position.X = 5.000000000000000000
+    Position.Y = 121.000000000000000000
+    Size.Width = 315.000000000000000000
+    Size.Height = 8.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object Line2: TLine
+    Align = MostLeft
+    LineType = Left
+    Size.Width = 5.000000000000000000
+    Size.Height = 129.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object Layout1: TLayout
+    Align = Top
+    Position.X = 5.000000000000000000
+    Position.Y = 25.000000000000000000
+    Size.Width = 315.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+    object edStartDate: TDateEdit
+      Date = 44119.000000000000000000
+      OnChange = edStartDateChange
+      Align = Client
+      Size.Width = 195.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object Label1: TLabel
+      Align = Left
+      Size.Width = 120.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Start Date'
+    end
+  end
+  object Layout2: TLayout
+    Align = Top
+    Position.X = 5.000000000000000000
+    Position.Y = 89.000000000000000000
+    Size.Width = 315.000000000000000000
+    Size.Height = 33.000000000000000000
+    Size.PlatformDefault = False
+    object edHourlyRate: TSpinBox
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Client
+      Cursor = crIBeam
+      Max = 10000000.000000000000000000
+      Size.Width = 195.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      OnChange = edHourlyRateChange
+    end
+    object Label2: TLabel
+      Align = Left
+      Size.Width = 120.000000000000000000
+      Size.Height = 33.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Hourly Rate'
+    end
+  end
+  object Layout3: TLayout
+    Align = Top
+    Position.X = 5.000000000000000000
+    Position.Y = 57.000000000000000000
+    Size.Width = 315.000000000000000000
+    Size.Height = 32.000000000000000000
+    Size.PlatformDefault = False
+    object edDeadline: TDateEdit
+      Date = 44119.000000000000000000
+      OnChange = edDeadlineChange
+      Align = Client
+      Size.Width = 195.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object Label3: TLabel
+      Align = Left
+      Size.Width = 120.000000000000000000
+      Size.Height = 32.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Deadline'
+    end
+  end
+  object Label4: TLabel
+    Align = Top
+    Position.X = 5.000000000000000000
+    Size.Width = 315.000000000000000000
+    Size.Height = 25.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'Contract'
+  end
+  object Circle1: TCircle
+    Fill.Color = claRed
+    Position.X = 120.000000000000000000
+    Position.Y = 3.000000000000000000
+    Size.Width = 24.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+  end
+end

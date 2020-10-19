@@ -4,7 +4,7 @@ interface
 
 uses
   System.Types, System.Classes, System.UITypes,
-  FMX.Types, FMX.Controls, FMX.InertialMovement;
+  FMX.Types, FMX.Controls, FMX.InertialMovement, FMX.StdCtrls;
 
 const
   DefaultSpinnerItemHeight = 20;
@@ -23,7 +23,7 @@ type
     procedure DoMouseLeave; override;
     //  Output
     procedure CalcsStart(Sender: TObject);
-    procedure CalcsChanged(Sender: TObject);
+    procedure CalcsChanged(Sender: TObject); virtual;
     procedure CalcsStop(Sender: TObject);
     procedure CMGesture(var EventInfo: TGestureEventInfo); override;
   public
@@ -55,6 +55,7 @@ type
     property  Scale;  //  Specifies the scale of the control.
     property  ShowHint; //  Specifies whether the Hint can be shown.
     property  Size;
+    property  StyleLookup;  //
     property  StyleName;  //  Specifies the style name for this FMX component.
     property  TabOrder; //  Indicates the position of the control in its parent's tab order.
     property  TabStop;  //
@@ -71,54 +72,90 @@ type
 
   TListSpinner = class;
 
-  TObtainItemEvent = function (Sender: TListSpinner; Index: integer): TControl of object;
+  TListSpinnerEvent = function (Sender: TListSpinner; Index: integer): TControl of object;
 
   TListSpinner = class(TSpinner)
+  //  Scrollbar
+  private
+    fScrollbar: TScrollBar;
+    function  GetShowScrollbar: Boolean; inline;
+    procedure SetShowScrollbar(const Value: Boolean);
+    procedure ScrollbarChange(Sender: TObject);
+  published
+    property  ShowScrollbar : Boolean           read GetShowScrollbar write SetShowScrollbar  default False;
   //  Read only code
   private
     fItemCount: integer;
     fItemHeight: integer;
     fOnPaintBegin: TNotifyEvent;
     fOnPaintEnd: TNotifyEvent;
-    fOnObtainItem: TObtainItemEvent;
-    procedure SetItemCount(const Value: integer);
+    fOnGetShowItem: TListSpinnerEvent;
+    procedure SetItemCount(Value: integer);
     procedure SetItemHeight(const Value: integer);
+    function  GetItemWidth: Single; inline;
+    function  ScrollSpan: Single; inline;
   protected
     procedure RefreshFloorSize;
     procedure Paint; override;
+    procedure CalcsChanged(Sender: TObject); override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor  Destroy; override;
+    procedure JumpTo(Index: integer);
   published
     property  ItemCount     : integer           read fItemCount       write SetItemCount;
     property  ItemHeight    : integer           read fItemHeight      write SetItemHeight default DefaultSpinnerItemHeight;
     property  OnPaintBegin  : TNotifyEvent      read fOnPaintBegin    write fOnPaintBegin;
     property  OnPaintEnd    : TNotifyEvent      read fOnPaintEnd      write fOnPaintEnd;
-    property  OnObtainItem  : TObtainItemEvent  read fOnObtainItem    write fOnObtainItem;
+    property  OnGetShowItem : TListSpinnerEvent read fOnGetShowItem   write fOnGetShowItem;
   //  Editor  code
   private
     fItemIndex: integer;
     fEditor: TControl;
-    fOnItemIndexChange: TObtainItemEvent;
+    fOnGetEditItem: TListSpinnerEvent;
     procedure SetItemIndex(const Value: integer);
     procedure PlaceEditor;
   protected
     procedure Loaded; override;
     procedure MouseClick(Button: TMouseButton; Shift: TShiftState; X: Single; Y: Single); override;
   published
-    property  ItemIndex         : integer           read fItemIndex         write SetItemIndex  default -1;
-    property  OnItemIndexChange : TObtainItemEvent  read fOnItemIndexChange write fOnItemIndexChange;
+    property  ItemIndex     : integer           read fItemIndex       write SetItemIndex  default -1;
+    property  OnGetEditItem : TListSpinnerEvent read fOnGetEditItem   write fOnGetEditItem;
   end;
+
+//  NOTE: Due to a "quirk" in the Delphi libraries, ApplyStyleLookup() *must*
+//  be called at least once before the OnGetShowItem() controls will show.
+//
+//  Some controls, such as TLabel, will do this when you set the Text property,
+//  but edit controls do not (TEdit, TDateEdit).
+//
+//  So, call ApplyStyleLookupToAll() once on objects that will be returned by
+//  OnGetShowItem() to ensure that they will be shown as intended.
+//  If you have them all on the same form, then to keep it simple, you can simply
+//  call this on the form itself in the FormCreate() event.
+procedure ApplyStyleLookupToAll(const Control: TFmxObject);
 
 procedure Register;
 
 implementation
 
 uses
-  Math, FMX.Platform, FMX.Graphics;
+  System.SysUtils, Math, FMX.Platform, FMX.Graphics;
 
 procedure Register;
 begin
   RegisterComponents('BatControls', [TListSpinner]);
+end;
+
+procedure ApplyStyleLookupToAll(const Control: TFmxObject);
+var
+  Child: TFmxObject;
+begin
+  if  Control is TStyledControl then
+    (Control as TStyledControl).ApplyStyleLookup;
+  if  Assigned(Control.Children)  then
+    for Child in Control.Children do
+      ApplyStyleLookupToAll(Child);
 end;
 
 { TSpinner }
@@ -224,6 +261,13 @@ end;
 
 { TListSpinner }
 
+procedure TListSpinner.CalcsChanged(Sender: TObject);
+begin
+  inherited;
+  if  ShowScrollbar then
+    fScrollbar.Value  := fCalcs.ViewportPosition.Y;
+end;
+
 constructor TListSpinner.Create(AOwner: TComponent);
 begin
   inherited;
@@ -231,12 +275,39 @@ begin
   fItemHeight := DefaultSpinnerItemHeight;
 end;
 
+destructor TListSpinner.Destroy;
+begin
+  fScrollbar.Free;
+  inherited;
+end;
+
+function TListSpinner.GetItemWidth: Single;
+begin
+  Result  := Width;
+  if  ShowScrollbar then
+    Result  := Result - fScrollbar.Width;
+end;
+
+function TListSpinner.GetShowScrollbar: Boolean;
+begin
+  Result  := Assigned(fScrollbar)
+end;
+
+procedure TListSpinner.JumpTo(Index: integer);
+begin
+  if  ItemCount <= Index  then
+    Index := ItemCount - 1;
+  if  Index < 0 then
+    Index := 0;
+  fCalcs.ViewportPositionF  := Point(0, Index * ItemHeight);
+end;
+
 procedure TListSpinner.Loaded;
 var
   Nx: integer;
 begin
   inherited;
-  //  If ItemIndex was set before OnItemIndexChange, then set ItemIndex again
+  //  If ItemIndex was set before OnGetEditItem, then set ItemIndex again
   if  not Assigned(fEditor) then
     begin
       Nx          := fItemIndex;
@@ -256,6 +327,7 @@ procedure TListSpinner.Paint;
 var
   Index: integer;
   Top: integer;
+  ItemWidth: Single;
   Item: TControl;
 begin
   if  Assigned(fOnPaintBegin) then
@@ -264,17 +336,18 @@ begin
     inherited;
     Index := Trunc(fCalcs.ViewportPosition.Y / fItemHeight);
     Top   := Trunc(Index * fItemHeight - fCalcs.ViewportPosition.Y);
+    ItemWidth := GetItemWidth;
     while (Index < fItemCount) and (Top < Self.Height) do
       begin
         Item  := nil;
-        if  Assigned(fOnObtainItem) and (0 <= Index) and (Index < ItemCount)  then
-          if  not Assigned(fOnItemIndexChange) or (Index <> fItemIndex) then
-            Item  := fOnObtainItem(Self, Index);
+        if  Assigned(fOnGetShowItem) and (0 <= Index) and (Index < ItemCount)  then
+          if  not Assigned(fOnGetEditItem) or (Index <> fItemIndex) then
+            Item  := fOnGetShowItem(Self, Index);
         if  Assigned(Item)  then
           begin
-            Item.Width  := Self.Width;
+            Item.Width  := ItemWidth;
             Item.Height := fItemHeight;
-            Item.PaintTo(Self.Canvas, RectF(0, Top, Item.Width, Top + Item.Height), Self);
+            Item.PaintTo(Self.Canvas, RectF(0, Top, ItemWidth, Top + Item.Height), Self);
           end;
         inc(Index);
         inc(Top, fItemHeight);
@@ -295,7 +368,7 @@ begin
   Top   := Trunc(ItemIndex * fItemHeight - fCalcs.ViewportPosition.Y);
   fEditor.Parent  := Self;
   fEditor.Position.Point  := TPointF.Create(0, Top);
-  fEditor.Width   := Self.Width;
+  fEditor.Width   := GetItemWidth;
   fEditor.Height  := fItemHeight;
   fEditor.Visible := True;
 end;
@@ -308,14 +381,26 @@ begin
   Targets[0].TargetType := TAniCalculations.TTargetType.Min;
   Targets[0].Point      := TPointD.Create(0, 0);
   Targets[1].TargetType := TAniCalculations.TTargetType.Max;
-  Targets[1].Point      := TPointD.Create(0, Max(0, fItemCount * fItemHeight - Height));
+  Targets[1].Point      := TPointD.Create(0, Max(0, ScrollSpan));
   fCalcs.SetTargets(Targets);
+  if  ShowScrollbar then
+    fScrollbar.Max  := ScrollSpan;
   Invalidate;
 end;
 
-procedure TListSpinner.SetItemCount(const Value: integer);
+procedure TListSpinner.ScrollbarChange(Sender: TObject);
 begin
-  fItemCount := Value;
+  fCalcs.ViewportPositionF  := PointF(0, TScrollBar(Sender).Value);
+end;
+
+function TListSpinner.ScrollSpan: Single;
+begin
+  Result  := fItemCount * fItemHeight - Height
+end;
+
+procedure TListSpinner.SetItemCount(Value: integer);
+begin
+  fItemCount := Max(0, Value);
   RefreshFloorSize;
 end;
 
@@ -329,14 +414,36 @@ procedure TListSpinner.SetItemIndex(const Value: integer);
 begin
   if  Value = fItemIndex  then
     Exit;
+  if  Assigned(fEditor) then
+    fEditor.Visible := False;
   fItemIndex  := Value;
   if  ((fItemIndex < 0) or (fItemCount <= fItemIndex)) and Assigned(fEditor)  then
     fEditor.Visible := False;
-  if  Assigned(fOnItemIndexChange) then
-    fEditor := fOnItemIndexChange(Self, fItemIndex);
+  if  Assigned(fOnGetEditItem) then
+    fEditor := fOnGetEditItem(Self, fItemIndex);
   if  (fItemIndex < 0) or (fItemCount <= fItemIndex)  then
     fEditor := nil;
   PlaceEditor;
+end;
+
+procedure TListSpinner.SetShowScrollbar(const Value: Boolean);
+begin
+  if  Value = GetShowScrollbar  then
+    Exit;
+  if  Value then
+    begin
+      fScrollbar := TScrollBar.Create(Self);
+      fScrollbar.Parent       := Self;
+      fScrollbar.Orientation  := TOrientation.Vertical;
+      fScrollbar.Align        := TAlignLayout.Right;
+      fScrollbar.Stored       := False;
+      fScrollbar.Max          := ScrollSpan;
+      fScrollbar.Value        := fCalcs.ViewportPositionF.Y;
+      fScrollbar.OnChange     := ScrollbarChange;
+    end
+  else
+    FreeAndNil(fScrollbar);
+  Invalidate;
 end;
 
 end.

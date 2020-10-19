@@ -3,7 +3,7 @@ unit BatSoft.Classes;
 interface
 
 uses
-  System.Types, System.Generics.Defaults, Generics.Collections, System.TypInfo, System.Rtti;
+  System.SysUtils, System.Types, System.Generics.Defaults, Generics.Collections, System.TypInfo, System.Rtti;
 
 type
 {$region 'Interfaces'}
@@ -64,24 +64,6 @@ type
     class function  IsRegistered(const ListClass: TClass; out TypeInfo: PTypeInfo): Boolean; overload;
   end;
 
-  //  Helpers for registered lists.
-  //  Use these instead of TList<> and TObjectList<> for automatic registration.
-  //  If you don't want to use these, then it's fine to call RegisteredLists.Register() directly.
-
-  TRegisteredList<T> = class(TList<T>)
-  private
-    class procedure InitialiseClass; inline;
-  public
-    class constructor Create;
-  end;
-
-  TRegisteredObjectList<T: class> = class(TObjectList<T>)
-  private
-    class procedure InitialiseClass; inline;
-  public
-    class constructor Create;
-  end;
-
 {$endregion}
 
 {$region 'Binary sorted list'}
@@ -140,13 +122,34 @@ type
 
 {$endregion}
 
+  EBatSoft = class(Exception);
+
+//  Please be very careful with this.  Make certain you know what you're doing.
+/// Change the class of an object. Certain rules apply to reduce the risk of bugs.
+procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
+
+resourcestring
+  SEIncompatibleClasses = 'Incompatible classes.';
+
 var
   RTTI: TRttiContext;
 
 implementation
 
 uses
-  System.SysUtils, System.RTLConsts;
+  System.RTLConsts;
+
+procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
+var
+  FromClass: TClass;
+begin
+  FromClass := Obj.ClassType;
+  if  ((ToClass <> FromClass) and not ToClass.InheritsFrom(FromClass)) or
+      (FromClass.InstanceSize <> ToClass.InstanceSize)
+  then
+    raise EBatSoft.Create(SEIncompatibleClasses);
+  Pointer(Pointer(Obj)^)  := Pointer(ToClass);
+end;
 
 { TInterfacedObjectNoRefCount }
 
@@ -210,7 +213,7 @@ var
 begin
   Result  := IsRegistered(ListClass, RTTIType);
   if  Result and (RTTIType is TRttiInstanceType)  then
-    ElemClass := (RTTIType as TRttiInstanceType).ClassInfo
+    ElemClass := (RTTIType as TRttiInstanceType).MetaclassType
   else
     Result    := False;
 end;
@@ -237,30 +240,6 @@ end;
 class procedure RegisteredLists.Register(const ListClass: TClass; const TypeInfo: PTypeInfo);
 begin
   _Types.Add(ListClass, RTTI.GetType(TypeInfo));
-end;
-
-{ TRegisteredList<T> }
-
-class constructor TRegisteredList<T>.Create;
-begin
-  InitialiseClass;
-end;
-
-class procedure TRegisteredList<T>.InitialiseClass;
-begin
-  RegisteredLists.Register(Self, TypeInfo(T))
-end;
-
-{ TRegisteredObjectList<T> }
-
-class constructor TRegisteredObjectList<T>.Create;
-begin
-  InitialiseClass;
-end;
-
-class procedure TRegisteredObjectList<T>.InitialiseClass;
-begin
-  RegisteredLists.Register(Self, T)
 end;
 
 { TBinaryList<T> }
