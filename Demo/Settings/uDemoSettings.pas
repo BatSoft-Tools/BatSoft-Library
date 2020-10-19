@@ -3,7 +3,7 @@ unit uDemoSettings;
 interface
 
 uses
-  System.Types, Generics.Collections, BatSoft.Settings;
+  System.Types, Generics.Collections, BatSoft.Classes, BatSoft.Settings;
 
 type
 //  Your settings classes must be enclosed with {$M+} so that RTTI exists for
@@ -31,7 +31,7 @@ type
   //  In some formats (ex. JSON) a list is saved differently from an object,
   //  therefore properties will not be saved.
   //  So a registered list object (like this one) must not have any other settings.
-  TUsers = class(TObjectList<TUser>)
+  TUsers = class(TRegisteredObjectList<TUser>)
   public
     function  FindByID(const UserID: TGUID): TUser;
     procedure DeleteUser(const UserID: TGUID);
@@ -149,9 +149,5 @@ procedure TAppSettings.SetActiveUserID(const Value: TGUID);
 begin
   fActiveUser := fUsers.FindByID(Value);
 end;
-
-initialization
-  //  Register TUsers as the list class and TUser as it's element class
-  SettingsLists.Register(TUsers, TUser);
 
 end.
