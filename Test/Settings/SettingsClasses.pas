@@ -109,7 +109,7 @@ type
     property  ValueEnum   : TEnum     read fValueEnum     write fValueEnum;
   end;
 
-  TObjList = class(TRegisteredObjectList<TObjBase>);
+  TObjList = class(TObjectList<TObjBase>);
 
   TCntrTypes = class
   private
@@ -328,6 +328,7 @@ begin
 end;
 
 initialization
+  RegisteredLists.Register(TObjList, TObjBase);
   RegisterComplexType;
   When  := Now;
 
