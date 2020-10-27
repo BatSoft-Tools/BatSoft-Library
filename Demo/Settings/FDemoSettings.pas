@@ -128,6 +128,9 @@ begin
   Settings.Users.Add(TUser.CreateNew('Sonny Skye'));
   Settings.Users.Add(TUser.CreateNew('Dawn Breaker'));
   Settings.Users.Add(TUser.CreateNew('May-June Summers'));
+  Settings.UserNames.Add('John Stag');
+  Settings.UserNames.Add('Jane Doe');
+  Settings.UserNames.Add('Sonny Skye');
   PopulateUsers;
 end;
 

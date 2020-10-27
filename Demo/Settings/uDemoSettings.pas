@@ -3,7 +3,7 @@ unit uDemoSettings;
 interface
 
 uses
-  System.Types, Generics.Collections, BatSoft.Classes, BatSoft.Settings;
+  System.Types, System.Classes, Generics.Collections, BatSoft.Classes, BatSoft.Settings;
 
 type
 //  Your settings classes must be enclosed with {$M+} so that RTTI exists for
@@ -19,12 +19,14 @@ type
   private
     fID: TGUID;
     fName: string;
+    fBDate: TDate;
   public
     constructor CreateNew(const AName: string = '');
     constructor CreateSeeded(const AID: TGUID; const AName: string);
   published
     property  ID    : TGUID   read fID    write fID;
     property  Name  : string  read fName  write fName;
+    property  BDate : TDate   read fBDate write fBDate;
   end;
 
   //  This is registered (as the bottom of this unit) as a list class.
@@ -43,6 +45,7 @@ type
     fActiveUser: TUser;
     fUsers: TUsers;
     fUserForm: TRect;
+    fUserNames: TStrings;
     function  GetActiveUserID: TGUID;
     procedure SetActiveUserID(const Value: TGUID);
   public
@@ -62,10 +65,13 @@ type
     //  Persistance of all the users.
     //  Do this before looking up the active user.
     [SettingsLoadOrder(1)]
-    property  Users         : TUsers  read fUsers write fUsers;
+    property  Users         : TUsers  read fUsers           write fUsers;
 
     //  Form positions
-    property  UserForm  : TRect read fUserForm  write fUserForm;
+    property  UserForm      : TRect   read fUserForm        write fUserForm;
+
+    [SettingsDeep]
+    property  UserNames     : TStrings  read fUserNames;
   end;
 
 //  Tidy up the RTTI flag
@@ -129,10 +135,12 @@ constructor TAppSettings.Create;
 begin
   inherited;
   fUsers  := TUsers.Create;
+  fUserNames  := TStringList.Create;
 end;
 
 destructor TAppSettings.Destroy;
 begin
+  fUserNames.Free;
   fUsers.Free;
   inherited;
 end;
