@@ -2,6 +2,21 @@ unit BatSoft.Translator;
 
 interface
 
+//  This is used for internationalising apps in a simple way during runtime.
+//
+//  To get an idea of how to use it...
+//  1. Run BatSoftTranslatorDemo and save a file.
+//  2. Run BatSoftTranslatorEditor and edit some of the strings.
+//  3. Save the edited file with a new file name.
+//  4. In BatSoftTranslatorDemo, load the files and
+//     see how the strings change in the demo application.
+//
+//  There were other plans to have default strings.
+//  For example, instead of translating every OK and Cancel button, you'd
+//  translate a default instead.
+//  If anyone wants me to complete this project, then e-mail me at:
+//  peter@batsoft.com.au
+
 uses
   System.SysUtils, System.Classes, System.JSON, System.Rtti, Generics.Collections;
 

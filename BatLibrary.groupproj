@@ -36,6 +36,12 @@
         <Projects Include="Demo\ListSpinner\DemoListSpinner.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="BatSoftTranslatorDemo\BatSoftTranslatorDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -143,14 +149,32 @@
     <Target Name="DemoListSpinner:Make">
         <MSBuild Projects="Demo\ListSpinner\DemoListSpinner.dproj" Targets="Make"/>
     </Target>
+    <Target Name="BatSoftTranslatorDemo">
+        <MSBuild Projects="BatSoftTranslatorDemo\BatSoftTranslatorDemo.dproj"/>
+    </Target>
+    <Target Name="BatSoftTranslatorDemo:Clean">
+        <MSBuild Projects="BatSoftTranslatorDemo\BatSoftTranslatorDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BatSoftTranslatorDemo:Make">
+        <MSBuild Projects="BatSoftTranslatorDemo\BatSoftTranslatorDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="BatSoftTranslatorEditor">
+        <MSBuild Projects="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj"/>
+    </Target>
+    <Target Name="BatSoftTranslatorEditor:Clean">
+        <MSBuild Projects="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BatSoftTranslatorEditor:Make">
+        <MSBuild Projects="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="BatLibrary;BatLibraryFMX;BatStreamNet;BatControls;BatControlsFMX;TestBatLibrary;TestObserver;TestSettings;DemoMementos;DemoSettings;DemoListSpinner"/>
+        <CallTarget Targets="BatLibrary;BatLibraryFMX;BatStreamNet;BatControls;BatControlsFMX;TestBatLibrary;TestObserver;TestSettings;DemoMementos;DemoSettings;DemoListSpinner;BatSoftTranslatorDemo;BatSoftTranslatorEditor"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="BatLibrary:Clean;BatLibraryFMX:Clean;BatStreamNet:Clean;BatControls:Clean;BatControlsFMX:Clean;TestBatLibrary:Clean;TestObserver:Clean;TestSettings:Clean;DemoMementos:Clean;DemoSettings:Clean;DemoListSpinner:Clean"/>
+        <CallTarget Targets="BatLibrary:Clean;BatLibraryFMX:Clean;BatStreamNet:Clean;BatControls:Clean;BatControlsFMX:Clean;TestBatLibrary:Clean;TestObserver:Clean;TestSettings:Clean;DemoMementos:Clean;DemoSettings:Clean;DemoListSpinner:Clean;BatSoftTranslatorDemo:Clean;BatSoftTranslatorEditor:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="BatLibrary:Make;BatLibraryFMX:Make;BatStreamNet:Make;BatControls:Make;BatControlsFMX:Make;TestBatLibrary:Make;TestObserver:Make;TestSettings:Make;DemoMementos:Make;DemoSettings:Make;DemoListSpinner:Make"/>
+        <CallTarget Targets="BatLibrary:Make;BatLibraryFMX:Make;BatStreamNet:Make;BatControls:Make;BatControlsFMX:Make;TestBatLibrary:Make;TestObserver:Make;TestSettings:Make;DemoMementos:Make;DemoSettings:Make;DemoListSpinner:Make;BatSoftTranslatorDemo:Make;BatSoftTranslatorEditor:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
