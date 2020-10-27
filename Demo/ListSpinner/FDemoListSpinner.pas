@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
-  FMX.Controls.Presentation, FMX.StdCtrls, Bat.Spinners, FMX.Edit, FMX.EditBox,
+  FMX.Controls.Presentation, FMX.StdCtrls, BatSoft.Spinners, FMX.Edit, FMX.EditBox,
   FMX.SpinBox, FMX.Layouts, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, uEmployment;
 
 type

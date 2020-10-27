@@ -25,14 +25,16 @@ package BatControls;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
-{$DESCRIPTION 'BatControls'}
+{$DESCRIPTION 'BatSoft Controls'}
 {$IMPLICITBUILD ON}
 
 requires
   rtl,
-  fmx;
+  bindengine,
+  bindcomp,
+  RESTComponents;
 
 contains
-  Bat.Spinners in 'Bat.Spinners.pas';
+  BatSoft.REST.Update in 'BatSoft.REST.Update.pas';
 
 end.

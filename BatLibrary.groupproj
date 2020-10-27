@@ -15,6 +15,9 @@
         <Projects Include="BatControls\BatControls.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="BatControlsFMX\BatControlsFMX.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="Test\BatLibrary\TestBatLibrary.dproj">
             <Dependencies/>
         </Projects>
@@ -77,6 +80,15 @@
     <Target Name="BatControls:Make">
         <MSBuild Projects="BatControls\BatControls.dproj" Targets="Make"/>
     </Target>
+    <Target Name="BatControlsFMX">
+        <MSBuild Projects="BatControlsFMX\BatControlsFMX.dproj"/>
+    </Target>
+    <Target Name="BatControlsFMX:Clean">
+        <MSBuild Projects="BatControlsFMX\BatControlsFMX.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BatControlsFMX:Make">
+        <MSBuild Projects="BatControlsFMX\BatControlsFMX.dproj" Targets="Make"/>
+    </Target>
     <Target Name="TestBatLibrary">
         <MSBuild Projects="Test\BatLibrary\TestBatLibrary.dproj"/>
     </Target>
@@ -132,13 +144,13 @@
         <MSBuild Projects="Demo\ListSpinner\DemoListSpinner.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="BatLibrary;BatLibraryFMX;BatStreamNet;BatControls;TestBatLibrary;TestObserver;TestSettings;DemoMementos;DemoSettings;DemoListSpinner"/>
+        <CallTarget Targets="BatLibrary;BatLibraryFMX;BatStreamNet;BatControls;BatControlsFMX;TestBatLibrary;TestObserver;TestSettings;DemoMementos;DemoSettings;DemoListSpinner"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="BatLibrary:Clean;BatLibraryFMX:Clean;BatStreamNet:Clean;BatControls:Clean;TestBatLibrary:Clean;TestObserver:Clean;TestSettings:Clean;DemoMementos:Clean;DemoSettings:Clean;DemoListSpinner:Clean"/>
+        <CallTarget Targets="BatLibrary:Clean;BatLibraryFMX:Clean;BatStreamNet:Clean;BatControls:Clean;BatControlsFMX:Clean;TestBatLibrary:Clean;TestObserver:Clean;TestSettings:Clean;DemoMementos:Clean;DemoSettings:Clean;DemoListSpinner:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="BatLibrary:Make;BatLibraryFMX:Make;BatStreamNet:Make;BatControls:Make;TestBatLibrary:Make;TestObserver:Make;TestSettings:Make;DemoMementos:Make;DemoSettings:Make;DemoListSpinner:Make"/>
+        <CallTarget Targets="BatLibrary:Make;BatLibraryFMX:Make;BatStreamNet:Make;BatControls:Make;BatControlsFMX:Make;TestBatLibrary:Make;TestObserver:Make;TestSettings:Make;DemoMementos:Make;DemoSettings:Make;DemoListSpinner:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

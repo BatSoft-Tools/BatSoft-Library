@@ -1,4 +1,4 @@
-unit Bat.Spinners;
+unit BatSoft.Spinners;
 
 interface
 
@@ -144,7 +144,7 @@ uses
 
 procedure Register;
 begin
-  RegisterComponents('BatControls', [TListSpinner]);
+  RegisterComponents('BatSoft', [TListSpinner]);
 end;
 
 procedure ApplyStyleLookupToAll(const Control: TFmxObject);
@@ -297,6 +297,7 @@ procedure TListSpinner.JumpTo(Index: integer; PreferredPosition: TTextAlign);
 var
   NewPos: Single;
 begin
+  NewPos  := 0; //  Silence compiler warning
   //  Ensure Index is in range
   if  ItemCount <= Index  then
     Index := ItemCount - 1;
