@@ -141,12 +141,6 @@
         <DCCReference Include="TestSettingsIni.pas"/>
         <DCCReference Include="TestSettingsJSON.pas"/>
         <DCCReference Include="TestSettingsBase.pas"/>
-        <DCCReference Include="..\..\BatLibrary\BatSoft.Settings.Types.pas"/>
-        <DCCReference Include="..\..\BatLibrary\BatSoft.Settings.pas"/>
-        <DCCReference Include="..\..\BatLibrary\BatSoft.Settings.JSON.pas"/>
-        <DCCReference Include="..\..\BatLibrary\BatSoft.Settings.Ini.pas"/>
-        <DCCReference Include="..\..\BatLibrary\BatSoft.Classes.pas"/>
-        <DCCReference Include="..\..\BatLibrary\BatSoft.Mementos.pas"/>
         <DCCReference Include="SettingsClasses.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>

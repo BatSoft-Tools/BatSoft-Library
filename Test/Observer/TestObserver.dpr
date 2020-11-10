@@ -14,10 +14,7 @@ uses
   {$ENDIF }
   DUnitX.TestFramework,
   TestObserverManual in 'TestObserverManual.pas',
-  TestObserverManaged in 'TestObserverManaged.pas',
-  BatSoft.Observer.Base in '..\..\BatLibrary\BatSoft.Observer.Base.pas',
-  BatSoft.Observer.Manual in '..\..\BatLibrary\BatSoft.Observer.Manual.pas',
-  BatSoft.Observer.Managed in '..\..\BatLibrary\BatSoft.Observer.Managed.pas';
+  TestObserverManaged in 'TestObserverManaged.pas';
 
 {$IFNDEF TESTINSIGHT}
 var

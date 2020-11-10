@@ -16,8 +16,6 @@ uses
   Unit1 in 'Unit1.pas',
   TestBinaryList in 'TestBinaryList.pas',
   TestMementos in 'TestMementos.pas',
-  BatSoft.Classes in '..\..\BatLibrary\BatSoft.Classes.pas',
-  BatSoft.Mementos in '..\..\BatLibrary\BatSoft.Mementos.pas',
   TestInterfaces in 'TestInterfaces.pas';
 
 {$IFNDEF TESTINSIGHT}

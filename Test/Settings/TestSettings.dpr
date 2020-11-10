@@ -16,12 +16,6 @@ uses
   TestSettingsIni in 'TestSettingsIni.pas',
   TestSettingsJSON in 'TestSettingsJSON.pas',
   TestSettingsBase in 'TestSettingsBase.pas',
-  BatSoft.Settings.Types in '..\..\BatLibrary\BatSoft.Settings.Types.pas',
-  BatSoft.Settings in '..\..\BatLibrary\BatSoft.Settings.pas',
-  BatSoft.Settings.JSON in '..\..\BatLibrary\BatSoft.Settings.JSON.pas',
-  BatSoft.Settings.Ini in '..\..\BatLibrary\BatSoft.Settings.Ini.pas',
-  BatSoft.Classes in '..\..\BatLibrary\BatSoft.Classes.pas',
-  BatSoft.Mementos in '..\..\BatLibrary\BatSoft.Mementos.pas',
   SettingsClasses in 'SettingsClasses.pas';
 
 {$IFNDEF TESTINSIGHT}

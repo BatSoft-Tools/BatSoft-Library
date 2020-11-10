@@ -137,9 +137,6 @@
         </DelphiCompile>
         <DCCReference Include="TestObserverManual.pas"/>
         <DCCReference Include="TestObserverManaged.pas"/>
-        <DCCReference Include="..\..\BatLibrary\BatSoft.Observer.Base.pas"/>
-        <DCCReference Include="..\..\BatLibrary\BatSoft.Observer.Manual.pas"/>
-        <DCCReference Include="..\..\BatLibrary\BatSoft.Observer.Managed.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

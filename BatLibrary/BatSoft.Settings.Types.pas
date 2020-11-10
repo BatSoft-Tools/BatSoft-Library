@@ -5,6 +5,9 @@ interface
 uses
   System.TypInfo, System.Rtti;
 
+//  ISO8601 conversion routines
+//  Declared in the interface section in case you wish to use them in other contexts.
+
 function DateToInternationalStr(const Value: TValue; const Info: PTypeInfo): TValue;
 function TimeToInternationalStr(const Value: TValue; const Info: PTypeInfo): TValue;
 function DateTimeToInternationalStr(const Value: TValue; const Info: PTypeInfo): TValue;
@@ -12,6 +15,8 @@ function DateTimeToInternationalStr(const Value: TValue; const Info: PTypeInfo):
 function InternationalStrToDate(const Value: TValue; const Info: PTypeInfo): TValue;
 function InternationalStrToTime(const Value: TValue; const Info: PTypeInfo): TValue;
 function InternationalStrToDateTime(const Value: TValue; const Info: PTypeInfo): TValue;
+
+//  Register common SettingsTypes conversions
 
 procedure Register_DateTime_ISO8601;
 procedure Register_GUID;

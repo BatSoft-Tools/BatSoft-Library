@@ -6,8 +6,7 @@ uses
   FDemoMain in 'FDemoMain.pas' {frmDemoMain},
   FrDemoFrame in 'FrDemoFrame.pas' {frameDemo: TFrame},
   FDemoFormA in 'FDemoFormA.pas' {frmDemoA},
-  FDemoFormB in 'FDemoFormB.pas' {frmDemoB},
-  BatSoft.Translator in '..\BatLibrary\BatSoft.Translator.pas';
+  FDemoFormB in 'FDemoFormB.pas' {frmDemoB};
 
 {$R *.res}
 

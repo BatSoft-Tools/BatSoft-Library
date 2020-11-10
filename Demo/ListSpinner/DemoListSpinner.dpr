@@ -8,8 +8,7 @@ uses
   FrEmpContract in 'FrEmpContract.pas' {frameEmpContract: TFrame},
   uEmployment in 'uEmployment.pas',
   FrEmpPartTime in 'FrEmpPartTime.pas' {frameEmpPartTime: TFrame},
-  FrEmpFullTime in 'FrEmpFullTime.pas' {frameEmpFullTime: TFrame},
-  Bat.Spinners in '..\..\BatControls\Bat.Spinners.pas';
+  FrEmpFullTime in 'FrEmpFullTime.pas' {frameEmpFullTime: TFrame};
 
 {$R *.res}
 
