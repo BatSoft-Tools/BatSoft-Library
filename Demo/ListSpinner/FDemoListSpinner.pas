@@ -6,7 +6,8 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
   FMX.Controls.Presentation, FMX.StdCtrls, BatSoft.Spinners, FMX.Edit, FMX.EditBox,
-  FMX.SpinBox, FMX.Layouts, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, uEmployment;
+  FMX.SpinBox, FMX.Layouts, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, uEmployment,
+  FMX.ListBox;
 
 type
   TfrmDemoListSpinner = class(TForm)
@@ -42,6 +43,11 @@ type
     butJumpTo: TButton;
     chkScrollbar: TCheckBox;
     CheckBox1: TCheckBox;
+    Layout1: TLayout;
+    Edit1: TEdit;
+    ComboBox1: TComboBox;
+    ComboSpinner1: TComboSpinner;
+    Panel1: TPanel;
     procedure edCountChange(Sender: TObject);
     procedure edHeightChange(Sender: TObject);
     procedure edItemIndexChange(Sender: TObject);
@@ -54,6 +60,7 @@ type
     function lstDifferentGetEditItem(Sender: TListSpinner; Index: Integer): TControl;
     procedure butJumpToClick(Sender: TObject);
     procedure chkScrollbarChange(Sender: TObject);
+    function ComboSpinner1ItemText(Sender: TObject; Index: Integer): string;
   private
     fEmployments: TEmploymentList;
     function AssociatedListSpinner(Sender: TObject): TListSpinner;
@@ -96,6 +103,11 @@ begin
   AssociatedListSpinner(Sender).ShowScrollbar := TCheckBox(Sender).IsChecked
 end;
 
+function TfrmDemoListSpinner.ComboSpinner1ItemText(Sender: TObject; Index: Integer): string;
+begin
+  Result  := fEmployments[Index].Name
+end;
+
 procedure TfrmDemoListSpinner.edCountChange(Sender: TObject);
 begin
   AssociatedListSpinner(Sender).ItemCount   := Trunc(TSpinBox(Sender).Value);
@@ -117,6 +129,7 @@ begin
   fEmployments  := TEmploymentList.Create;
   fEmployments.Populate(100);
   lstDifferent.ItemCount  := fEmployments.Count;
+  ComboSpinner1.ItemCount := fEmployments.Count;
 end;
 
 procedure TfrmDemoListSpinner.FormDestroy(Sender: TObject);

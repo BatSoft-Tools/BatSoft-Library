@@ -2,8 +2,8 @@ object frmDemoListSpinner: TfrmDemoListSpinner
   Left = 0
   Top = 0
   Caption = 'Demo: ListSpinner'
-  ClientHeight = 646
-  ClientWidth = 716
+  ClientHeight = 595
+  ClientWidth = 923
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -13,7 +13,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
   object loROEditors: TLayout
     Align = Left
     Size.Width = 185.000000000000000000
-    Size.Height = 646.000000000000000000
+    Size.Height = 595.000000000000000000
     Size.PlatformDefault = False
     object loEditorsControls: TLayout
       Align = Top
@@ -76,7 +76,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       Margins.Right = 8.000000000000000000
       Margins.Bottom = 8.000000000000000000
       Size.Width = 169.000000000000000000
-      Size.Height = 365.000000000000000000
+      Size.Height = 314.000000000000000000
       Size.PlatformDefault = False
       ShowScrollbar = True
       ItemCount = 1000000
@@ -107,20 +107,20 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     MinSize = 20.000000000000000000
     Position.X = 185.000000000000000000
     Size.Width = 8.000000000000000000
-    Size.Height = 646.000000000000000000
+    Size.Height = 595.000000000000000000
     Size.PlatformDefault = False
   end
   object loWritable: TLayout
     Align = Left
     Position.X = 193.000000000000000000
     Size.Width = 185.000000000000000000
-    Size.Height = 646.000000000000000000
+    Size.Height = 595.000000000000000000
     Size.PlatformDefault = False
     object Layout2: TLayout
       Align = Top
       Position.Y = 121.000000000000000000
       Size.Width = 185.000000000000000000
-      Size.Height = 176.000000000000000000
+      Size.Height = 168.000000000000000000
       Size.PlatformDefault = False
       object edWritableCount: TSpinBox
         Touch.InteractiveGestures = [LongTap, DoubleTap]
@@ -191,7 +191,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       Margins.Right = 8.000000000000000000
       Margins.Bottom = 8.000000000000000000
       Size.Width = 169.000000000000000000
-      Size.Height = 333.000000000000000000
+      Size.Height = 290.000000000000000000
       Size.PlatformDefault = False
       ItemCount = 10
       OnGetShowItem = lstWritableGetShowItem
@@ -221,7 +221,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     Align = Left
     Position.X = 386.000000000000000000
     Size.Width = 279.000000000000000000
-    Size.Height = 646.000000000000000000
+    Size.Height = 595.000000000000000000
     Size.PlatformDefault = False
     object Layout4: TLayout
       Align = Top
@@ -293,7 +293,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       Margins.Right = 8.000000000000000000
       Margins.Bottom = 8.000000000000000000
       Size.Width = 263.000000000000000000
-      Size.Height = 325.000000000000000000
+      Size.Height = 274.000000000000000000
       Size.PlatformDefault = False
       ItemCount = 10
       ItemHeight = 130
@@ -328,7 +328,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     MinSize = 20.000000000000000000
     Position.X = 378.000000000000000000
     Size.Width = 8.000000000000000000
-    Size.Height = 646.000000000000000000
+    Size.Height = 595.000000000000000000
     Size.PlatformDefault = False
   end
   object Splitter3: TSplitter
@@ -337,7 +337,55 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     MinSize = 20.000000000000000000
     Position.X = 665.000000000000000000
     Size.Width = 8.000000000000000000
-    Size.Height = 646.000000000000000000
+    Size.Height = 595.000000000000000000
     Size.PlatformDefault = False
+  end
+  object Layout1: TLayout
+    Align = Client
+    Padding.Left = 8.000000000000000000
+    Padding.Top = 8.000000000000000000
+    Padding.Right = 8.000000000000000000
+    Padding.Bottom = 8.000000000000000000
+    Size.Width = 250.000000000000000000
+    Size.Height = 595.000000000000000000
+    Size.PlatformDefault = False
+    object Edit1: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 8.000000000000000000
+      Margins.Bottom = 8.000000000000000000
+      Size.Width = 234.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TextPrompt = 'Edit'
+    end
+    object ComboBox1: TComboBox
+      Align = Top
+      Margins.Bottom = 8.000000000000000000
+      Position.X = 8.000000000000000000
+      Position.Y = 38.000000000000000000
+      Size.Width = 234.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object ComboSpinner1: TComboSpinner
+      DropDownSize = 8
+      DropDownCount = 0
+      ItemCount = 0
+      ItemHeight = 0
+      OnItemText = ComboSpinner1ItemText
+      Panel = Panel1
+      Align = Top
+      Position.X = 8.000000000000000000
+      Position.Y = 68.000000000000000000
+      Size.Width = 234.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object Panel1: TPanel
+      Position.X = 64.000000000000000000
+      Position.Y = 216.000000000000000000
+    end
   end
 end

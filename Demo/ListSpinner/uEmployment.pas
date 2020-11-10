@@ -7,11 +7,10 @@ uses
 
 type
   TEmployment = class
-  end;
-
-  TEmploymentList = class(TObjectList<TEmployment>)
+  private
+    fName: string;
   public
-    procedure Populate(const HowMany: integer);
+    property  Name  : string  read fName  write fName;
   end;
 
   TContract = class(TEmployment)
@@ -46,29 +45,15 @@ type
     property  HoursPerWeek: integer   read fHoursPerWeek  write fHoursPerWeek;
   end;
 
+  TEmploymentList = class(TObjectList<TEmployment>)
+  public
+    procedure Populate(const HowMany: integer);
+  end;
+
 implementation
 
 uses
   System.SysUtils;
-
-{ TEmploymentList }
-
-procedure TEmploymentList.Populate(const HowMany: integer);
-var
-  i: integer;
-  Item: TEmployment;
-begin
-  Item  := nil;
-  for i := 1 to HowMany do
-    begin
-      case Random(3)  of
-        0 : Item  := TContract.CreateRandom;
-        1 : Item  := TFullTime.CreateRandom;
-        2 : Item  := TPartTime.CreateRandom;
-      end;
-      Add(Item);
-    end;
-end;
 
 { TContract }
 
@@ -96,6 +81,26 @@ begin
   inherited Create;
   fHourlyRate   := 40 + Random(5) * 10;
   fHoursPerWeek := 10 + Random(5) * 5;
+end;
+
+{ TEmploymentList }
+
+procedure TEmploymentList.Populate(const HowMany: integer);
+var
+  i: integer;
+  Item: TEmployment;
+begin
+  Item  := nil;
+  for i := 1 to HowMany do
+    begin
+      case Random(3)  of
+        0 : Item  := TContract.CreateRandom;
+        1 : Item  := TFullTime.CreateRandom;
+        2 : Item  := TPartTime.CreateRandom;
+      end;
+      Item.Name := 'Employer ' + i.ToString;
+      Add(Item);
+    end;
 end;
 
 end.
