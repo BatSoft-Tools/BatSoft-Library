@@ -1,6 +1,10 @@
 unit BatSoft.Settings.Ini;
+//  Copyright: Peter Thönell (BatSoft)
+//  Feel free to use this in your projects, both commercial and personal.
+//  This is donation-ware, so if you feel you are getting value out of it, please visit:
+//  http://batsoft.com.au/batsoft-library-delphi/
 
-//  Streams objects to/from .ini files.
+//  For streaming objects to/from .ini files.
 //
 //  type
 //  {$M+}   <- Ensure that we have RTTI for these classes.
