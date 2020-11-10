@@ -1,1 +1,0 @@
-BatSoft Library implements some handy patterns such as mementos, observers, settings objects (streaming to/from INI/JSON files) and some other handy classes.  More are in the pipeline and will added as I clean them up.
