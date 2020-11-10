@@ -144,11 +144,12 @@ var
   FromClass: TClass;
 begin
   FromClass := Obj.ClassType;
-  if  ((ToClass <> FromClass) and not ToClass.InheritsFrom(FromClass)) or
-      (FromClass.InstanceSize <> ToClass.InstanceSize)
+  if  (FromClass.InstanceSize = ToClass.InstanceSize) and
+      (ToClass.InheritsFrom(FromClass) or FromClass.InheritsFrom(ToClass))
   then
+    Pointer(Pointer(Obj)^)  := Pointer(ToClass)
+  else
     raise EBatSoft.Create(SEIncompatibleClasses);
-  Pointer(Pointer(Obj)^)  := Pointer(ToClass);
 end;
 
 { TInterfacedObjectNoRefCount }
