@@ -132,6 +132,8 @@ type
 /// Change the class of an object. Certain rules apply to reduce the risk of bugs.
 procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
 
+function GetExeDir: string;
+
 resourcestring
   SEIncompatibleClasses = 'Incompatible classes.';
 
@@ -154,6 +156,11 @@ begin
     Pointer(Pointer(Obj)^)  := Pointer(ToClass)
   else
     raise EBatSoft.Create(SEIncompatibleClasses);
+end;
+
+function GetExeDir: string;
+begin
+  Result  := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)))
 end;
 
 { TInterfacedObjectNoRefCount }
