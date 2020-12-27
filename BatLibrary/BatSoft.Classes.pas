@@ -13,12 +13,7 @@ type
 {$region 'Interfaces'}
 
   ///  Like TInterfacedObject but without reference counting.
-  TInterfacedObjectNoRefCount = class(TObject, IInterface)
-  protected
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-  end;
+  TInterfacedObjectNoRefCount = System.Generics.Defaults.TSingletonImplementation;
 
   //  Sometimes I want interfaced objects to free when the RefCount is something
   //  other than 0, such as when writing factories that keep track of multitons.
