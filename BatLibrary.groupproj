@@ -21,6 +21,9 @@
         <Projects Include="Test\Observer\TestObserver.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="Test\Context\TestContext.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="Test\Settings\TestSettings.dproj">
             <Dependencies/>
         </Projects>
@@ -101,6 +104,15 @@
     <Target Name="TestObserver:Make">
         <MSBuild Projects="Test\Observer\TestObserver.dproj" Targets="Make"/>
     </Target>
+    <Target Name="TestContext">
+        <MSBuild Projects="Test\Context\TestContext.dproj"/>
+    </Target>
+    <Target Name="TestContext:Clean">
+        <MSBuild Projects="Test\Context\TestContext.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TestContext:Make">
+        <MSBuild Projects="Test\Context\TestContext.dproj" Targets="Make"/>
+    </Target>
     <Target Name="TestSettings">
         <MSBuild Projects="Test\Settings\TestSettings.dproj"/>
     </Target>
@@ -156,13 +168,13 @@
         <MSBuild Projects="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="BatLibrary;BatLibraryFMX;BatControls;BatControlsFMX;TestBatLibrary;TestObserver;TestSettings;DemoMementos;DemoSettings;DemoListSpinner;BatSoftTranslatorDemo;BatSoftTranslatorEditor"/>
+        <CallTarget Targets="BatLibrary;BatLibraryFMX;BatControls;BatControlsFMX;TestBatLibrary;TestObserver;TestContext;TestSettings;DemoMementos;DemoSettings;DemoListSpinner;BatSoftTranslatorDemo;BatSoftTranslatorEditor"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="BatLibrary:Clean;BatLibraryFMX:Clean;BatControls:Clean;BatControlsFMX:Clean;TestBatLibrary:Clean;TestObserver:Clean;TestSettings:Clean;DemoMementos:Clean;DemoSettings:Clean;DemoListSpinner:Clean;BatSoftTranslatorDemo:Clean;BatSoftTranslatorEditor:Clean"/>
+        <CallTarget Targets="BatLibrary:Clean;BatLibraryFMX:Clean;BatControls:Clean;BatControlsFMX:Clean;TestBatLibrary:Clean;TestObserver:Clean;TestContext:Clean;TestSettings:Clean;DemoMementos:Clean;DemoSettings:Clean;DemoListSpinner:Clean;BatSoftTranslatorDemo:Clean;BatSoftTranslatorEditor:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="BatLibrary:Make;BatLibraryFMX:Make;BatControls:Make;BatControlsFMX:Make;TestBatLibrary:Make;TestObserver:Make;TestSettings:Make;DemoMementos:Make;DemoSettings:Make;DemoListSpinner:Make;BatSoftTranslatorDemo:Make;BatSoftTranslatorEditor:Make"/>
+        <CallTarget Targets="BatLibrary:Make;BatLibraryFMX:Make;BatControls:Make;BatControlsFMX:Make;TestBatLibrary:Make;TestObserver:Make;TestContext:Make;TestSettings:Make;DemoMementos:Make;DemoSettings:Make;DemoListSpinner:Make;BatSoftTranslatorDemo:Make;BatSoftTranslatorEditor:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
