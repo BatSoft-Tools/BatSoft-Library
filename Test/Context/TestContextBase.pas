@@ -26,7 +26,7 @@ uses
 
 procedure TTestContextPartial.Setup;
 begin
-  fContext  := TContextPartial.Create;
+  fContext  := TContextBase.Create;
 end;
 
 procedure TTestContextPartial.TestMethods;
@@ -47,12 +47,6 @@ begin
     procedure
     begin
       fContext.GetValue('A');
-    end, EContext);
-
-  Assert.WillRaise(
-    procedure
-    begin
-      fContext.GetValueKind('A');
     end, EContext);
 
   Assert.WillRaise(

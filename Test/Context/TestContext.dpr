@@ -14,7 +14,8 @@ uses
   {$ENDIF }
   DUnitX.TestFramework,
   TestContextBase in 'TestContextBase.pas',
-  TestContextSimple in 'TestContextSimple.pas';
+  TestContextSimple in 'TestContextSimple.pas',
+  TestContexts in 'TestContexts.pas';
 
 {$IFNDEF TESTINSIGHT}
 var

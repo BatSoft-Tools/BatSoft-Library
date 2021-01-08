@@ -385,9 +385,9 @@ end;
 constructor TObserverFunctionality.Create(const ASubject: TSubjectPlain; const AInt: integer; AFunctionality: TFunctionality);
 begin
   inherited Create;
-  fSubscription := ASubject.OnEvents.Subscribe(Event);
-  fInt          := AInt;
-  fFunctionality        := AFunctionality;
+  fSubscription   := ASubject.OnEvents.Subscribe(Event);
+  fInt            := AInt;
+  fFunctionality  := AFunctionality;
 end;
 
 procedure TObserverFunctionality.Event(Sender: TObject);
@@ -407,8 +407,8 @@ procedure TTestObserverManualFlow.Setup;
 begin
   fSubject    := TSubjectPlain.Create;
   fObservers  := TObjectList<TObserverFunctionality>.Create;
-  fCounter  := 0;
-  fResult   := 0;
+  fCounter    := 0;
+  fResult     := 0;
 end;
 
 procedure TTestObserverManualFlow.TearDown;

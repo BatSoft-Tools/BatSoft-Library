@@ -17,8 +17,6 @@ type
     procedure TestBeforeSet;
     [Test]
     procedure TestAfterSet;
-    [Test]
-    procedure TestMethods;
   end;
 
 implementation
@@ -27,7 +25,7 @@ implementation
 
 procedure TTestContextSimple.Setup;
 begin
-  fContext  := TContext.Create;
+  fContext  := TContextValues.Create;
 end;
 
 procedure TTestContextSimple.TestAfterSet;
@@ -40,14 +38,14 @@ begin
   Assert.IsTrue(fContext.SetValue(Name, Value1));
 
   Assert.IsTrue(fContext.HasValue(Name));
-  Assert.AreEqual(fContext.GetValue(Name).AsString, Value1);
-  Assert.AreEqual(fContext.GetValueKind(Name), TTypeKind.tkUString);
+  Assert.AreEqual(fContext.GetValue(Name).AsString,   Value1);
+  Assert.AreEqual(fContext.GetValue(Name).Kind,       TTypeKind.tkUString);
 
   Assert.IsTrue(fContext.SetValue(Name, Value2));
 
   Assert.IsTrue(fContext.HasValue(Name));
-  Assert.AreEqual(fContext.GetValue(Name).AsInteger, Value2);
-  Assert.AreEqual(fContext.GetValueKind(Name), TTypeKind.tkInteger);
+  Assert.AreEqual(fContext.GetValue(Name).AsInteger,  Value2);
+  Assert.AreEqual(fContext.GetValue(Name).Kind,       TTypeKind.tkInteger);
 
   Assert.IsTrue(fContext.DelValue(Name));
   Assert.IsFalse(fContext.HasValue(Name));
@@ -65,16 +63,6 @@ begin
     begin
       fContext.GetValue(Name);
     end, EContext);
-
-  Assert.WillRaise(
-    procedure
-    begin
-      fContext.GetValueKind(Name);
-    end, EContext);
-end;
-
-procedure TTestContextSimple.TestMethods;
-begin
 end;
 
 initialization

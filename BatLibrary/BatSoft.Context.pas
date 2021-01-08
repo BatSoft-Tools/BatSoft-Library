@@ -31,7 +31,7 @@ interface
 ///   the call has been dealt with.
 
 uses
-  System.SysUtils, System.RTTI, System.Generics.Collections;
+  System.SysUtils, System.RTTI, System.Classes, System.Generics.Collections;
 
 type
   IContext = interface
@@ -40,50 +40,38 @@ type
     function  DelValue(const Name: string): Boolean;
     function  GetValue(const Name: string): TValue;
     function  SetValue(const Name: string; const Value: TValue): Boolean;
-    function  GetValueKind(const Name: string): TTypeKind;
+  end;
+
+  IContextNames = interface(IContext)
+    ['{00FF40F0-2BDC-4134-A439-8A6122DDB4EE}']
+    procedure GetNames(const Names: TStrings);
   end;
 
   EContext = class(Exception)
   public
     constructor Create(const Message, Name: string); overload;
+    /// <exception cref="EContext">
+    class procedure NotImplemented(const Context: TObject; const MethodName: string);
   end;
 
-  //  Base class for partial IContext implementations
+  //  Base class for IContext implementations
 
-  TContextPartial = class(TInterfacedObject, IContext)
+  TContextBase = class(TInterfacedObject, IContext)
   public
     //  IContext interface
     function  HasValue(const Name: string): Boolean; virtual;
     function  DelValue(const Name: string): Boolean; virtual;
     function  GetValue(const Name: string): TValue; virtual;
     function  SetValue(const Name: string; const Value: TValue): Boolean; virtual;
-    function  GetValueKind(const Name: string): TTypeKind; virtual;
+    //  IContextNames interface
+    procedure GetNames(const Names: TStrings);
   end;
 
   //  Basic IContext implementations
 
-  TContext = class(TInterfacedObject, IContext)
-  private type
-
-    TNameValue = class
-    private
-      fName: string;
-      fValue: TValue;
-      fValueKind: TTypeKind;
-    public
-      constructor Create(const AName: string);
-      property  Name      : string      read fName;
-      property  Value     : TValue      read fValue;
-      property  ValueKind : TTypeKind   read fValueKind;
-    end;
-
-    TNameValues = class(TObjectList<TNameValue>)
-      function ByName(const Name: string): TNameValue;
-      function IndexOf(const Name: string): integer;
-    end;
-
+  TContextValues = class(TInterfacedObject, IContext, IContextNames)
   private
-    fNameValues: TNameValues;
+    fNameValues: TDictionary<string, TValue>;
   public
     constructor Create;
     destructor  Destroy; override;
@@ -92,7 +80,8 @@ type
     function  DelValue(const Name: string): Boolean; virtual;
     function  GetValue(const Name: string): TValue; virtual;
     function  SetValue(const Name: string; const Value: TValue): Boolean; virtual;
-    function  GetValueKind(const Name: string): TTypeKind; virtual;
+    //  IContextNames interface
+    procedure GetNames(const Names: TStrings);
   end;
 
   TContexts = class(TInterfacedObject, IContext)
@@ -107,7 +96,6 @@ type
     function  DelValue(const Name: string): Boolean;
     function  GetValue(const Name: string): TValue;
     function  SetValue(const Name: string; const Value: TValue): Boolean;
-    function  GetValueKind(const Name: string): TTypeKind;
   end;
 
 resourcestring
@@ -126,126 +114,83 @@ begin
   inherited Create(Format(SENotImplemented, [Name]));
 end;
 
-{ TContextPartial }
-
-function TContextPartial.DelValue(const Name: string): Boolean;
+class procedure EContext.NotImplemented(const Context: TObject; const MethodName: string);
 begin
-  raise EContext.Create(SENotImplemented, 'DelValue')
+  raise EContext.Create(SENotImplemented, Context.ClassName + '.' + MethodName)
 end;
 
-function TContextPartial.GetValue(const Name: string): TValue;
+{ TContextBase }
+
+{$WARNINGS OFF}
+
+function TContextBase.DelValue(const Name: string): Boolean;
 begin
-  raise EContext.Create(SENotImplemented, 'GetValue')
+  EContext.NotImplemented(Self, 'DelValue')
 end;
 
-function TContextPartial.GetValueKind(const Name: string): TTypeKind;
+procedure TContextBase.GetNames(const Names: TStrings);
 begin
-  raise EContext.Create(SENotImplemented, 'GetValueKind')
+  EContext.NotImplemented(Self, 'GetNames')
 end;
 
-function TContextPartial.HasValue(const Name: string): Boolean;
+function TContextBase.GetValue(const Name: string): TValue;
 begin
-  raise EContext.Create(SENotImplemented, 'HasValue')
+  EContext.NotImplemented(Self, 'GetValue')
 end;
 
-function TContextPartial.SetValue(const Name: string; const Value: TValue): Boolean;
+function TContextBase.HasValue(const Name: string): Boolean;
 begin
-  raise EContext.Create(SENotImplemented, 'SetValue')
+  EContext.NotImplemented(Self, 'HasValue')
 end;
 
-{ TContext.TNameValue }
-
-constructor TContext.TNameValue.Create(const AName: string);
+function TContextBase.SetValue(const Name: string; const Value: TValue): Boolean;
 begin
-  inherited Create;
-  fName := AName;
+  EContext.NotImplemented(Self, 'SetValue')
 end;
 
-{ TContext.TNameValues }
-
-function TContext.TNameValues.ByName(const Name: string): TNameValue;
-var
-  i: integer;
-begin
-  i := IndexOf(Name);
-  if  i >= 0  then
-    Result  := Items[i]
-  else
-    Result  := nil;
-end;
-
-function TContext.TNameValues.IndexOf(const Name: string): integer;
-begin
-  Result  := Count - 1;
-  while Result >= 0 do
-    if  SameText(Items[Result].Name, Name)  then
-      Exit
-    else
-      dec(Result);
-end;
+{$WARNINGS ON}
 
 { TContext }
 
-constructor TContext.Create;
+constructor TContextValues.Create;
 begin
   inherited;
-  fNameValues := TNameValues.Create(True);
+  fNameValues := TDictionary<string, TValue>.Create;
 end;
 
-function TContext.DelValue(const Name: string): Boolean;
-var
-  i : integer;
+function TContextValues.DelValue(const Name: string): Boolean;
 begin
-  i := fNameValues.IndexOf(Name);
-  if  i >= 0  then
-    fNameValues.Delete(i);
-  Result  := i >= 0
+  Result  := fNameValues.ContainsKey(Name);
+  if  Result  then
+    fNameValues.Remove(Name)
 end;
 
-destructor TContext.Destroy;
+destructor TContextValues.Destroy;
 begin
   fNameValues.Free;
   inherited;
 end;
 
-function TContext.GetValue(const Name: string): TValue;
-var
-  NameValue: TNameValue;
+procedure TContextValues.GetNames(const Names: TStrings);
 begin
-  NameValue := fNameValues.ByName(Name);
-  if  not Assigned(NameValue) then
+  Names.AddStrings(fNameValues.Keys.ToArray);
+end;
+
+function TContextValues.GetValue(const Name: string): TValue;
+begin
+  if  not fNameValues.TryGetValue(Name, Result) then
     raise EContext.Create(SECannotGetValue, Name);
-  Result  := NameValue.Value;
 end;
 
-function TContext.GetValueKind(const Name: string): TTypeKind;
-var
-  NameValue: TNameValue;
+function TContextValues.HasValue(const Name: string): Boolean;
 begin
-  NameValue := fNameValues.ByName(Name);
-  if  not Assigned(NameValue) then
-    raise EContext.Create(SECannotGetFieldType, Name);
-  Result  := NameValue.ValueKind;
+  Result  := fNameValues.ContainsKey(Name)
 end;
 
-function TContext.HasValue(const Name: string): Boolean;
+function TContextValues.SetValue(const Name: string; const Value: TValue): Boolean;
 begin
-  Result  := Assigned(fNameValues.ByName(Name))
-end;
-
-function TContext.SetValue(const Name: string; const Value: TValue): Boolean;
-var
-  Context: TNameValue;
-begin
-  Context := fNameValues.ByName(Name);
-  if  not Assigned(Context) then
-    begin
-      Context := TNameValue.Create(Name);
-      fNameValues.Add(Context);
-    end;
-  Context.fValue      := Value;
-  Context.fValueKind  := Value.Kind;
-  Result              := True
+  fNameValues.AddOrSetValue(Name, Value);
+  Result  := True
 end;
 
 { TContexts }
@@ -265,10 +210,10 @@ function TContexts.DelValue(const Name: string): Boolean;
 var
   i: Integer;
 begin
-  i := 0;
-  while (i < fChain.Count) and not fChain[i].DelValue(Name)  do
-    inc(i);
-  Result  := i < fChain.Count
+  i := fChain.Count - 1;
+  while (i >= 0) and not fChain[i].DelValue(Name) do
+    dec(i);
+  Result  := i >= 0
 end;
 
 destructor TContexts.Destroy;
@@ -301,16 +246,6 @@ begin
     raise EContext.Create(SEValueNotFound, Name);
 end;
 
-function TContexts.GetValueKind(const Name: string): TTypeKind;
-var
-  Contexts: IContext;
-begin
-  if  FindContextWith(Name, Contexts)  then
-    Result  := Contexts.GetValueKind(Name)
-  else
-    raise EContext.Create(SEValueTypeNotFound, Name);
-end;
-
 function TContexts.HasValue(const Name: string): Boolean;
 var
   Contexts: IContext;
@@ -322,10 +257,10 @@ function TContexts.SetValue(const Name: string; const Value: TValue): Boolean;
 var
   i: integer;
 begin
-  i := 0;
-  while (i < fChain.Count) and not fChain[i].SetValue(Name, Value)  do
-    inc(i);
-  Result  := i < fChain.Count
+  i := fChain.Count - 1;
+  while (i >= 0) and not fChain[i].SetValue(Name, Value)  do
+    dec(i);
+  Result  := i >= 0
 end;
 
 end.
