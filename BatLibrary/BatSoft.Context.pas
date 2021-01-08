@@ -18,14 +18,14 @@ interface
 ///
 /// - Collection/Container
 ///   http://best-practice-software-engineering.ifs.tuwien.ac.at/patterns/container.html
-///   TContexts contains references to many instances of IContext.
+///   TContexts contains references to multiple instances of IContext.
 ///
 /// - Composite
 ///   https://en.wikipedia.org/wiki/Composite_pattern
 ///   When interacting with a TContexts instance, you're actually accessing any
 ///   number of IContext instances as though they are one IContext instance.
 ///
-/// - Chain of Responsibiliy
+/// - Chain of Responsibility
 ///   https://en.wikipedia.org/wiki/Chain-of-responsibility_pattern
 ///   TContexts passes a method call from one IContext instance to another until
 ///   the call has been dealt with.
@@ -34,6 +34,9 @@ uses
   System.SysUtils, System.RTTI, System.Classes, System.Generics.Collections;
 
 type
+  /// <summary>IContext objects provide values given some specific context. Use
+  /// TContexts (as IContext) to access and manage them.<br>
+  /// The methods DelValue() and SetValue() should return True iff they do their thing.</summary>
   IContext = interface
     ['{8A60F553-5B8A-4FB7-B1FB-DE46788A5260}']
     function  HasValue(const Name: string): Boolean;
@@ -42,6 +45,8 @@ type
     function  SetValue(const Name: string; const Value: TValue): Boolean;
   end;
 
+  /// <summary>Some implementations of IContext can provide summaries of their
+  ///  values. This method is meant to add names without clearing them.</summary>
   IContextNames = interface(IContext)
     ['{00FF40F0-2BDC-4134-A439-8A6122DDB4EE}']
     procedure GetNames(const Names: TStrings);
@@ -50,12 +55,12 @@ type
   EContext = class(Exception)
   public
     constructor Create(const Message, Name: string); overload;
-    /// <exception cref="EContext">
-    class procedure NotImplemented(const Context: TObject; const MethodName: string);
+    constructor CreateNotImplemented(const AContext: TObject; const AMethodName: string);
   end;
 
   //  Base class for IContext implementations
 
+  /// <summary>Handy base class (ie. methods are not implemented) of IContext implementations.</summary>
   TContextBase = class(TInterfacedObject, IContext)
   public
     //  IContext interface
@@ -69,6 +74,7 @@ type
 
   //  Basic IContext implementations
 
+  /// <summary>This simply contains names-values.</summary>
   TContextValues = class(TInterfacedObject, IContext, IContextNames)
   private
     fNameValues: TDictionary<string, TValue>;
@@ -84,6 +90,10 @@ type
     procedure GetNames(const Names: TStrings);
   end;
 
+  /// <summary>This is an IContext container. See it as a stack, in that the
+  /// later IContext's stack on top of the prior IContext's. Thus, operations
+  /// are tried/applied from the end of the list first, moving to the
+  /// left/beginning of the list until successful.</summary>
   TContexts = class(TInterfacedObject, IContext)
   private
     fChain: TList<IContext>;
@@ -99,11 +109,8 @@ type
   end;
 
 resourcestring
-  SENotImplemented      = 'IContext method %s() is not implemented';
-  SECannotGetValue      = 'Cannot get value because ''%s'' not found.';
-  SECannotGetFieldType  = 'Cannot get FieldType because ''%s'' not found.';
-  SEValueNotFound       = 'Value not found for ''%s''.';
-  SEValueTypeNotFound   = 'Value type not found for ''%s''.';
+  SENotImplemented  = 'IContext method %s() is not implemented';
+  SEValueNotFound   = 'Value not found for ''%s''.';
 
 implementation
 
@@ -111,44 +118,40 @@ implementation
 
 constructor EContext.Create(const Message, Name: string);
 begin
-  inherited Create(Format(SENotImplemented, [Name]));
+  inherited Create(Format(Message, [Name]));
 end;
 
-class procedure EContext.NotImplemented(const Context: TObject; const MethodName: string);
+constructor EContext.CreateNotImplemented(const AContext: TObject; const AMethodName: string);
 begin
-  raise EContext.Create(SENotImplemented, Context.ClassName + '.' + MethodName)
+  Create(SENotImplemented, AContext.ClassName + '.' + AMethodName)
 end;
 
 { TContextBase }
 
-{$WARNINGS OFF}
-
 function TContextBase.DelValue(const Name: string): Boolean;
 begin
-  EContext.NotImplemented(Self, 'DelValue')
+  Result  := False;
 end;
 
 procedure TContextBase.GetNames(const Names: TStrings);
 begin
-  EContext.NotImplemented(Self, 'GetNames')
+  raise EContext.CreateNotImplemented(Self, 'GetNames')
 end;
 
 function TContextBase.GetValue(const Name: string): TValue;
 begin
-  EContext.NotImplemented(Self, 'GetValue')
+  raise EContext.CreateNotImplemented(Self, 'GetValue')
 end;
 
 function TContextBase.HasValue(const Name: string): Boolean;
 begin
-  EContext.NotImplemented(Self, 'HasValue')
+  Result  := False;
 end;
 
 function TContextBase.SetValue(const Name: string; const Value: TValue): Boolean;
 begin
-  EContext.NotImplemented(Self, 'SetValue')
+  Result  := False;
 end;
-
-{$WARNINGS ON}
 
 { TContext }
 
@@ -179,7 +182,7 @@ end;
 function TContextValues.GetValue(const Name: string): TValue;
 begin
   if  not fNameValues.TryGetValue(Name, Result) then
-    raise EContext.Create(SECannotGetValue, Name);
+    raise EContext.Create(SEValueNotFound, Name);
 end;
 
 function TContextValues.HasValue(const Name: string): Boolean;
