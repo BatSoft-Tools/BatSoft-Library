@@ -40,7 +40,8 @@ contains
   BatSoft.Observer.Managed in 'BatSoft.Observer.Managed.pas',
   BatSoft.Settings.Ini in 'BatSoft.Settings.Ini.pas',
   BatSoft.Settings.JSON in 'BatSoft.Settings.JSON.pas',
-  BatSoft.Settings.Types in 'BatSoft.Settings.Types.pas';
+  BatSoft.Settings.Types in 'BatSoft.Settings.Types.pas',
+  BatSoft.Context in 'BatSoft.Context.pas';
 
 end.
 
