@@ -52,11 +52,7 @@ var
 begin
   Names := TStringList.Create;
   try
-    Assert.WillRaise(
-      procedure
-      begin
-        fContext.GetNames(Names);
-      end, EContext);
+    Assert.IsFalse(fContext.GetNames(Names));
   finally
     Names.Free;
   end;

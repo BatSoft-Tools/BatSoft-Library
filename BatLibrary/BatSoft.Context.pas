@@ -43,24 +43,19 @@ type
     function  DelValue(const Name: string): Boolean;
     function  GetValue(const Name: string): TValue;
     function  SetValue(const Name: string; const Value: TValue): Boolean;
-  end;
-
-  /// <summary>Some implementations of IContext can provide summaries of their
-  ///  values. This method is meant to add names without clearing them.</summary>
-  IContextNames = interface(IContext)
-    ['{00FF40F0-2BDC-4134-A439-8A6122DDB4EE}']
-    procedure GetNames(const Names: TStrings);
+    /// <summary>Add names to list (without clearing the list).<br>
+    /// Note: Contexts are NOT obliged to implement this method, but it sure helps.</summary>
+    function  GetNames(const Names: TStrings): Boolean;
   end;
 
   EContext = class(Exception)
   public
     constructor Create(const Message, Name: string); overload;
     constructor CreateNotImplemented(const AContext: TObject; const AMethodName: string);
+    constructor CreateValueNotFound(const ValueName: string);
   end;
 
-  //  Base class for IContext implementations
-
-  /// <summary>Handy base class (ie. methods are not implemented) of IContext implementations.</summary>
+  /// <summary>Handy base class for IContext implementations. (ie. methods are not implemented)</summary>
   TContextBase = class(TInterfacedObject, IContext)
   public
     //  IContext interface
@@ -68,14 +63,11 @@ type
     function  DelValue(const Name: string): Boolean; virtual;
     function  GetValue(const Name: string): TValue; virtual;
     function  SetValue(const Name: string; const Value: TValue): Boolean; virtual;
-    //  IContextNames interface
-    procedure GetNames(const Names: TStrings);
+    function  GetNames(const Names: TStrings): Boolean; virtual;
   end;
 
-  //  Basic IContext implementations
-
-  /// <summary>This simply contains names-values.</summary>
-  TContextValues = class(TInterfacedObject, IContext, IContextNames)
+  /// <summary>Basic IContext implementation that simply contains names-values.</summary>
+  TContextValues = class(TInterfacedObject, IContext)
   private
     fNameValues: TDictionary<string, TValue>;
   public
@@ -86,8 +78,7 @@ type
     function  DelValue(const Name: string): Boolean; virtual;
     function  GetValue(const Name: string): TValue; virtual;
     function  SetValue(const Name: string; const Value: TValue): Boolean; virtual;
-    //  IContextNames interface
-    procedure GetNames(const Names: TStrings);
+    function  GetNames(const Names: TStrings): Boolean;
   end;
 
   /// <summary>This is an IContext container. See it as a stack, in that the
@@ -106,6 +97,7 @@ type
     function  DelValue(const Name: string): Boolean;
     function  GetValue(const Name: string): TValue;
     function  SetValue(const Name: string; const Value: TValue): Boolean;
+    function  GetNames(const Names: TStrings): Boolean;
   end;
 
 resourcestring
@@ -126,6 +118,11 @@ begin
   Create(SENotImplemented, AContext.ClassName + '.' + AMethodName)
 end;
 
+constructor EContext.CreateValueNotFound(const ValueName: string);
+begin
+  Create(SEValueNotFound, ValueName)
+end;
+
 { TContextBase }
 
 function TContextBase.DelValue(const Name: string): Boolean;
@@ -133,9 +130,9 @@ begin
   Result  := False;
 end;
 
-procedure TContextBase.GetNames(const Names: TStrings);
+function TContextBase.GetNames(const Names: TStrings): Boolean;
 begin
-  raise EContext.CreateNotImplemented(Self, 'GetNames')
+  Result  := False;
 end;
 
 function TContextBase.GetValue(const Name: string): TValue;
@@ -174,15 +171,16 @@ begin
   inherited;
 end;
 
-procedure TContextValues.GetNames(const Names: TStrings);
+function TContextValues.GetNames(const Names: TStrings): Boolean;
 begin
   Names.AddStrings(fNameValues.Keys.ToArray);
+  Result  := True;
 end;
 
 function TContextValues.GetValue(const Name: string): TValue;
 begin
   if  not fNameValues.TryGetValue(Name, Result) then
-    raise EContext.Create(SEValueNotFound, Name);
+    raise EContext.CreateValueNotFound(Name);
 end;
 
 function TContextValues.HasValue(const Name: string): Boolean;
@@ -239,6 +237,15 @@ begin
   Result    := False;
 end;
 
+function TContexts.GetNames(const Names: TStrings): Boolean;
+var
+  SubContext  : IContext;
+begin
+  for SubContext in fChain  do
+    SubContext.GetNames(Names);
+  Result  := True;
+end;
+
 function TContexts.GetValue(const Name: string): TValue;
 var
   Contexts: IContext;
@@ -246,7 +253,7 @@ begin
   if  FindContextWith(Name, Contexts)  then
     Result  := Contexts.GetValue(Name)
   else
-    raise EContext.Create(SEValueNotFound, Name);
+    raise EContext.CreateValueNotFound(Name);
 end;
 
 function TContexts.HasValue(const Name: string): Boolean;
