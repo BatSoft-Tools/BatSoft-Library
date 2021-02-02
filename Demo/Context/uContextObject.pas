@@ -6,12 +6,15 @@ uses
   System.Rtti, System.TypInfo, System.Classes, Generics.Collections, BatSoft.Context;
 
 type
+  //  This context gives access to the properties of an object.
+  //  The prefix can be used (optional) to distingush between contexts.
   TContextObject = class(TContextBase)
   private
     fObject: TObject;
     fProps: TDictionary<string, TRttiProperty>;
   public
-    constructor Create(const AObject: TObject; const APrefix: string; const AMemberVisibility: TMemberVisibility);
+    constructor Create(const AObject: TObject; const APrefix: string; const AMemberVisibility: TMemberVisibility = mvPublic);
+    destructor  Destroy; override;
     //  IContext interface
     function  HasValue(const Name: string): Boolean; override;
     function  GetValue(const Name: string): TValue; override;
@@ -29,15 +32,24 @@ uses
 constructor TContextObject.Create(const AObject: TObject; const APrefix: string; const AMemberVisibility: TMemberVisibility);
 var
   PropArr: TArray<TRttiProperty>;
-  Prop: TRttiProperty;
+  Prop, OldProp: TRttiProperty;
 begin
   inherited Create;
   fObject := AObject;
-  //  Collect a shortlist of the properties
+  fProps  := TDictionary<string, TRttiProperty>.Create;
+  //  Collect a shortlist of the property accessors
   PropArr := RTTI.GetType(fObject.ClassType).GetProperties;
   for Prop in PropArr do
     if  AMemberVisibility <= Prop.Visibility  then
-      fProps.Add(APrefix + Prop.Name, Prop);
+      //  It seems that classes can have properties repeated.
+      if  not fProps.TryGetValue(Prop.Name, OldProp) or (OldProp.Visibility < Prop.Visibility)  then
+        fProps.AddOrSetValue(APrefix + Prop.Name, Prop);
+end;
+
+destructor TContextObject.Destroy;
+begin
+  fProps.Free;
+  inherited;
 end;
 
 function TContextObject.GetNames(const Names: TStrings): Boolean;

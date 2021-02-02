@@ -3,7 +3,7 @@ unit uModuleBeta;
 interface
 
 uses
-  uModuleCoupling;
+  uModule;
 
 type
   //  This module makes use of module Aplha, but because it has no access to
@@ -26,6 +26,7 @@ var
   Alpha: IAlpha;
   i: Integer;
 begin
+  //  Even IBeta has no coupling to IAlpha's implementation, but it's still accessible.
   Alpha := Modules.Obtain<IAlpha>();
   for i := 1 to 3 do
     Alpha.DoSomething('from beta (' + i.ToString + ')')

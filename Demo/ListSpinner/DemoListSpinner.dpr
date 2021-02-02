@@ -8,12 +8,14 @@ uses
   FrEmpContract in 'FrEmpContract.pas' {frameEmpContract: TFrame},
   uEmployment in 'uEmployment.pas',
   FrEmpPartTime in 'FrEmpPartTime.pas' {frameEmpPartTime: TFrame},
-  FrEmpFullTime in 'FrEmpFullTime.pas' {frameEmpFullTime: TFrame};
+  FrEmpFullTime in 'FrEmpFullTime.pas' {frameEmpFullTime: TFrame},
+  FPopupTest in 'FPopupTest.pas' {frmPopupTest};
 
 {$R *.res}
 
 begin
   Application.Initialize;
+  Application.CreateForm(TfrmPopupTest, frmPopupTest);
   Application.CreateForm(TfrmDemoListSpinner, frmDemoListSpinner);
   Application.CreateForm(TfrmItemControls, frmItemControls);
   Application.Run;

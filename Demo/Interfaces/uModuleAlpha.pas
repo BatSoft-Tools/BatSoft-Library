@@ -3,7 +3,7 @@ unit uModuleAlpha;
 interface
 
 uses
-  uModuleCoupling;
+  uModule;
 
 type
   //  This module is self contained but, by registering it, we make it available to other modules.
@@ -22,7 +22,7 @@ uses
 
 procedure TModuleAlpha.DoSomething(const Str: string);
 begin
-  ShowMessage('Modula Alpha does something with: ' + Str)
+  ShowMessage('Module Alpha does something with: ' + Str)
 end;
 
 initialization

@@ -31,7 +31,7 @@ implementation
 {$R *.fmx}
 
 uses
-  uModuleCoupling;
+  uModule;
 
 type
   IGamma = interface
@@ -43,16 +43,22 @@ type
 
 procedure TfrmInterfaces.butDoAlphaClick(Sender: TObject);
 begin
+  //  We should have no access the IAlpha implementation,
+  //  but we can still obtain it (provided it has been registered).
   Modules.Obtain<IAlpha>().DoSomething('From main form');
 end;
 
 procedure TfrmInterfaces.butDoBetaClick(Sender: TObject);
 begin
+  //  We should have no access the IBeta implementation,
+  //  but we can still obtain it (provided it has been registered).
   Modules.Obtain<IBeta>().SomeBetaFunctionality();
 end;
 
 procedure TfrmInterfaces.butDoGammaClick(Sender: TObject);
 begin
+  //  We should have no access the IGamma implementation,
+  //  but we can still obtain it (provided it has been registered).
   Modules.Obtain<IGamma>().DoXYZ;
 end;
 

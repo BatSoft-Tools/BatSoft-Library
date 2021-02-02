@@ -13,17 +13,18 @@ type
     cmbNames: TComboBox;
     butGetValue: TButton;
     edName: TEdit;
-    procedure FormCreate(Sender: TObject);
     procedure butUpdateNamesClick(Sender: TObject);
     procedure butGetValueClick(Sender: TObject);
     procedure cmbNamesChange(Sender: TObject);
     procedure edNameChange(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     fContext: IContext;
   end;
 
 var
   frmContextDemo: TfrmContextDemo;
+  RootContext: IContext;
 
 implementation
 
@@ -89,7 +90,14 @@ end;
 
 procedure TfrmContextDemo.FormCreate(Sender: TObject);
 begin
-  fContext  := TContexts.Create([TContextValues.Create, TContextSystem.Create])
+  //  This form
+  fContext  := TContexts.Create([RootContext, TContextObject.Create(Self, 'frm_')])
 end;
+
+initialization
+  //  In this demo, the root context allows for:
+  //  - getting and setting values (TContextValues), but they are overshadowed by
+  //  - access to system values    (TContextSystem).
+  RootContext  := TContexts.Create([TContextValues.Create, TContextSystem.Create])
 
 end.

@@ -283,7 +283,7 @@
             <Form>frmInterfaces</Form>
             <FormType>fmx</FormType>
         </DCCReference>
-        <DCCReference Include="uModuleCoupling.pas"/>
+        <DCCReference Include="uModule.pas"/>
         <DCCReference Include="uModuleAlpha.pas"/>
         <DCCReference Include="uModuleBeta.pas"/>
         <BuildConfiguration Include="Release">
