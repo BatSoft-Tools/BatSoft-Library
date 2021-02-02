@@ -1,0 +1,78 @@
+object frmPerson: TfrmPerson
+  Left = 0
+  Top = 0
+  Caption = 'Form2'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object Layout1: TLayout
+    Align = MostLeft
+    Padding.Left = 8.000000000000000000
+    Padding.Top = 8.000000000000000000
+    Padding.Right = 8.000000000000000000
+    Padding.Bottom = 8.000000000000000000
+    Size.Width = 289.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    object Layout3: TLayout
+      Align = Bottom
+      Position.X = 8.000000000000000000
+      Position.Y = 422.000000000000000000
+      Size.Width = 273.000000000000000000
+      Size.Height = 50.000000000000000000
+      Size.PlatformDefault = False
+    end
+    object Panel1: TPanel
+      Align = Client
+      Size.Width = 273.000000000000000000
+      Size.Height = 414.000000000000000000
+      Size.PlatformDefault = False
+      object lstPeople: TListSpinner
+        Align = Client
+        Size.Width = 273.000000000000000000
+        Size.Height = 414.000000000000000000
+        Size.PlatformDefault = False
+        ItemCount = 0
+      end
+    end
+  end
+  object Splitter1: TSplitter
+    Align = Left
+    Cursor = crHSplit
+    MinSize = 20.000000000000000000
+    Position.X = 289.000000000000000000
+    Size.Width = 9.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+  end
+  object Layout2: TLayout
+    Align = Client
+    Size.Width = 342.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    inline framePerson1: TframePerson
+      Align = Top
+      Size.Width = 342.000000000000000000
+      Size.Height = 154.000000000000000000
+      Size.PlatformDefault = False
+      inherited edPerID: TEdit
+        Size.Width = 223.000000000000000000
+      end
+      inherited edPerName: TEdit
+        Size.Width = 223.000000000000000000
+      end
+      inherited edFamName: TEdit
+        Size.Width = 223.000000000000000000
+      end
+      inherited butLoad: TButton
+        Position.X = 142.000000000000000000
+      end
+      inherited butSave: TButton
+        Position.X = 238.000000000000000000
+      end
+    end
+  end
+end

@@ -1,0 +1,13 @@
+object framePeople: TframePeople
+  Size.Width = 320.000000000000000000
+  Size.Height = 240.000000000000000000
+  Size.PlatformDefault = False
+  object lstPeople: TListSpinner
+    Align = Client
+    Size.Width = 320.000000000000000000
+    Size.Height = 240.000000000000000000
+    Size.PlatformDefault = False
+    ItemCount = 0
+    OnGetShowItem = lstPeopleGetShowItem
+  end
+end
