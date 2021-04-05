@@ -7,7 +7,8 @@ unit BatSoft.Settings;
 interface
 
 uses
-  System.SysUtils, System.TypInfo, System.RTTI, System.Classes, Generics.Collections;
+  System.SysUtils, System.TypInfo, System.RTTI, System.Classes, Generics.Collections,
+  BatSoft.Classes;
 
 {$region 'Settings attributes'}
 
@@ -194,11 +195,7 @@ type
     class function  ConvertToStore(const PropInfo: PTypeInfo; const PropValue: TValue): TValue;
   end;
 
-  ESettings = class(Exception)
-  public
-    constructor Create(const AMessage: string); overload;
-    constructor Create(const AMessage: string; const Args: array of const); overload;
-  end;
+  ESettings = class(EBatSoft);
 
 //  Conversion routines that are necessary in implementations of ISettingsStoreReader.LoadValue() and ISettingsStoreWriter.SaveValue().
 //  Not using some of these will cause problems when converting enums and sets, because of how TValue works.
@@ -233,7 +230,7 @@ resourcestring
 implementation
 
 uses
-  System.Generics.Defaults, BatSoft.Classes;
+  System.Generics.Defaults;
 
 var
   RTTI: TRttiContext;
@@ -589,13 +586,16 @@ begin
     try
       ChildClass  := RTTIProp.PropertyType.AsInstance.MetaclassType;
       Child       := RTTIProp.GetValue(Obj).AsObject;
-      if  not RTTIProp.IsWritable then
+      if  RTTIProp.IsWritable then
+        begin
+          CorrectObjectClass(Child, RTTIProp.PropertyType.AsInstance);
+          RTTIProp.SetValue(Obj, Child);
+        end
+      else
         if  not Assigned(Child) then
           raise ESettings.Create(SEPropertyIsNil, [RTTIProp.Name])
         else if not (Child is ChildClass) then
           raise ESettings.Create(SEPropertyIsWrongType, [RTTIProp.Name, Child.ClassName, ChildClass.ClassName]);
-      CorrectObjectClass(Child, RTTIProp.PropertyType.AsInstance);
-      RTTIProp.SetValue(Obj, Child);
       LoadProperties(Child);
     finally
       fStore.NodeLeave;
@@ -1014,18 +1014,6 @@ begin
     Result  := Converters.StoreInfo
   else
     Result  := PropInfo
-end;
-
-{ ESettings }
-
-constructor ESettings.Create(const AMessage: string; const Args: array of const);
-begin
-  inherited Create(Format(AMessage, Args));
-end;
-
-constructor ESettings.Create(const AMessage: string);
-begin
-  inherited;
 end;
 
 initialization
