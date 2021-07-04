@@ -9,14 +9,15 @@ uses
   uEmployment in 'uEmployment.pas',
   FrEmpPartTime in 'FrEmpPartTime.pas' {frameEmpPartTime: TFrame},
   FrEmpFullTime in 'FrEmpFullTime.pas' {frameEmpFullTime: TFrame},
-  FPopupTest in 'FPopupTest.pas' {frmPopupTest};
+  FPopupTest in 'FPopupTest.pas' {frmPopupTest},
+  BatSoft.Spinners in '..\..\BatControlsFMX\BatSoft.Spinners.pas';
 
 {$R *.res}
 
 begin
   Application.Initialize;
-  Application.CreateForm(TfrmPopupTest, frmPopupTest);
   Application.CreateForm(TfrmDemoListSpinner, frmDemoListSpinner);
+  Application.CreateForm(TfrmPopupTest, frmPopupTest);
   Application.CreateForm(TfrmItemControls, frmItemControls);
   Application.Run;
 end.

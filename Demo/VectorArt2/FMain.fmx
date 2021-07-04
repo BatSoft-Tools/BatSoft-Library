@@ -1,0 +1,35 @@
+object frmMain: TfrmMain
+  Left = 0
+  Top = 0
+  Caption = 'Form2'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object Panel1: TPanel
+    Align = Right
+    Position.X = 512.000000000000000000
+    Size.Width = 128.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    object cmbShapes: TComboBox
+      Position.X = 8.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 113.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+    end
+  end
+  object Layout1: TLayout
+    Align = Client
+    HitTest = True
+    Size.Width = 512.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    OnClick = Layout1Click
+    OnMouseDown = Layout1MouseDown
+  end
+end

@@ -118,230 +118,128 @@ type
     fItemIndex: integer;
     fEditor: TControl;
     fOnGetEditItem: TListSpinnerEvent;
+    fOnChanged: TNotifyEvent;
     procedure SetItemIndex(const Value: integer);
     procedure PlaceEditor;
   protected
     procedure Loaded; override;
     procedure MouseClick(Button: TMouseButton; Shift: TShiftState; X: Single; Y: Single); override;
+    procedure DoChanged; virtual;
+    procedure DoGetEditItem;
   published
     property  ItemIndex     : integer           read fItemIndex       write SetItemIndex  default -1;
     property  OnGetEditItem : TListSpinnerEvent read fOnGetEditItem   write fOnGetEditItem;
+    property  OnChanged     : TNotifyEvent      read fOnChanged       write fOnChanged;
   end;
 
   TGetIndexString = function (Sender: TObject; Index: integer): string of object;
 
   TComboSpinner = class(TStyledControl)
+  private type
+    //  Access to protected methods
+    TSpinnerPopup = class(TPopup);
   private
-    fDropDown: TSpeedButton;
-    fEdit: TEdit;
-    fListPanel: TControl;
-    fItem: TEdit;
-    fDropDownSize: integer;
-    fListHeight: Single;
-    fItemHeight: integer;
-    fDropDownCount: integer;
-    fItemCount: integer;
-    fOnItemText: TGetIndexString;
-    function GetShowItem(Sender: TListSpinner; Index: integer): TControl;
+    fPopup: TSpinnerPopup;
+    fSpinner: TListSpinner;
+    fPopupHeight: Single;
+    fPlacement: TPlacement;
+    fOnChanged: TNotifyEvent;
+    function GetItemCount: integer; inline;
+    function GetItemHeight: integer; inline;
+    function GetItemIndex: integer; inline;
+    function GetOnGetEditItem: TListSpinnerEvent; inline;
+    function GetOnGetShowItem: TListSpinnerEvent; inline;
+    procedure SetItemCount(const Value: integer); inline;
+    procedure SetItemHeight(const Value: integer); inline;
+    procedure SetItemIndex(const Value: integer); inline;
+    procedure SetOnGetEditItem(const Value: TListSpinnerEvent); inline;
+    procedure SetOnGetShowItem(const Value: TListSpinnerEvent); inline;
   protected
+//    function  GetDefaultStyleLookupName: string; override;
     procedure DropDownClick(Sender: TObject);
-    procedure ListExit(Sender: TObject);
-    procedure ShowList;
+    procedure Changed(Sender: TObject);
+    procedure Paint; override;
+    property  Spinner : TListSpinner  read fSpinner;
   public
     constructor Create(AOwner: TComponent); override;
-//    destructor  Destroy; override;
+    procedure OpenDropdown;
+    procedure CloseDropdown;
   published
-    property  DropDownSize  : integer     read fDropDownSize  write fDropDownSize default -1;
-    property  DropDownCount : integer     read fDropDownCount write fDropDownCount;
-    property  ListHeight    : Single      read fListHeight    write fListHeight;
-    property  ItemCount     : integer     read fItemCount     write fItemCount;
-    property  ItemHeight    : integer     read fItemHeight    write fItemHeight default DefaultSpinnerItemHeight;
-    property  OnItemText    : TGetIndexString  read fOnItemText    write fOnItemText;
-    property  Panel         : TControl    read fListPanel     write fListPanel;
-
-//
-////  public
-////    property PlacementRectangle;
+    property  ItemCount     : integer     read GetItemCount   write SetItemCount;
+    property  ItemHeight    : integer     read GetItemHeight  write SetItemHeight;
+    property  ItemIndex     : integer     read GetItemIndex   write SetItemIndex  default -1;
+    property  PopupHeight   : Single      read fPopupHeight   write fPopupHeight;
+    property  Placement     : TPlacement  read fPlacement     write fPlacement;
+    property  OnChanged     : TNotifyEvent      read fOnChanged     write fOnChanged;
+    property  OnGetEditItem : TListSpinnerEvent read GetOnGetEditItem write SetOnGetEditItem;
+    property  OnGetShowItem : TListSpinnerEvent read GetOnGetShowItem write SetOnGetShowItem;
   published
     property Align;
     property Anchors;
     property CanFocus;
-//    property CanParentFocus;
-//    property ClipChildren;
-//    property ClipParent;
-//    property Cursor;
-//    property DisableFocusEffect;
-//    property DragMode;
-////    property DropDownCount;
-//    property EnableDragHighlight;
+    property CanParentFocus;
+    property ClipChildren;
+    property ClipParent;
+    property Cursor;
+    property DisableFocusEffect;
+    property DragMode;
+    property EnableDragHighlight;
     property Enabled;
-//    property Locked;
+    property Locked;
     property Height;
-//    property HelpContext;
-//    property HelpKeyword;
-//    property HelpType;
-//    property Hint;
+    property HelpContext;
+    property HelpKeyword;
+    property HelpType;
+    property Hint;
     property HitTest;
-////    property Items;
-////    property Images;
-////    property ItemIndex default -1;
-////    property ItemWidth;
-////    property ItemHeight;
-////    property ListBoxResource;
-//    property Padding;
-////    property DropDownKind;
-//    property Opacity;
+    property Padding;
+    property Opacity;
     property Margins;
-////    property Placement;
-//    property PopupMenu;
+    property PopupMenu;
     property Position;
     property RotationAngle;
     property RotationCenter;
     property Scale;
     property Size;
     property StyleLookup;
-//    property TabOrder;
-//    property TabStop;
-//    property TouchTargetExpansion;
+    property TabOrder;
+    property TabStop;
+    property TouchTargetExpansion;
     property Visible;
     property Width;
-//    property ParentShowHint;
-//    property ShowHint;
-//
-//    {events}
-//    property OnApplyStyleLookup;
-//    property OnChange;
-////    property OnClosePopup;
-////    property OnPopup;
-//    {Drag and Drop events}
-//    property OnDragEnter;
-//    property OnDragLeave;
-//    property OnDragOver;
-//    property OnDragDrop;
-//    property OnDragEnd;
-//    {Keyboard events}
-//    property OnKeyDown;
-//    property OnKeyUp;
-//    {Mouse events}
-//    property OnCanFocus;
-//    property OnClick;
-//    property OnDblClick;
-//
-//    property OnEnter;
-//    property OnExit;
-//    property OnMouseDown;
-//    property OnMouseMove;
-//    property OnMouseUp;
-//    property OnMouseWheel;
-//    property OnMouseEnter;
-//    property OnMouseLeave;
-//
-//    property OnPainting;
-//    property OnPaint;
-//    property OnResize;
-//    property OnResized;
+    property ParentShowHint;
+    property ShowHint;
 
-//  public
-//    property Action;
-//  published
-//    property ControlType;
-////    property OnPresentationNameChoosing;
-//    { inherited }
-//    property Cursor default crIBeam;
-//    property CanFocus default True;
-//    property CanParentFocus;
-//    property DisableFocusEffect;
-//    property KeyboardType;
-//    property ReturnKeyType;
-////    property Password;
-//    property ReadOnly;
-////    ///<summary>Maxmimum length of text that can be input in the edit field.</summary>
-////    ///<remarks>On Android due to platform limitations text is truncated only after pressing ENTER key or after losing
-////    ///focus.</remarks>
-////    property MaxLength;
-////    ///<summary>Defines characters which can be input in the edit field. All characters not in FilterChar will be
-////    ///ignored. Empty FilterChar value means no filtering.</summary>
-////    ///<remarks>On Android due to platform limitations text is filtered only after pressing ENTER key or after control
-////    ///losing focus.</remarks>
-////    property FilterChar;
-//    property Text;
-//    property TextSettings;
-////    property ImeMode;
-//    property Position;
-//    property Width;
-//    property Height;
-//    property ClipChildren default False;
-//    property ClipParent default False;
-//    property DragMode default TDragMode.dmManual;
-//    property EnableDragHighlight default True;
-//    property Enabled default True;
-//    property Locked default False;
-//    property Hint;
-//    property HitTest default True;
-//    property HelpContext;
-//    property HelpKeyword;
-//    property HelpType;
-//    property Padding;
-//    property Opacity;
-//    property Margins;
-//    property PopupMenu;
-//    property RotationAngle;
-//    property RotationCenter;
-//    property Scale;
-//    property Size;
-//    property TextPrompt;
-//    property StyleLookup;
-//    property StyledSettings;
-//    property TouchTargetExpansion;
-//    property Visible default True;
-//    property Caret;
-//    property KillFocusByReturn;
-////    property CheckSpelling;
-//    property ParentShowHint;
-//    property ShowHint;
-//    property CharCase default TCustomEditModel.DefaultCharCase;
-//    { events }
-//    property OnChange;
-////    property OnChangeTracking;
-//    property OnTyping;
-//    property OnApplyStyleLookup;
-//    property OnValidating;
-//    property OnValidate;
-//    property OnDragEnter;
-//    property OnDragLeave;
-//    property OnDragOver;
-//    property OnDragDrop;
-//    property OnDragEnd;
-//    property OnKeyDown;
-//    property OnKeyUp;
-//    property OnCanFocus;
-//    property OnClick;
-//    property OnDblClick;
-//    property OnEnter;
-//    property OnExit;
-//    property OnMouseDown;
-//    property OnMouseMove;
-//    property OnMouseUp;
-//    property OnMouseWheel;
-//    property OnMouseEnter;
-//    property OnMouseLeave;
-//    property OnPainting;
-//    property OnPaint;
-//    property OnResize;
-//    property OnResized;
+    {events}
+    property OnApplyStyleLookup;
+    {Drag and Drop events}
+    property OnDragEnter;
+    property OnDragLeave;
+    property OnDragOver;
+    property OnDragDrop;
+    property OnDragEnd;
+    {Keyboard events}
+    property OnKeyDown;
+    property OnKeyUp;
+    {Mouse events}
+    property OnCanFocus;
+    property OnClick;
+    property OnDblClick;
+
+    property OnEnter;
+    property OnExit;
+    property OnMouseDown;
+    property OnMouseMove;
+    property OnMouseUp;
+    property OnMouseWheel;
+    property OnMouseEnter;
+    property OnMouseLeave;
+
+    property OnPainting;
+    property OnPaint;
+    property OnResize;
+    property OnResized;
   end;
-
-//  NOTE: Due to a "quirk" in the Delphi libraries, ApplyStyleLookup() *must*
-//  be called at least once before the OnGetShowItem() controls will show.
-//
-//  Some controls, such as TLabel, will do this when you set the Text property,
-//  but edit controls do not (TEdit, TDateEdit).
-//
-//  So, call ApplyStyleLookupToAll() once on objects that will be returned by
-//  OnGetShowItem() to ensure that they will be shown as intended.
-//  If you have them all on the same form, then to keep it simple, you can simply
-//  call this on the form itself in the FormCreate() event.
-procedure ApplyStyleLookupToAll(const Control: TFmxObject);
 
 procedure Register;
 
@@ -354,17 +252,6 @@ procedure Register;
 begin
   RegisterComponents('BatSoft', [TListSpinner]);
   RegisterComponents('BatSoft', [TComboSpinner]);
-end;
-
-procedure ApplyStyleLookupToAll(const Control: TFmxObject);
-var
-  Child: TFmxObject;
-begin
-  if  Control is TStyledControl then
-    (Control as TStyledControl).ApplyStyleLookup;
-  if  Assigned(Control.Children)  then
-    for Child in Control.Children do
-      ApplyStyleLookupToAll(Child);
 end;
 
 { TSpinner }
@@ -490,6 +377,20 @@ begin
   inherited;
 end;
 
+procedure TListSpinner.DoChanged;
+begin
+  if  Assigned(fOnChanged)  then
+    fOnChanged(Self);
+end;
+
+procedure TListSpinner.DoGetEditItem;
+begin
+  if  Assigned(fOnGetEditItem) then
+    fEditor := fOnGetEditItem(Self, fItemIndex);
+  if  (fItemIndex < 0) or (fItemCount <= fItemIndex)  then
+    fEditor := nil;
+end;
+
 function TListSpinner.GetItemWidth: Single;
 begin
   Result  := Width;
@@ -566,6 +467,8 @@ begin
             Item  := fOnGetShowItem(Self, Index);
         if  Assigned(Item)  then
           begin
+            if  Item is TStyledControl  then
+              TStyledControl(Item).ApplyStyleLookup;
             Item.Width  := ItemWidth;
             Item.Height := fItemHeight;
             Item.PaintTo(Self.Canvas, RectF(0, Top, ItemWidth, Top + Item.Height), Self);
@@ -586,6 +489,7 @@ var
 begin
   if  not Assigned(fEditor) then
     Exit;
+  TStyledControl(fEditor).ApplyStyleLookup;
   Top   := Trunc(ItemIndex * fItemHeight - fCalcs.ViewportPosition.Y);
   fEditor.Parent  := Self;
   fEditor.Position.Point  := TPointF.Create(0, Top);
@@ -640,11 +544,9 @@ begin
   fItemIndex  := Value;
   if  ((fItemIndex < 0) or (fItemCount <= fItemIndex)) and Assigned(fEditor)  then
     fEditor.Visible := False;
-  if  Assigned(fOnGetEditItem) then
-    fEditor := fOnGetEditItem(Self, fItemIndex);
-  if  (fItemIndex < 0) or (fItemCount <= fItemIndex)  then
-    fEditor := nil;
+  DoGetEditItem;
   PlaceEditor;
+  DoChanged;
 end;
 
 procedure TListSpinner.SetShowScrollbar(const Value: Boolean);
@@ -669,89 +571,141 @@ end;
 
 { TComboSpinner }
 
+procedure TComboSpinner.Changed(Sender: TObject);
+begin
+  CloseDropdown;
+  if  Assigned(fOnChanged)  then
+    fOnChanged(Self);
+end;
+
+procedure TComboSpinner.CloseDropdown;
+begin
+  fPopup.ClosePopup;
+  Self.Repaint;
+end;
+
 constructor TComboSpinner.Create(AOwner: TComponent);
-const
-  DropDownScale = 0.8;
 begin
   inherited;
-  Width         := 100;
-  Height        := 22;
-  fDropDownSize := -1;
-
-//    fListHeight: Single;
-  fItemHeight   := 22;
-  fDropDownCount:= 12;
-//    fItemCount: integer;
-
-
-  //  Drop down button
-  fDropDown             := TSpeedButton.Create(Self);
-  fDropDown.Parent      := Self;
-  fDropDown.Stored      := False;
-  fDropDown.Align       := TAlignLayout.Right;
-  fDropDown.Width       := Self.Height;
-  fDropDown.Scale.Point := PointF(DropDownScale, DropDownScale);
-  fDropDown.StyleLookup := 'arrowdowntoolbutton';
-  fDropDown.OnClick     := DropDownClick;
-  //  Edit box
-  fEdit         := TEdit.Create(Self);
-  fEdit.Parent  := Self;
-  fEdit.Stored  := False;
-  fEdit.Align   := TAlignLayout.Client;
-  //
-  Resize;
+  //  Popup component
+  fPopup      := TSpinnerPopup.Create(Self);
+//  FPopup.StyleLookup      := 'combopopupstyle';
+  fPopup.Stored           := False;
+  fPopup.PlacementTarget  := Self;
+  //  Spinner control
+  fSpinner    := TListSpinner.Create(Self);
+  fSpinner.Parent     := fPopup;
+  fSpinner.Align      := TAlignLayout.Client;
+  fSpinner.Stored     := False;
+  fSpinner.OnChanged  := Changed;
+  OnClick := DropDownClick;
 end;
 
 procedure TComboSpinner.DropDownClick(Sender: TObject);
 begin
-  ShowList;
+  OpenDropdown;
 end;
 
-function TComboSpinner.GetShowItem(Sender: TListSpinner; Index: integer): TControl;
+//function TComboSpinner.GetDefaultStyleLookupName: string;
+//begin
+//  Result := 'listboxstyle';
+//end;
+
+function TComboSpinner.GetItemCount: integer;
 begin
-  Result  := nil;
-  if  not Assigned(fItem) then
-    begin
-      fItem := TEdit.Create(Self);
-      fItem.Parent  := Self;
-      ApplyStyleLookupToAll(fItem);
-    end;
-  if  Assigned(fOnItemText) then
-    fItem.Text  := OnItemText(Self, Index);
+  Result  := fSpinner.ItemCount;
 end;
 
-procedure TComboSpinner.ListExit(Sender: TObject);
+function TComboSpinner.GetItemHeight: integer;
 begin
-//  FreeAndNil(fListPanel)
+  Result  := fSpinner.ItemHeight
 end;
 
-procedure TComboSpinner.ShowList;
+function TComboSpinner.GetItemIndex: integer;
+begin
+  Result  := fSpinner.ItemIndex
+end;
+
+function TComboSpinner.GetOnGetEditItem: TListSpinnerEvent;
+begin
+  Result  := fSpinner.OnGetEditItem
+end;
+
+function TComboSpinner.GetOnGetShowItem: TListSpinnerEvent;
+begin
+  Result  := fSpinner.OnGetShowItem
+end;
+
+procedure TComboSpinner.OpenDropdown;
 var
-  List: TListSpinner;
-  R: TRectF;
+  FullHeight: Single;
 begin
-  if  csDesigning in ComponentState then
-    Exit;
-  //  Popup "window"
-//  fListPanel  := TButton.Create(Self);
-  fListPanel.Parent     := Self;
-  R := RectF(0, Self.Height / 2, Self.Width, DropDownCount * ItemHeight);
-//  R.Offset(Self.Position.Point);
-  fListPanel.BoundsRect := R;
-//  fListPanel.BoundsRect := RectF(0, Self.Height / 2, Self.Width, DropDownCount * ItemHeight);
-//  fListPanel.StyleName  := 'panelstyle';
-//  fListPanel.Visible    := True;
-//  fListPanel.BringToFront;
-  //  List view
-  List  := TListSpinner.Create(fListPanel);
-  List.Parent   := fListPanel;
-  List.Align    := TAlignLayout.Client;
-  List.OnExit   := ListExit;
-  List.Visible  := True;
-  List.OnGetShowItem  := GetShowItem;
+  //  Prepare spinner
+  if  Assigned(fSpinner.fOnGetEditItem) and not Assigned(fSpinner.fEditor)  then
+    fSpinner.DoGetEditItem;
+  fSpinner.JumpTo(fSpinner.ItemIndex, TTextAlign.Center);
+  //  Prepare dropdown
+  fPopup.Placement  := fPlacement;
+  fPopup.Width      := Width;
+  //  Height
+  FullHeight        := (fSpinner.ItemCount + 1) * fSpinner.ItemHeight;
+  fPopup.Height     := Min(fPopupHeight, FullHeight);
+  if  fPopup.Height < FullHeight  then
+    fSpinner.ShowScrollbar  := True;
+  //  Show dropdown
+  fPopup.Popup();
+  if  fPopup.IsOpen then
+    fSpinner.SetFocus;
+end;
 
-  ApplyStyleLookupToAll(fListPanel);
-  List.SetFocus;
+procedure TComboSpinner.Paint;
+var
+  R: TRectF;
+  Item: TControl;
+begin
+  inherited;
+  if (csDesigning in ComponentState) and not Locked and not FInPaintTo then
+  begin
+    R := LocalRect;
+    InflateRect(R, -0.5, -0.5);
+    Canvas.DrawDashRect(R, 0, 0, AllCorners, AbsoluteOpacity, $A0909090);
+  end;
+  Item  := nil;
+  if  Assigned(OnGetShowItem) then
+    Item  := OnGetShowItem(fSpinner, ItemIndex);
+  if  Assigned(Item)  then
+    begin
+      if  Item is TStyledControl  then
+        TStyledControl(Item).ApplyStyleLookup;
+      Item.Width  := Width;
+      Item.Height := Height;
+      Item.PaintTo(Self.Canvas, RectF(0, Top, Width, Top + Item.Height), Self);
+    end;
+end;
+
+procedure TComboSpinner.SetItemCount(const Value: integer);
+begin
+  fSpinner.ItemCount  := Value
+end;
+
+procedure TComboSpinner.SetItemHeight(const Value: integer);
+begin
+  fSpinner.ItemHeight := Value
+end;
+
+procedure TComboSpinner.SetItemIndex(const Value: integer);
+begin
+  fSpinner.ItemIndex  := Value
+end;
+
+procedure TComboSpinner.SetOnGetEditItem(const Value: TListSpinnerEvent);
+begin
+  fSpinner.OnGetEditItem  := Value;
+end;
+
+procedure TComboSpinner.SetOnGetShowItem(const Value: TListSpinnerEvent);
+begin
+  fSpinner.OnGetShowItem  := Value
 end;
 
 end.

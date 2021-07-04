@@ -287,7 +287,6 @@
             <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="uPersonStore.pas"/>
-        <DCCReference Include="uPerson.pas"/>
         <DCCReference Include="FrPerson.pas">
             <Form>framePerson</Form>
             <FormType>fmx</FormType>
@@ -306,6 +305,8 @@
             <FormType>fmx</FormType>
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
+        <DCCReference Include="..\..\BatLibrary\BatSoft.Factories.pas"/>
+        <DCCReference Include="uPerson.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -326,6 +327,9 @@
                 <Source>
                     <Source Name="MainSource">Demo_of_Patterns_Using_BatSoft_Library.dpr</Source>
                 </Source>
+                <Excluded_Packages>
+                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\21.0\Bpl\PythonVcl.bpl">(untitled)</Excluded_Packages>
+                </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>
                 <Platform value="Android">True</Platform>

@@ -44,10 +44,9 @@ type
     chkScrollbar: TCheckBox;
     CheckBox1: TCheckBox;
     Layout1: TLayout;
-    Edit1: TEdit;
+    ComboSpinnerText: TComboSpinner;
+    ComboSpinnerFrame: TComboSpinner;
     ComboBox1: TComboBox;
-    ComboSpinner1: TComboSpinner;
-    Panel1: TPanel;
     procedure edCountChange(Sender: TObject);
     procedure edHeightChange(Sender: TObject);
     procedure edItemIndexChange(Sender: TObject);
@@ -61,6 +60,8 @@ type
     procedure butJumpToClick(Sender: TObject);
     procedure chkScrollbarChange(Sender: TObject);
     function ComboSpinner1ItemText(Sender: TObject; Index: Integer): string;
+    function ComboSpinnerTextGetEditItem(Sender: TListSpinner; Index: Integer): TControl;
+    function ComboSpinnerTextGetShowItem(Sender: TListSpinner; Index: Integer): TControl;
   private
     fEmployments: TEmploymentList;
     function AssociatedListSpinner(Sender: TObject): TListSpinner;
@@ -108,6 +109,18 @@ begin
   Result  := fEmployments[Index].Name
 end;
 
+function TfrmDemoListSpinner.ComboSpinnerTextGetEditItem(Sender: TListSpinner; Index: Integer): TControl;
+begin
+  Result  := frmItemControls.edDisplayOnly;
+  frmItemControls.edDisplayOnly.Text := 'Combo ' + Index.ToString;
+end;
+
+function TfrmDemoListSpinner.ComboSpinnerTextGetShowItem(Sender: TListSpinner; Index: Integer): TControl;
+begin
+  Result  := frmItemControls.labDisplayOnly;
+  frmItemControls.labDisplayOnly.Text := 'Combo ' + Index.ToString;
+end;
+
 procedure TfrmDemoListSpinner.edCountChange(Sender: TObject);
 begin
   AssociatedListSpinner(Sender).ItemCount   := Trunc(TSpinBox(Sender).Value);
@@ -129,7 +142,6 @@ begin
   fEmployments  := TEmploymentList.Create;
   fEmployments.Populate(100);
   lstDifferent.ItemCount  := fEmployments.Count;
-  ComboSpinner1.ItemCount := fEmployments.Count;
 end;
 
 procedure TfrmDemoListSpinner.FormDestroy(Sender: TObject);

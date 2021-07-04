@@ -30,6 +30,9 @@
         <Projects Include="Demo\Demo_of_Patterns_Using_BatSoft_Library\Demo_of_Patterns_Using_BatSoft_Library.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="Demo\VectorArt\DemoVectorArt.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="Demo\Interfaces\DemoInterfaces.dproj">
             <Dependencies/>
         </Projects>
@@ -49,6 +52,12 @@
             <Dependencies/>
         </Projects>
         <Projects Include="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Demo\VectorArt2\VectorArt2.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Demo\Editors\DemoEditors.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -140,6 +149,15 @@
     <Target Name="Demo_of_Patterns_Using_BatSoft_Library:Make">
         <MSBuild Projects="Demo\Demo_of_Patterns_Using_BatSoft_Library\Demo_of_Patterns_Using_BatSoft_Library.dproj" Targets="Make"/>
     </Target>
+    <Target Name="DemoVectorArt">
+        <MSBuild Projects="Demo\VectorArt\DemoVectorArt.dproj"/>
+    </Target>
+    <Target Name="DemoVectorArt:Clean">
+        <MSBuild Projects="Demo\VectorArt\DemoVectorArt.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DemoVectorArt:Make">
+        <MSBuild Projects="Demo\VectorArt\DemoVectorArt.dproj" Targets="Make"/>
+    </Target>
     <Target Name="DemoInterfaces">
         <MSBuild Projects="Demo\Interfaces\DemoInterfaces.dproj"/>
     </Target>
@@ -203,14 +221,32 @@
     <Target Name="BatSoftTranslatorEditor:Make">
         <MSBuild Projects="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj" Targets="Make"/>
     </Target>
+    <Target Name="VectorArt2">
+        <MSBuild Projects="Demo\VectorArt2\VectorArt2.dproj"/>
+    </Target>
+    <Target Name="VectorArt2:Clean">
+        <MSBuild Projects="Demo\VectorArt2\VectorArt2.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VectorArt2:Make">
+        <MSBuild Projects="Demo\VectorArt2\VectorArt2.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DemoEditors">
+        <MSBuild Projects="Demo\Editors\DemoEditors.dproj"/>
+    </Target>
+    <Target Name="DemoEditors:Clean">
+        <MSBuild Projects="Demo\Editors\DemoEditors.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DemoEditors:Make">
+        <MSBuild Projects="Demo\Editors\DemoEditors.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="BatLibrary;BatLibraryFMX;BatControls;BatControlsFMX;TestBatLibrary;TestObserver;TestContext;TestSettings;Demo_of_Patterns_Using_BatSoft_Library;DemoInterfaces;DemoMementos;DemoContext;DemoSettings;DemoListSpinner;BatSoftTranslatorDemo;BatSoftTranslatorEditor"/>
+        <CallTarget Targets="BatLibrary;BatLibraryFMX;BatControls;BatControlsFMX;TestBatLibrary;TestObserver;TestContext;TestSettings;Demo_of_Patterns_Using_BatSoft_Library;DemoVectorArt;DemoInterfaces;DemoMementos;DemoContext;DemoSettings;DemoListSpinner;BatSoftTranslatorDemo;BatSoftTranslatorEditor;VectorArt2;DemoEditors"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="BatLibrary:Clean;BatLibraryFMX:Clean;BatControls:Clean;BatControlsFMX:Clean;TestBatLibrary:Clean;TestObserver:Clean;TestContext:Clean;TestSettings:Clean;Demo_of_Patterns_Using_BatSoft_Library:Clean;DemoInterfaces:Clean;DemoMementos:Clean;DemoContext:Clean;DemoSettings:Clean;DemoListSpinner:Clean;BatSoftTranslatorDemo:Clean;BatSoftTranslatorEditor:Clean"/>
+        <CallTarget Targets="BatLibrary:Clean;BatLibraryFMX:Clean;BatControls:Clean;BatControlsFMX:Clean;TestBatLibrary:Clean;TestObserver:Clean;TestContext:Clean;TestSettings:Clean;Demo_of_Patterns_Using_BatSoft_Library:Clean;DemoVectorArt:Clean;DemoInterfaces:Clean;DemoMementos:Clean;DemoContext:Clean;DemoSettings:Clean;DemoListSpinner:Clean;BatSoftTranslatorDemo:Clean;BatSoftTranslatorEditor:Clean;VectorArt2:Clean;DemoEditors:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="BatLibrary:Make;BatLibraryFMX:Make;BatControls:Make;BatControlsFMX:Make;TestBatLibrary:Make;TestObserver:Make;TestContext:Make;TestSettings:Make;Demo_of_Patterns_Using_BatSoft_Library:Make;DemoInterfaces:Make;DemoMementos:Make;DemoContext:Make;DemoSettings:Make;DemoListSpinner:Make;BatSoftTranslatorDemo:Make;BatSoftTranslatorEditor:Make"/>
+        <CallTarget Targets="BatLibrary:Make;BatLibraryFMX:Make;BatControls:Make;BatControlsFMX:Make;TestBatLibrary:Make;TestObserver:Make;TestContext:Make;TestSettings:Make;Demo_of_Patterns_Using_BatSoft_Library:Make;DemoVectorArt:Make;DemoInterfaces:Make;DemoMementos:Make;DemoContext:Make;DemoSettings:Make;DemoListSpinner:Make;BatSoftTranslatorDemo:Make;BatSoftTranslatorEditor:Make;VectorArt2:Make;DemoEditors:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

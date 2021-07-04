@@ -23,10 +23,11 @@ object frmPopupTest: TfrmPopupTest
     Position.Y = 128.000000000000000000
     Text = 'GroupBox1'
   end
-  object butHide: TButton
+  object butCreate: TButton
     Position.X = 64.000000000000000000
     Position.Y = 96.000000000000000000
-    Text = 'butHide'
+    Text = 'butCreate'
+    OnClick = butCreateClick
   end
   object ComboBox1: TComboBox
     Items.Strings = (
@@ -60,5 +61,10 @@ object frmPopupTest: TfrmPopupTest
     Position.Y = 304.000000000000000000
     Text = 'butPopup'
     OnClick = butPopupClick
+  end
+  object Label1: TLabel
+    Position.X = 432.000000000000000000
+    Position.Y = 368.000000000000000000
+    Text = 'Label1'
   end
 end

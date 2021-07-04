@@ -41,7 +41,8 @@ contains
   BatSoft.Settings.Ini in 'BatSoft.Settings.Ini.pas',
   BatSoft.Settings.JSON in 'BatSoft.Settings.JSON.pas',
   BatSoft.Settings.Types in 'BatSoft.Settings.Types.pas',
-  BatSoft.Context in 'BatSoft.Context.pas';
+  BatSoft.Context in 'BatSoft.Context.pas',
+  BatSoft.Factories in 'BatSoft.Factories.pas';
 
 end.
 

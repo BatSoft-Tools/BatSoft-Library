@@ -97,8 +97,8 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       Size.Width = 185.000000000000000000
       Size.Height = 121.000000000000000000
       Size.PlatformDefault = False
-      Viewport.Width = 181.000000000000000000
-      Viewport.Height = 117.000000000000000000
+      Viewport.Width = 185.000000000000000000
+      Viewport.Height = 121.000000000000000000
     end
   end
   object Splitter1: TSplitter
@@ -213,8 +213,8 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       Size.Width = 185.000000000000000000
       Size.Height = 121.000000000000000000
       Size.PlatformDefault = False
-      Viewport.Width = 181.000000000000000000
-      Viewport.Height = 117.000000000000000000
+      Viewport.Width = 185.000000000000000000
+      Viewport.Height = 121.000000000000000000
     end
   end
   object loDifferent: TLayout
@@ -318,8 +318,8 @@ object frmDemoListSpinner: TfrmDemoListSpinner
       Size.Width = 279.000000000000000000
       Size.Height = 121.000000000000000000
       Size.PlatformDefault = False
-      Viewport.Width = 275.000000000000000000
-      Viewport.Height = 117.000000000000000000
+      Viewport.Width = 279.000000000000000000
+      Viewport.Height = 121.000000000000000000
     end
   end
   object Splitter2: TSplitter
@@ -349,43 +349,43 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     Size.Width = 250.000000000000000000
     Size.Height = 595.000000000000000000
     Size.PlatformDefault = False
-    object Edit1: TEdit
-      Touch.InteractiveGestures = [LongTap, DoubleTap]
+    object ComboSpinnerText: TComboSpinner
+      ItemCount = 100
+      ItemHeight = 20
+      ItemIndex = 2
+      PopupHeight = 500.000000000000000000
+      Placement = Bottom
+      OnGetEditItem = ComboSpinnerTextGetEditItem
+      OnGetShowItem = ComboSpinnerTextGetShowItem
       Align = Top
+      Margins.Bottom = 8.000000000000000000
       Position.X = 8.000000000000000000
       Position.Y = 8.000000000000000000
-      Margins.Bottom = 8.000000000000000000
       Size.Width = 234.000000000000000000
-      Size.Height = 22.000000000000000000
+      Size.Height = 97.000000000000000000
       Size.PlatformDefault = False
-      TextPrompt = 'Edit'
+    end
+    object ComboSpinnerFrame: TComboSpinner
+      ItemCount = 5
+      ItemHeight = 20
+      ItemIndex = 2
+      PopupHeight = 500.000000000000000000
+      Placement = Bottom
+      Align = Top
+      Margins.Bottom = 8.000000000000000000
+      Position.X = 8.000000000000000000
+      Position.Y = 113.000000000000000000
+      Size.Width = 234.000000000000000000
+      Size.Height = 24.000000000000000000
+      Size.PlatformDefault = False
     end
     object ComboBox1: TComboBox
       Align = Top
-      Margins.Bottom = 8.000000000000000000
       Position.X = 8.000000000000000000
-      Position.Y = 38.000000000000000000
+      Position.Y = 145.000000000000000000
       Size.Width = 234.000000000000000000
       Size.Height = 22.000000000000000000
       Size.PlatformDefault = False
-    end
-    object ComboSpinner1: TComboSpinner
-      DropDownSize = 8
-      DropDownCount = 0
-      ItemCount = 0
-      ItemHeight = 0
-      OnItemText = ComboSpinner1ItemText
-      Panel = Panel1
-      Align = Top
-      Position.X = 8.000000000000000000
-      Position.Y = 68.000000000000000000
-      Size.Width = 234.000000000000000000
-      Size.Height = 22.000000000000000000
-      Size.PlatformDefault = False
-    end
-    object Panel1: TPanel
-      Position.X = 64.000000000000000000
-      Position.Y = 216.000000000000000000
     end
   end
 end

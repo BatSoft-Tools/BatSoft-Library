@@ -5,7 +5,8 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Graphics, FMX.Controls, FMX.Forms, FMX.Dialogs, FMX.StdCtrls,
-  FMX.Edit, FMX.Controls.Presentation, uPerson, BatSoft.Observer.Managed;
+  FMX.Edit, FMX.Controls.Presentation,
+  BatSoft.Observer.Managed, BatSoft.Factories, uPerson;
 
 type
   TframePerson = class(TFrame)
@@ -26,7 +27,7 @@ type
     fSubscription: ISubscription;
     procedure SetPerson(const Value: TPerson);
     procedure PopulateFrame;
-    procedure PersonChanged(Sender: TObject; Person: TPerson);
+    procedure PersonChanged(Sender: TObject; Person: TMultiton<TPerID>);
   public
     destructor  Destroy; override;
     property  Person: TPerson read fPerson write SetPerson;
@@ -40,15 +41,12 @@ implementation
 
 procedure TframePerson.butLoadClick(Sender: TObject);
 begin
-  PersonFactory.Load(fPerson);
-  PopulateFrame;
+  fPerson.Load;
 end;
 
 procedure TframePerson.butSaveClick(Sender: TObject);
 begin
-  fPerson.PerName := edPerName.Text;
-  fPerson.FamName := edFamName.Text;
-  PersonFactory.Save(fPerson);
+  fPerson.Save;
 end;
 
 destructor TframePerson.Destroy;
@@ -67,7 +65,7 @@ begin
   fPerson.PerName := edPerName.Text
 end;
 
-procedure TframePerson.PersonChanged(Sender: TObject; Person: TPerson);
+procedure TframePerson.PersonChanged(Sender: TObject; Person: TMultiton<TPerID>);
 begin
   PopulateFrame;
 end;
@@ -76,7 +74,7 @@ procedure TframePerson.PopulateFrame;
 begin
   if  Assigned(fPerson) then
     begin
-      edPerID.Text    := fPerson.PerID.ToString;
+      edPerID.Text    := fPerson.ID.ToString;
       edPerName.Text  := fPerson.PerName;
       edFamName.Text  := fPerson.FamName;
     end

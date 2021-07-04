@@ -95,6 +95,7 @@ type
     function GetOnNotify: TCollectionNotifyEvent<T>; inline;
     procedure SetOnNotify(const Value: TCollectionNotifyEvent<T>); inline;
     function  NextBase2: integer;
+  protected
     function  InternalIndexOf(const Value: T): integer;
   public
     constructor Create; overload;

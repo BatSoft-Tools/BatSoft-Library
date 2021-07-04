@@ -6,10 +6,10 @@ interface
 //  It contains a pretend database implementation to support the factory demo.
 
 uses
-  Generics.Collections, uPerson;
+  Generics.Collections, BatSoft.Factories, BatSoft.Observer.Managed, uPerson;
 
 type
-  TPersonStore_Random = class(TInterfacedObject, IPersonStore)
+  TPersonStore_Random = class(TInterfacedObject, TPerson.IStore)
   private type
 
     TPersonRecord = record
@@ -26,10 +26,10 @@ type
   public
     constructor Create;
     destructor  Destroy; override;
-    //  IPersonStore interface
-    procedure LoadPersonIDs(const PerIDs: TPerIDs);
-    procedure LoadPerson(const Person: TPerson);
-    procedure SavePerson(const Person: TPerson); overload;
+    //  TPerson.IStore interface
+    procedure LoadIDs(const PerIDs: TList<TPerID>);
+    procedure Load(const Person: TMultiton<TPerID>);
+    procedure Save(const Person: TMultiton<TPerID>); overload;
     function  NewID: TPerID;
   end;
 
@@ -53,16 +53,16 @@ begin
   inherited;
 end;
 
-procedure TPersonStore_Random.LoadPerson(const Person: TPerson);
+procedure TPersonStore_Random.Load(const Person: TMultiton<TPerID>);
 var
   nx: integer;
 begin
-  nx  := PerIDToIndex(Person.PerID);
-  Person.PerName  := fPeople[nx].PerName;
-  Person.FamName  := fPeople[nx].FamName;
+  nx  := PerIDToIndex(Person.ID);
+  TPerson(Person).PerName  := fPeople[nx].PerName;
+  TPerson(Person).FamName  := fPeople[nx].FamName;
 end;
 
-procedure TPersonStore_Random.LoadPersonIDs(const PerIDs: TPerIDs);
+procedure TPersonStore_Random.LoadIDs(const PerIDs: TList<TPerID>);
 var
   PerID: integer;
 begin
@@ -137,9 +137,9 @@ begin
   fPeople[nx] := PerRec;
 end;
 
-procedure TPersonStore_Random.SavePerson(const Person: TPerson);
+procedure TPersonStore_Random.Save(const Person: TMultiton<TPerID>);
 begin
-  SavePerson(Person.PerID, Person.PerName, Person.FamName);
+  SavePerson(Person.ID, TPerson(Person).PerName, TPerson(Person).FamName);
 end;
 
 end.

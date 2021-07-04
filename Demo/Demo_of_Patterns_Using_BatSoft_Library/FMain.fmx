@@ -8,4 +8,11 @@ object frmMain: TfrmMain
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
   DesignerMasterStyle = 0
+  object Editors1: TEditors
+    Position.X = 64.000000000000000000
+    Position.Y = 64.000000000000000000
+    Size.Width = 193.000000000000000000
+    Size.Height = 289.000000000000000000
+    Size.PlatformDefault = False
+  end
 end
