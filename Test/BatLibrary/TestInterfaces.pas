@@ -3,7 +3,7 @@ unit TestInterfaces;
 interface
 
 uses
-  DUnitX.TestFramework;
+  DUnitX.TestFramework, BatSoft.Classes;
 
 type
   [TestFixture]
@@ -15,10 +15,61 @@ type
     procedure TestRefCountMyOwner;
   end;
 
+  [TestFixture]
+  TTestInterfaceRegistry = class
+  private type
+
+    IAlpha = interface
+      ['{AC7EA6A6-43F2-44ED-8784-DEEFC69D94B7}']
+      function GetString: string;
+    end;
+
+    IBeta = interface(IAlpha)
+      ['{BC97DB7F-F8B8-4437-9D80-277FA75D8B15}']
+      function GetString: string;
+    end;
+
+    IGamma = interface
+      ['{67433553-3554-4685-B628-F9D10FA401CA}']
+      function GetString: string;
+    end;
+
+    TImpl = class(TInterfacedObject)
+    private
+      fString: string;
+    public
+      constructor Create(const AString: string);
+      function GetString: string;
+    end;
+
+    TAlpha = class(TImpl, IAlpha);
+    TBeta = class(TImpl, IBeta);
+    TGamma = class(TImpl, IGamma);
+
+  private const
+    SAlpha  = 'Alpha';
+    SBeta1  = 'Beta1';
+    SBeta2  = 'Beta2';
+    SGamma  = 'Gamma';
+  private
+    fRegistry: TInterfaceRegistry;
+    procedure RegisterBeta2;
+    procedure RegisterFaulty;
+  public
+    [Setup]
+    procedure Setup();
+    [TearDown]
+    procedure Teardown();
+    [Test]
+    procedure TestRegisterFaulty;
+    [Test]
+    procedure TestRegister;
+  end;
+
 implementation
 
 uses
-  SysUtils, DUnitX.Assert.Ex, BatSoft.Classes;
+  SysUtils, DUnitX.Assert.Ex;
 
 type
   TCallback = reference to procedure;
@@ -148,6 +199,80 @@ begin
 
   Assert.IsTrue(IsOwnerDestroyed);
   Assert.IsTrue(IsChildDestroyed);
+end;
+
+{ TTestInterfaceRegistry.TImpl }
+
+constructor TTestInterfaceRegistry.TImpl.Create(const AString: string);
+begin
+  inherited Create;
+  fString := AString;
+end;
+
+function TTestInterfaceRegistry.TImpl.GetString: string;
+begin
+  Result  := fString;
+end;
+
+{ TTestInterfaceRegistry }
+
+procedure TTestInterfaceRegistry.RegisterBeta2;
+begin
+  fRegistry.Register(IBeta, TBeta.Create(SBeta2));
+end;
+
+procedure TTestInterfaceRegistry.RegisterFaulty;
+begin
+  fRegistry.Register(IBeta, TGamma.Create(SBeta2));
+end;
+
+procedure TTestInterfaceRegistry.Setup;
+begin
+  fRegistry := TInterfaceRegistry.Create;
+end;
+
+procedure TTestInterfaceRegistry.Teardown;
+begin
+  fRegistry.Free;
+end;
+
+procedure TTestInterfaceRegistry.TestRegister;
+var
+  Alpha: IAlpha;
+  Beta: IBeta;
+  Gamma: IGamma;
+begin
+  //  Register and Obtain
+  Assert.IsFalse(fRegistry.Obtain(IAlpha, Alpha));
+  Assert.IsFalse(fRegistry.Obtain(IBeta, Beta));
+  Assert.IsFalse(fRegistry.Obtain(IGamma, Gamma));
+
+  fRegistry.Register(IAlpha, TAlpha.Create(SAlpha));
+  fRegistry.Register(IBeta, TBeta.Create(SBeta1));
+  fRegistry.Register(IGamma, TGamma.Create(SGamma));
+
+  Assert.IsTrue(fRegistry.Obtain(IAlpha, Alpha));
+  Assert.IsTrue(fRegistry.Obtain(IBeta, Beta));
+  Assert.IsTrue(fRegistry.Obtain(IGamma, Gamma));
+
+  Assert.AreEqual(Alpha.GetString, SAlpha);
+  Assert.AreEqual(Beta.GetString, SBeta1);
+  Assert.AreEqual(Gamma.GetString, SGamma);
+
+  //  Register on top of already registered
+  //  - Exception
+  Assert.WillRaise(RegisterBeta2, EListError);
+  Assert.IsTrue(fRegistry.Obtain(IBeta, Beta));
+  Assert.AreEqual(Beta.GetString, SBeta1);
+  //  - Replace
+  fRegistry.Register(IBeta, TBeta.Create(SBeta2), True);
+  Assert.IsTrue(fRegistry.Obtain(IBeta, Beta));
+  Assert.AreEqual(Beta.GetString, SBeta2);
+end;
+
+procedure TTestInterfaceRegistry.TestRegisterFaulty;
+begin
+  Assert.WillRaise(RegisterFaulty, EBatSoft, SEDoesNotImplement)
 end;
 
 initialization

@@ -13,12 +13,7 @@ type
 {$region 'Interfaces'}
 
   ///  Like TInterfacedObject but without reference counting.
-  TInterfacedObjectNoRefCount = class(TObject, IInterface)
-  protected
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-  end;
+  TInterfacedObjectNoRefCount = System.Generics.Defaults.TSingletonImplementation;
 
   //  Sometimes I want interfaced objects to free when the RefCount is something
   //  other than 0, such as when writing factories that keep track of multitons.
@@ -47,6 +42,21 @@ type
   public
     constructor Create(const AOwner: TObject);
     destructor  Destroy; override;
+  end;
+
+  ///  Used for registering interface implementations.
+  ///  The intention is for modules to register their interface implementations
+  ///  centrally (typically this would be a singleton), then the rest of the
+  ///  application can obtain them. The only coupling will be the global
+  ///  instance of this object and the interface declarations.
+  TInterfaceRegistry = class
+  private
+    fRegistry: TDictionary<TGUID, IInterface>;
+  public
+    constructor Create;
+    destructor  Destroy; override;
+    procedure Register(const IID: TGUID; IntfObj: IInterface; const Replace: Boolean = False);
+    function  Obtain(const IID: TGUID; out IntfObj): Boolean;
   end;
 
 {$endregion}
@@ -135,7 +145,9 @@ procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
 function GetExeDir: string;
 
 resourcestring
+  SEBatSoftBug          = 'BatSoft bug that should never happen. Please notify at: peter@batsoft.com.au';
   SEIncompatibleClasses = 'Incompatible classes.';
+  SEDoesNotImplement    = 'Object does not implement the specified interface.';
 
 var
   RTTI: TRttiContext;
@@ -163,28 +175,6 @@ begin
   Result  := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)))
 end;
 
-{ TInterfacedObjectNoRefCount }
-
-function TInterfacedObjectNoRefCount.QueryInterface(const IID: TGUID; out Obj): HResult;
-begin
-  if GetInterface(IID, Obj) then
-    Result := 0
-  else
-    Result := E_NOINTERFACE;
-end;
-
-function TInterfacedObjectNoRefCount._AddRef: Integer;
-begin
-  //  Do nothing
-  Result  := 0;
-end;
-
-function TInterfacedObjectNoRefCount._Release: Integer;
-begin
-  //  Do nothing
-  Result  := 0;
-end;
-
 { TMinRefCountObject }
 
 constructor TMinRefCountObject.Create(const AMinRefCount: integer);
@@ -205,6 +195,40 @@ destructor TRefCountMyOwner.Destroy;
 begin
   fOwner.Free;
   inherited;
+end;
+
+{ TInterfaceRegistry }
+
+constructor TInterfaceRegistry.Create;
+begin
+  inherited;
+  fRegistry := TDictionary<TGUID, IInterface>.Create();
+end;
+
+destructor TInterfaceRegistry.Destroy;
+begin
+  fRegistry.Free;
+  inherited;
+end;
+
+function TInterfaceRegistry.Obtain(const IID: TGUID; out IntfObj): Boolean;
+var
+  Found: IInterface;
+begin
+  Result  := fRegistry.TryGetValue(IID, Found);
+  if  Result  then
+    if  not Supports(Found, IID, IntfObj) then
+      raise EBatSoft.Create(SEBatSoftBug);
+end;
+
+procedure TInterfaceRegistry.Register(const IID: TGUID; IntfObj: IInterface; const Replace: Boolean);
+begin
+  if  not Assigned(IntfObj) or not Supports(IntfObj, IID) then
+    raise EBatSoft.Create(SEDoesNotImplement);
+  if  Replace then
+    fRegistry.AddOrSetValue(IID, IntfObj)
+  else
+    fRegistry.Add(IID, IntfObj)
 end;
 
 { RegisteredLists }
