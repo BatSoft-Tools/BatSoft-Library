@@ -6,6 +6,7 @@ uses
   System.Rtti, System.Classes, BatSoft.Context;
 
 type
+  //  This context gives access to information from the system
   TContextSystem = class(TContextBase)
   public const
     //  http://docwiki.embarcadero.com/Libraries/XE2/en/System.SysUtils.GetEnvironmentVariable
