@@ -95,6 +95,7 @@ type
     function GetOnNotify: TCollectionNotifyEvent<T>; inline;
     procedure SetOnNotify(const Value: TCollectionNotifyEvent<T>); inline;
     function  NextBase2: integer;
+  protected
     function  InternalIndexOf(const Value: T): integer;
   public
     constructor Create; overload;
@@ -138,7 +139,10 @@ type
 
 {$endregion}
 
-  EBatSoft = class(Exception);
+  EBatSoft = class(Exception)
+  public
+    constructor Create(AMessage: string; const Params: array of const); overload;
+  end;
 
 /// <summary>Change the class of an object. Certain rules apply to reduce the risk of bugs.<br>
 /// Please be very careful with this.  Make certain you know what you're doing.</summary>
@@ -486,6 +490,13 @@ end;
 class function TAttributeArrayHelper.Has<T>(): Boolean;
 begin
   Result  := Has(T);
+end;
+
+{ EBatSoft }
+
+constructor EBatSoft.Create(AMessage: string; const Params: array of const);
+begin
+  inherited Create(Format(AMessage, Params))
 end;
 
 initialization
