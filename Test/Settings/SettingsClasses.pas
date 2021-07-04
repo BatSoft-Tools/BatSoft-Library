@@ -4,7 +4,7 @@ interface
 
 uses
   System.Types, System.Classes, System.Generics.Collections,
-  BatSoft.Classes, BatSoft.Settings, BatSoft.Mementos;
+  BatSoft.Classes, BatSoft.Settings, BatSoft.Mementos, BatSoft.Settings.Types;
 
 type
   TEnum = (enumABC, enumDEF, enumXYZ);
@@ -183,11 +183,13 @@ begin
     var
       TestRec: TTestRecord;
       Temp: TValue;
+      Ext: Extended;
     begin
       TestRec.Str   := LoadValue('Str', TypeInfo(string)).AsString;
       Temp    := LoadValue('When', TypeInfo(string)).AsString;
       Temp    := SettingsTypes.ConvertToProperty(TypeInfo(TDate), Temp);
-      TestRec.When  := Temp.AsExtended;
+      Ext     := Temp.AsExtended;
+      TestRec.When  := Ext;
       Result  := TValue.From(TestRec);
     end
     );

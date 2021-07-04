@@ -36,7 +36,7 @@ implementation
 {$R *.fmx}
 
 uses
-  Bat.Spinners;
+  BatSoft.Spinners;
 
 { TfrmItemControls }
 
