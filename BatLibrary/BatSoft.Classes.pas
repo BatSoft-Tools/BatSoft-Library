@@ -150,6 +150,7 @@ resourcestring
   SEDoesNotImplement    = 'Object does not implement the specified interface.';
 
 var
+  /// Instead of re-writing instancing/tidy ups of TRttiContext all over the place, here is it, in one place.
   RTTI: TRttiContext;
 
 implementation

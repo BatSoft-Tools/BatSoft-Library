@@ -47,7 +47,7 @@ begin
   Changes := TChanges.Create;
   try
     ListFieldDifferences('', Settings1, Settings2, Changes);
-    //  Ignore these and test a lilttle further down
+    //  Ignore these and test a little further down
     Changes.Ignore('fComplex.fTestRec');
 //    Changes.Ignore('fRecList');
     //  Do we have obvious changes?
