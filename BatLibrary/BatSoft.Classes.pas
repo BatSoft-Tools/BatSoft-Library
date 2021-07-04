@@ -47,8 +47,9 @@ type
   ///  Used for registering interface implementations.
   ///  The intention is for modules to register their interface implementations
   ///  centrally (typically this would be a singleton), then the rest of the
-  ///  application can obtain them. The only coupling will be the global
-  ///  instance of this object and the interface declarations.
+  ///  application can obtain them knowing only the interface. The only coupling
+  ///  will be the global instance of this object and the interface declarations,
+  ///  but not their implementations.
   TInterfaceRegistry = class
   private
     fRegistry: TDictionary<TGUID, IInterface>;
@@ -56,7 +57,8 @@ type
     constructor Create;
     destructor  Destroy; override;
     procedure Register(const IID: TGUID; IntfObj: IInterface; const Replace: Boolean = False);
-    function  Obtain(const IID: TGUID; out IntfObj): Boolean;
+    function  Obtain<I: IInterface>(): I;
+    function  TryObtain<I: IInterface>(out IntfObj: I): Boolean;
   end;
 
 {$endregion}
@@ -138,20 +140,22 @@ type
 
   EBatSoft = class(Exception);
 
-//  Please be very careful with this.  Make certain you know what you're doing.
-/// Change the class of an object. Certain rules apply to reduce the risk of bugs.
+/// <summary>Change the class of an object. Certain rules apply to reduce the risk of bugs.<br>
+/// Please be very careful with this.  Make certain you know what you're doing.</summary>
 procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
 
-function GetExeDir: string;
+//  Convenience section that contains things I often re-write.
 
-resourcestring
-  SEBatSoftBug          = 'BatSoft bug that should never happen. Please notify at: peter@batsoft.com.au';
-  SEIncompatibleClasses = 'Incompatible classes.';
-  SEDoesNotImplement    = 'Object does not implement the specified interface.';
+function GetExeDir: string;
 
 var
   /// Instead of re-writing instancing/tidy ups of TRttiContext all over the place, here is it, in one place.
   RTTI: TRttiContext;
+
+resourcestring
+  SEBatSoftBug          = 'BatSoft bug that should never happen. Please notify at: peter@batsoft.com.au';
+  SEIncompatibleClasses = 'Incompatible classes.';
+  SEIntfNotRegistered   = 'Tried to obtain an interface that is not registered.';
 
 implementation
 
@@ -212,24 +216,32 @@ begin
   inherited;
 end;
 
-function TInterfaceRegistry.Obtain(const IID: TGUID; out IntfObj): Boolean;
-var
-  Found: IInterface;
+function  TInterfaceRegistry.Obtain<I>(): I;
 begin
-  Result  := fRegistry.TryGetValue(IID, Found);
-  if  Result  then
-    if  not Supports(Found, IID, IntfObj) then
-      raise EBatSoft.Create(SEBatSoftBug);
+  if  not TryObtain<I>(Result)  then
+    raise EBatSoft.Create(SEIntfNotRegistered);
 end;
 
 procedure TInterfaceRegistry.Register(const IID: TGUID; IntfObj: IInterface; const Replace: Boolean);
 begin
   if  not Assigned(IntfObj) or not Supports(IntfObj, IID) then
-    raise EBatSoft.Create(SEDoesNotImplement);
+    raise EBatSoft.Create(SEIntfNotRegistered);
   if  Replace then
     fRegistry.AddOrSetValue(IID, IntfObj)
   else
     fRegistry.Add(IID, IntfObj)
+end;
+
+function TInterfaceRegistry.TryObtain<I>(out IntfObj: I): Boolean;
+var
+  IID: TGUID;
+  Found: IInterface;
+begin
+  IID     := GetTypeData(TypeInfo(I)).GUID;
+  Result  := fRegistry.TryGetValue(IID, Found);
+  if  Result  then
+    if  not Supports(Found, IID, IntfObj) then
+      raise EBatSoft.Create(SEBatSoftBug);
 end;
 
 { RegisteredLists }

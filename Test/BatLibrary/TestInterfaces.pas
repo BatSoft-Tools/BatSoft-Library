@@ -243,17 +243,17 @@ var
   Gamma: IGamma;
 begin
   //  Register and Obtain
-  Assert.IsFalse(fRegistry.Obtain(IAlpha, Alpha));
-  Assert.IsFalse(fRegistry.Obtain(IBeta, Beta));
-  Assert.IsFalse(fRegistry.Obtain(IGamma, Gamma));
+  Assert.IsFalse(fRegistry.TryObtain<IAlpha>(Alpha));
+  Assert.IsFalse(fRegistry.TryObtain<IBeta>(Beta));
+  Assert.IsFalse(fRegistry.TryObtain<IGamma>(Gamma));
 
   fRegistry.Register(IAlpha, TAlpha.Create(SAlpha));
   fRegistry.Register(IBeta, TBeta.Create(SBeta1));
   fRegistry.Register(IGamma, TGamma.Create(SGamma));
 
-  Assert.IsTrue(fRegistry.Obtain(IAlpha, Alpha));
-  Assert.IsTrue(fRegistry.Obtain(IBeta, Beta));
-  Assert.IsTrue(fRegistry.Obtain(IGamma, Gamma));
+  Assert.IsTrue(fRegistry.TryObtain<IAlpha>(Alpha));
+  Assert.IsTrue(fRegistry.TryObtain<IBeta>(Beta));
+  Assert.IsTrue(fRegistry.TryObtain<IGamma>(Gamma));
 
   Assert.AreEqual(Alpha.GetString, SAlpha);
   Assert.AreEqual(Beta.GetString, SBeta1);
@@ -262,15 +262,17 @@ begin
   //  Register on top of already registered
   //  - Exception
   Assert.WillRaise(RegisterBeta2, EListError);
-  Assert.IsTrue(fRegistry.Obtain(IBeta, Beta));
+  Assert.IsTrue(fRegistry.TryObtain<IBeta>(Beta));
   Assert.AreEqual(Beta.GetString, SBeta1);
   //  - Replace
   fRegistry.Register(IBeta, TBeta.Create(SBeta2), True);
-  Assert.IsTrue(fRegistry.Obtain(IBeta, Beta));
+  Assert.IsTrue(fRegistry.TryObtain<IBeta>(Beta));
   Assert.AreEqual(Beta.GetString, SBeta2);
 end;
 
 procedure TTestInterfaceRegistry.TestRegisterFaulty;
+const
+  SEDoesNotImplement  = 'SEDoesNotImplement';
 begin
   Assert.WillRaise(RegisterFaulty, EBatSoft, SEDoesNotImplement)
 end;
