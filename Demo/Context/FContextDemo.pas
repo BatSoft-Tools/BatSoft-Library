@@ -31,7 +31,7 @@ implementation
 {$R *.fmx}
 
 uses
-  System.Rtti, uContextObject, uContextSystem;
+  System.Rtti, uContextObject, uContextSystem, uMacro;
 
 { TfrmContextDemo }
 

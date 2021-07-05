@@ -28,12 +28,34 @@ type
   //
   //  Add the following to your class declaration:
   //    private
-  //      fIntf: IInterface;
+  //      fRefCounter: IInterface;
   //    public
-  //      property  Intf: IInterface  read fIntf  implements IInterface;
+  //      //  IInterface interface
+  //      function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+  //      function _AddRef: Integer; stdcall;
+  //      function _Release: Integer; stdcall;
   //
   //  In the constructor add:
-  //    fIntf := TRefCountMyOwner.Create(Self);
+  //    fRefCounter   := TRefCountMyOwner.Create(Self);
+  //
+  //  Add the following implementationa:
+  //    function TMyClass.QueryInterface(const IID: TGUID; out Obj): HResult;
+  //    begin
+  //      if GetInterface(IID, Obj) then
+  //        Result := 0
+  //      else
+  //        Result := E_NOINTERFACE;
+  //    end;
+  //
+  //    function TMyClass._AddRef: Integer;
+  //    begin
+  //      Result  := fRefCounter._AddRef
+  //    end;
+  //
+  //    function TMyClass._Release: Integer;
+  //    begin
+  //      Result  := fRefCounter._Release
+  //    end;
 
   /// Add interfaces to a class that is not a TInterfacedObject.
   TRefCountMyOwner = class(TMinRefCountObject, IInterface)
@@ -56,9 +78,9 @@ type
   public
     constructor Create;
     destructor  Destroy; override;
-    procedure Register(const IID: TGUID; IntfObj: IInterface; const Replace: Boolean = False);
+    procedure Register(const InterfaceType: TGUID; InterfaceInstance: IInterface; const Replace: Boolean = False);
     function  Obtain<I: IInterface>(): I;
-    function  TryObtain<I: IInterface>(out IntfObj: I): Boolean;
+    function  TryObtain<I: IInterface>(out InterfaceInstance: I): Boolean;
   end;
 
 {$endregion}
@@ -226,17 +248,17 @@ begin
     raise EBatSoft.Create(SEIntfNotRegistered);
 end;
 
-procedure TInterfaceRegistry.Register(const IID: TGUID; IntfObj: IInterface; const Replace: Boolean);
+procedure TInterfaceRegistry.Register(const InterfaceType: TGUID; InterfaceInstance: IInterface; const Replace: Boolean);
 begin
-  if  not Assigned(IntfObj) or not Supports(IntfObj, IID) then
+  if  not Assigned(InterfaceInstance) or not Supports(InterfaceInstance, InterfaceType) then
     raise EBatSoft.Create(SEIntfNotRegistered);
   if  Replace then
-    fRegistry.AddOrSetValue(IID, IntfObj)
+    fRegistry.AddOrSetValue(InterfaceType, InterfaceInstance)
   else
-    fRegistry.Add(IID, IntfObj)
+    fRegistry.Add(InterfaceType, InterfaceInstance)
 end;
 
-function TInterfaceRegistry.TryObtain<I>(out IntfObj: I): Boolean;
+function TInterfaceRegistry.TryObtain<I>(out InterfaceInstance: I): Boolean;
 var
   IID: TGUID;
   Found: IInterface;
@@ -244,7 +266,7 @@ begin
   IID     := GetTypeData(TypeInfo(I)).GUID;
   Result  := fRegistry.TryGetValue(IID, Found);
   if  Result  then
-    if  not Supports(Found, IID, IntfObj) then
+    if  not Supports(Found, IID, InterfaceInstance) then
       raise EBatSoft.Create(SEBatSoftBug);
 end;
 

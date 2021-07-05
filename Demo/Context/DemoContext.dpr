@@ -5,7 +5,8 @@ uses
   FMX.Forms,
   FContextDemo in 'FContextDemo.pas' {frmContextDemo},
   uContextSystem in 'uContextSystem.pas',
-  uContextObject in 'uContextObject.pas';
+  uContextObject in 'uContextObject.pas',
+  uMacro in 'uMacro.pas';
 
 {$R *.res}
 

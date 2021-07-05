@@ -3,16 +3,45 @@ unit TestInterfaces;
 interface
 
 uses
-  DUnitX.TestFramework, BatSoft.Classes;
+  DUnitX.TestFramework, System.SysUtils, BatSoft.Classes;
 
 type
+  IIntfOne = interface
+    ['{7FDA1271-F73F-4D8D-9B63-D75DB513EC43}']
+    function GetOne: string;
+  end;
+
+  IIntfTwo = interface
+    ['{CA625822-620F-44AE-BF49-6847EE517FE1}']
+    function GetTwo: string;
+  end;
+
+  TOneTwo = class(TObject, IIntfOne, IIntfTwo)
+  private
+    fRefCounter: IInterface;
+    fDestroyProc: TProc;
+  public
+    constructor Create(const ADestroyProc: TProc);
+    destructor  Destroy; override;
+    //  IInterface interface
+    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+    function _AddRef: Integer; stdcall;
+    function _Release: Integer; stdcall;
+    //  IIntfOne interface
+    function GetOne: string;
+    //  IIntfTwo interface
+    function GetTwo: string;
+  end;
+
   [TestFixture]
   TTestInterfaces = class
   public
     [Test]
     procedure TestNoRefCountObject;
     [Test]
-    procedure TestRefCountMyOwner;
+    procedure TestRefCountMyOwner_IInterface;
+    [Test]
+    procedure TestRefCountMyOwner_OneTwo;
   end;
 
   [TestFixture]
@@ -69,40 +98,38 @@ type
 implementation
 
 uses
-  SysUtils, DUnitX.Assert.Ex;
+  DUnitX.Assert.Ex;
 
 type
-  TCallback = reference to procedure;
-
   TTestNoRef = class(TInterfacedObjectNoRefCount)
   private
-    fCallback: TCallback;
+    fCallback: TProc;
   public
-    constructor Create(const ACallback: TCallback);
+    constructor Create(const ACallback: TProc);
     destructor  Destroy; override;
   end;
 
   TTestRefCountOwner = class(TRefCountMyOwner)
   private
-    fCallback: TCallback;
+    fCallback: TProc;
   public
-    constructor Create(const AOwner: TObject; const ACallback: TCallback);
+    constructor Create(const AOwner: TObject; const ACallback: TProc);
     destructor  Destroy; override;
   end;
 
   TTestOwner = class(TObject, IInterface)
   private
-    fCallback: TCallback;
+    fCallback: TProc;
     fIntf: IInterface;
   public
-    constructor Create(const ACallback: TCallback);
+    constructor Create(const ACallback: TProc);
     destructor  Destroy; override;
     property  Intf: IInterface  read fIntf  implements IInterface;
   end;
 
 { TTestNoRef }
 
-constructor TTestNoRef.Create(const ACallback: TCallback);
+constructor TTestNoRef.Create(const ACallback: TProc);
 begin
   inherited Create;
   fCallback := ACallback;
@@ -116,7 +143,7 @@ end;
 
 { TTestRefCountOwner }
 
-constructor TTestRefCountOwner.Create(const AOwner: TObject; const ACallback: TCallback);
+constructor TTestRefCountOwner.Create(const AOwner: TObject; const ACallback: TProc);
 begin
   inherited Create(AOwner);
   fCallback := ACallback;
@@ -130,7 +157,7 @@ end;
 
 { TTestOwner }
 
-constructor TTestOwner.Create(const ACallback: TCallback);
+constructor TTestOwner.Create(const ACallback: TProc);
 begin
   inherited Create;
   fCallback := ACallback;
@@ -140,6 +167,49 @@ destructor TTestOwner.Destroy;
 begin
   fCallback();
   inherited;
+end;
+
+{ TOneTwo }
+
+constructor TOneTwo.Create(const ADestroyProc: TProc);
+begin
+  inherited Create();
+  fRefCounter   := TRefCountMyOwner.Create(Self);
+  fDestroyProc  := ADestroyProc;
+end;
+
+destructor TOneTwo.Destroy;
+begin
+  fDestroyProc();
+  inherited;
+end;
+
+function TOneTwo.GetOne: string;
+begin
+  Result  := 'One'
+end;
+
+function TOneTwo.GetTwo: string;
+begin
+  Result  := 'Two'
+end;
+
+function TOneTwo.QueryInterface(const IID: TGUID; out Obj): HResult;
+begin
+  if GetInterface(IID, Obj) then
+    Result := 0
+  else
+    Result := E_NOINTERFACE;
+end;
+
+function TOneTwo._AddRef: Integer;
+begin
+  Result  := fRefCounter._AddRef
+end;
+
+function TOneTwo._Release: Integer;
+begin
+  Result  := fRefCounter._Release
 end;
 
 { TTestInterfaces }
@@ -166,7 +236,7 @@ begin
   Assert.IsTrue(IsDestroyed);
 end;
 
-procedure TTestInterfaces.TestRefCountMyOwner;
+procedure TTestInterfaces.TestRefCountMyOwner_IInterface;
 var
   Owner: TTestOwner;
   OwnerI: IInterface;
@@ -199,6 +269,37 @@ begin
 
   Assert.IsTrue(IsOwnerDestroyed);
   Assert.IsTrue(IsChildDestroyed);
+end;
+
+procedure TTestInterfaces.TestRefCountMyOwner_OneTwo;
+var
+  OneTwo: TOneTwo;
+  One: IIntfOne;
+  Two: IIntfTwo;
+  IsDestroyed: Boolean;
+begin
+  IsDestroyed := False;
+  OneTwo  := TOneTwo.Create(
+      procedure
+      begin
+        IsDestroyed := True;
+      end);
+      
+  One := OneTwo;
+  Assert.AreEqual('One', One.GetOne);
+  Assert.IsFalse(IsDestroyed);
+
+  Assert.IsTrue(Supports(One, IIntfTwo, Two));
+  Assert.AreEqual('One', One.GetOne);
+  Assert.AreEqual('Two', Two.GetTwo);
+  Assert.IsFalse(IsDestroyed);
+  
+  Two := nil;
+  Assert.AreEqual('One', One.GetOne);
+  Assert.IsFalse(IsDestroyed);
+
+  One := nil;
+  Assert.IsTrue(IsDestroyed);
 end;
 
 { TTestInterfaceRegistry.TImpl }
