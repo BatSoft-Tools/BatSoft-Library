@@ -71,7 +71,7 @@ type
   private
     fNameValues: TDictionary<string, TValue>;
   public
-    constructor Create;
+    constructor Create(const CaseSensitiveNames: Boolean = False);
     destructor  Destroy; override;
     //  IContext interface
     function  HasValue(const Name: string): Boolean; virtual;
@@ -105,6 +105,30 @@ resourcestring
   SEValueNotFound   = 'Value not found for ''%s''.';
 
 implementation
+
+uses
+  System.Generics.Defaults;
+
+type
+  TTextComparer = class(TEqualityComparer<string>)
+    function Equals(const Left, Right: string): Boolean; override;
+    function GetHashCode(const Value: string): Integer; override;
+  end;
+
+var
+  TextComparer: IEqualityComparer<string>;
+
+{ TTextComparer }
+
+function TTextComparer.Equals(const Left, Right: string): Boolean;
+begin
+  Result  := SameText(Left, Right)
+end;
+
+function TTextComparer.GetHashCode(const Value: string): Integer;
+begin
+  Result  := UpperCase(Value).GetHashCode
+end;
 
 { EContext }
 
@@ -152,10 +176,17 @@ end;
 
 { TContext }
 
-constructor TContextValues.Create;
+constructor TContextValues.Create(const CaseSensitiveNames: Boolean);
 begin
-  inherited;
-  fNameValues := TDictionary<string, TValue>.Create;
+  inherited Create();
+  if  CaseSensitiveNames then
+    fNameValues := TDictionary<string, TValue>.Create
+  else  //  Not case sensitive
+    begin
+      if  not Assigned(TextComparer)  then
+        TextComparer  := TTextComparer.Create;
+      fNameValues := TDictionary<string, TValue>.Create(TextComparer);
+    end
 end;
 
 function TContextValues.DelValue(const Name: string): Boolean;

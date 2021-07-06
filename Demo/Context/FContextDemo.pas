@@ -5,42 +5,59 @@ interface
 uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, BatSoft.Context,
-  FMX.ListBox, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Edit;
+  FMX.ListBox, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Edit,
+  FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, FMX.Layouts;
 
 type
   TfrmContextDemo = class(TForm)
-    butUpdateNames: TButton;
-    cmbNames: TComboBox;
     butGetValue: TButton;
-    edName: TEdit;
-    procedure butUpdateNamesClick(Sender: TObject);
+    memMacro: TMemo;
+    butRunMacro: TButton;
+    lstMacros: TListBox;
+    panMacros: TGroupBox;
+    Layout1: TLayout;
+    panNameValues: TGroupBox;
+    lstNameValues: TListBox;
+    Splitter1: TSplitter;
+    panMacro: TGroupBox;
+    FlowLayout1: TFlowLayout;
+    chkSystemValues: TCheckBox;
+    chkForm: TCheckBox;
     procedure butGetValueClick(Sender: TObject);
-    procedure cmbNamesChange(Sender: TObject);
-    procedure edNameChange(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure butRunMacroClick(Sender: TObject);
+    procedure lstMacrosDblClick(Sender: TObject);
+    procedure lstNameValuesDblClick(Sender: TObject);
+    procedure ContextChange(Sender: TObject);
   private
+    fContextValues: TContextValues;
     fContext: IContext;
+    procedure ShowContextNames;
   end;
 
 var
   frmContextDemo: TfrmContextDemo;
-  RootContext: IContext;
 
 implementation
 
 {$R *.fmx}
 
 uses
-  System.Rtti, uContextObject, uContextSystem, uMacro;
+  System.Rtti, System.TypInfo, System.Generics.Collections,
+  uContextObject, uContextSystem, uMacro, uMacroCommands;
 
 { TfrmContextDemo }
 
 procedure TfrmContextDemo.butGetValueClick(Sender: TObject);
 var
+  Name: string;
   Value: TValue;
   ValueAsStr: string;
 begin
-  Value := fContext.GetValue(edName.Text);
+  if  lstNameValues.ItemIndex < 0 then
+    Exit;
+  Name  := lstNameValues.Items[lstNameValues.ItemIndex];
+  Value := fContext.GetValue(Name);
   case Value.Kind of
     tkInteger :
       ValueAsStr  := Value.AsInteger.ToString;
@@ -54,50 +71,80 @@ begin
       ValueAsStr  := VarToStr(Value.AsVariant);
     tkClassRef :
       ValueAsStr  := Value.AsClass.ClassName;
+    tkEnumeration :
+      ValueAsStr  := GetEnumName(Value.TypeInfo, Value.AsOrdinal);
+    tkSet :
+      ValueAsStr  := GetSetElementName(Value.TypeInfo, Value.AsOrdinal);
   else
       ValueAsStr  := 'Unhandled type';
-  //  tkUnknown, tkEnumeration, tkSet, tkClass, tkMethod, tkArray, tkRecord,
+  //  tkUnknown, tkClass, tkMethod, tkArray, tkRecord,
   //  tkInterface, tkDynArray, tkPointer, tkProcedure, tkMRecord
   end;
   ShowMessage(ValueAsStr);
 end;
 
-procedure TfrmContextDemo.butUpdateNamesClick(Sender: TObject);
+procedure TfrmContextDemo.butRunMacroClick(Sender: TObject);
+begin
+  Macros.Run(memMacro.Lines, fContext);
+  ShowContextNames;
+end;
+
+procedure TfrmContextDemo.ContextChange(Sender: TObject);
 var
-  Names: TStringList;
+  List: TList<IContext>;
 begin
-  Names := TStringList.Create;
+  //  Create a new selection of contexts
+  List  := TList<IContext>.Create;
   try
-    Names.Duplicates  := dupIgnore;
-    Names.Sorted      := True;
-    fContext.GetNames(Names);
-    cmbNames.Items.Assign(Names);
+    List.Add(fContextValues);
+    if  chkSystemValues.IsChecked then
+      List.Add(TContextSystem.Create);
+    if  chkForm.IsChecked then
+      List.Add(TContextObject.Create(Self, 'frm_'));
+    fContext  := TContexts.Create(List.ToArray);
   finally
-    Names.Free;
+    List.Free;
   end;
-end;
-
-procedure TfrmContextDemo.cmbNamesChange(Sender: TObject);
-begin
-  if  cmbNames.ItemIndex >= 0 then
-    edName.Text := cmbNames.Items[cmbNames.ItemIndex]
-end;
-
-procedure TfrmContextDemo.edNameChange(Sender: TObject);
-begin
-  cmbNames.ItemIndex  := cmbNames.Items.IndexOf(edName.Text)
+  //  Show the available names
+  ShowContextNames;
 end;
 
 procedure TfrmContextDemo.FormCreate(Sender: TObject);
 begin
-  //  This form
-  fContext  := TContexts.Create([RootContext, TContextObject.Create(Self, 'frm_')])
+  //  Macros
+  RegisterCommands;
+  Macros.ListCommands(lstMacros.Items);
+  //  Context
+  fContextValues  := TContextValues.Create;
+  ContextChange(nil);
 end;
 
-initialization
-  //  In this demo, the root context allows for:
-  //  - getting and setting values (TContextValues), but they are overshadowed by
-  //  - access to system values    (TContextSystem).
-  RootContext  := TContexts.Create([TContextValues.Create, TContextSystem.Create])
+procedure TfrmContextDemo.lstMacrosDblClick(Sender: TObject);
+begin
+  if  lstMacros.ItemIndex >= 0  then
+    begin
+      memMacro.Lines.Insert(memMacro.CaretPosition.Line + 1, lstMacros.Items[lstMacros.ItemIndex] + ' ');
+      memMacro.CaretPosition.IncrementLine;
+      memMacro.GoToLineEnd;
+    end;
+end;
+
+procedure TfrmContextDemo.lstNameValuesDblClick(Sender: TObject);
+var
+  Line: string;
+begin
+  if  lstNameValues.ItemIndex >= 0  then
+    begin
+      Line  := memMacro.Lines[memMacro.CaretPosition.Line];
+      Line  := Line.Insert(memMacro.CaretPosition.Pos, '<' + lstNameValues.Items[lstNameValues.ItemIndex] + '>');
+      memMacro.Lines[memMacro.CaretPosition.Line] := Line;
+    end;
+end;
+
+procedure TfrmContextDemo.ShowContextNames;
+begin
+  lstNameValues.Items.Clear;
+  fContext.GetNames(lstNameValues.Items);
+end;
 
 end.

@@ -6,7 +6,8 @@ uses
   FContextDemo in 'FContextDemo.pas' {frmContextDemo},
   uContextSystem in 'uContextSystem.pas',
   uContextObject in 'uContextObject.pas',
-  uMacro in 'uMacro.pas';
+  uMacro in 'uMacro.pas',
+  uMacroCommands in 'uMacroCommands.pas';
 
 {$R *.res}
 

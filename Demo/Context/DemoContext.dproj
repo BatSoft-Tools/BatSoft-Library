@@ -289,6 +289,7 @@
         <DCCReference Include="uContextSystem.pas"/>
         <DCCReference Include="uContextObject.pas"/>
         <DCCReference Include="uMacro.pas"/>
+        <DCCReference Include="uMacroCommands.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
