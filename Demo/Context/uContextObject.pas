@@ -13,7 +13,7 @@ type
     fObject: TObject;
     fProps: TDictionary<string, TRttiProperty>;
   public
-    constructor Create(const AObject: TObject; const APrefix: string; const AMemberVisibility: TMemberVisibility = mvPublic);
+    constructor Create(const AObject: TObject; const APrefix: string = ''; const AMemberVisibility: TMemberVisibility = mvPublic);
     destructor  Destroy; override;
     //  IContext interface
     function  HasValue(const Name: string): Boolean; override;

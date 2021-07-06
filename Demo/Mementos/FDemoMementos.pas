@@ -71,6 +71,7 @@ type
     panButtons: TPanel;
     butToggle: TButton;
     butClear: TButton;
+    labUseHints: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure edPerNameExit(Sender: TObject);

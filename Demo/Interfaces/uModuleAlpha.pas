@@ -26,6 +26,8 @@ begin
 end;
 
 initialization
+  //  The important part!
+  //  Module Alpha is registered as IAlpha.
   Modules.Register(IAlpha, TModuleAlpha.Create);
 
 end.

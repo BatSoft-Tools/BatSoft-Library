@@ -3,7 +3,7 @@ object frmChangeTest: TfrmChangeTest
   Top = 0
   Caption = 'Demo: Mementos'
   ClientHeight = 495
-  ClientWidth = 405
+  ClientWidth = 497
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -97,12 +97,17 @@ object frmChangeTest: TfrmChangeTest
       OnExit = edPerNameExit
     end
     object edVersion: TLabel
+      Hint = 
+        'Shows which version you'#39're currently on.  Use the Undo and Redo ' +
+        'buttons in the bottom right corner.'
       Position.X = 96.000000000000000000
       Position.Y = 40.000000000000000000
       Size.Width = 97.000000000000000000
       Size.Height = 17.000000000000000000
       Size.PlatformDefault = False
       Text = 'edVersion'
+      ParentShowHint = False
+      ShowHint = True
     end
     object labAge: TLabel
       Position.X = 24.000000000000000000
@@ -145,70 +150,94 @@ object frmChangeTest: TfrmChangeTest
       Text = 'PerName'
     end
     object labVersion: TLabel
+      Hint = 
+        'Shows which version you'#39're currently on.  Use the Undo and Redo ' +
+        'buttons in the bottom right corner.'
       Position.X = 24.000000000000000000
       Position.Y = 40.000000000000000000
       Size.Width = 65.000000000000000000
       Size.Height = 17.000000000000000000
       Size.PlatformDefault = False
       Text = 'Version'
+      ParentShowHint = False
+      ShowHint = True
     end
   end
   object panButtons: TPanel
     Align = Bottom
     Position.Y = 350.000000000000000000
-    Size.Width = 405.000000000000000000
+    Size.Width = 497.000000000000000000
     Size.Height = 145.000000000000000000
     Size.PlatformDefault = False
     object butBackup: TButton
-      Position.X = 112.000000000000000000
+      Hint = 
+        'Take a snapshot. A backup memento can only have one snapshot. A ' +
+        'versioned memento can have multiple snapshots.'
+      Position.X = 208.000000000000000000
       Position.Y = 72.000000000000000000
       Text = 'Backup'
       OnClick = butBackupClick
     end
     object butCreate: TButton
+      Hint = 'Create the memento object. (See the button just above this.)'
       Position.X = 16.000000000000000000
       Position.Y = 72.000000000000000000
       Text = 'Create'
       OnClick = butCreateClick
     end
     object butFree: TButton
+      Hint = 'Free the memento object.'
       Position.X = 16.000000000000000000
       Position.Y = 104.000000000000000000
       Text = 'Free'
       OnClick = butFreeClick
     end
     object butHasChanged: TButton
-      Position.X = 208.000000000000000000
+      Hint = 
+        'Indicates whether there are any differences between the current ' +
+        'state and the snapshot. (Edit fields, then click this.)'
+      Position.X = 304.000000000000000000
       Position.Y = 72.000000000000000000
       Text = 'HasChanges'
       OnClick = butHasChangedClick
     end
     object butListChanges: TButton
-      Position.X = 208.000000000000000000
+      Hint = 
+        'Lists the differences between the current state and the snapshot' +
+        '. (Edit fields, then click this.)'
+      Position.X = 304.000000000000000000
       Position.Y = 104.000000000000000000
       Text = 'ListChanges'
       OnClick = butListChangesClick
     end
     object butPopulate: TButton
+      Hint = 'Populate the fields with some default values.'
       Position.X = 112.000000000000000000
-      Position.Y = 40.000000000000000000
+      Position.Y = 72.000000000000000000
       Text = 'Populate'
       OnClick = butPopulateClick
     end
     object butRedo: TButton
-      Position.X = 304.000000000000000000
+      Hint = 
+        'Make sure you have multiple versions before clicking this. (See ' +
+        'the Version field at the very top.)'
+      Position.X = 400.000000000000000000
       Position.Y = 104.000000000000000000
       Text = 'Redo'
       OnClick = butRedoClick
     end
     object butRestore: TButton
-      Position.X = 112.000000000000000000
+      Hint = 'Restore a snapshot. (Edit fields, then click this.)'
+      Position.X = 208.000000000000000000
       Position.Y = 104.000000000000000000
       Text = 'Restore'
       OnClick = butRestoreClick
     end
     object butUndo: TButton
-      Position.X = 304.000000000000000000
+      Hint = 
+        'Make sure you have multiple versions before clicking this. (See ' +
+        'the Version field at the very top.)'
+      Position.X = 400.000000000000000000
       Position.Y = 72.000000000000000000
       Text = 'Undo'
       OnClick = butUndoClick
@@ -216,14 +245,14 @@ object frmChangeTest: TfrmChangeTest
     object edRefCounter: TEdit
       Touch.InteractiveGestures = [LongTap, DoubleTap]
       ReadOnly = True
-      Position.X = 304.000000000000000000
+      Position.X = 400.000000000000000000
       Position.Y = 40.000000000000000000
       Size.Width = 81.000000000000000000
       Size.Height = 22.000000000000000000
       Size.PlatformDefault = False
     end
     object labRefCounter: TLabel
-      Position.X = 304.000000000000000000
+      Position.X = 400.000000000000000000
       Position.Y = 16.000000000000000000
       Size.Width = 65.000000000000000000
       Size.Height = 17.000000000000000000
@@ -231,16 +260,28 @@ object frmChangeTest: TfrmChangeTest
       Text = 'RefCounter'
     end
     object butToggle: TButton
+      Hint = 
+        'Choose between a backup memento (one version) or versioned memen' +
+        'to (multiple versions).'
       Position.X = 16.000000000000000000
       Position.Y = 40.000000000000000000
       Text = 'Toggle'
       OnClick = butToggleClick
     end
     object butClear: TButton
-      Position.X = 208.000000000000000000
-      Position.Y = 40.000000000000000000
+      Hint = 'Clear all fields.'
+      Position.X = 112.000000000000000000
+      Position.Y = 104.000000000000000000
       Text = 'Clear'
       OnClick = butClearClick
+    end
+    object labUseHints: TLabel
+      Position.X = 16.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 321.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'These buttons all have hints.  Read those hints.'
     end
   end
 end
