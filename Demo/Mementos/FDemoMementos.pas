@@ -55,7 +55,6 @@ type
     butListChanges: TButton;
     butUndo: TButton;
     butRedo: TButton;
-    labRefCounter: TLabel;
     edRefCounter: TEdit;
     labCounter: TLabel;
     chkCounter: TCheckBox;

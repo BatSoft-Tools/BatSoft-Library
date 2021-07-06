@@ -1,4 +1,4 @@
-Version 4.0
+Version 4.1
 
 Copyright: Peter Thönell (BatSoft)
 Feel free to use this in your projects, both commercial and personal.

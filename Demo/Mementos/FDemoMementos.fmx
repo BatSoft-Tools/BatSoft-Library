@@ -2,7 +2,7 @@ object frmChangeTest: TfrmChangeTest
   Left = 0
   Top = 0
   Caption = 'Demo: Mementos'
-  ClientHeight = 495
+  ClientHeight = 462
   ClientWidth = 497
   FormFactor.Width = 320
   FormFactor.Height = 480
@@ -10,15 +10,15 @@ object frmChangeTest: TfrmChangeTest
   OnCreate = FormCreate
   DesignerMasterStyle = 0
   object grpTPerson: TGroupBox
-    Align = Left
-    Size.Width = 409.000000000000000000
-    Size.Height = 350.000000000000000000
+    Align = Client
+    Size.Width = 497.000000000000000000
+    Size.Height = 317.000000000000000000
     Size.PlatformDefault = False
     Text = 'TPerson'
     object grpTAddress: TGroupBox
       Align = Bottom
-      Position.Y = 247.000000000000000000
-      Size.Width = 409.000000000000000000
+      Position.Y = 214.000000000000000000
+      Size.Width = 497.000000000000000000
       Size.Height = 103.000000000000000000
       Size.PlatformDefault = False
       Text = 'TAddress'
@@ -59,7 +59,7 @@ object frmChangeTest: TfrmChangeTest
     end
     object chkCounter: TCheckBox
       Position.X = 96.000000000000000000
-      Position.Y = 136.000000000000000000
+      Position.Y = 104.000000000000000000
       Size.Width = 97.000000000000000000
       Size.Height = 19.000000000000000000
       Size.PlatformDefault = False
@@ -69,20 +69,20 @@ object frmChangeTest: TfrmChangeTest
       Touch.InteractiveGestures = [LongTap, DoubleTap]
       Cursor = crIBeam
       Position.X = 96.000000000000000000
-      Position.Y = 64.000000000000000000
+      Position.Y = 32.000000000000000000
       OnExit = edAgeExit
     end
     object edFamName: TEdit
       Touch.InteractiveGestures = [LongTap, DoubleTap]
       Position.X = 96.000000000000000000
-      Position.Y = 112.000000000000000000
+      Position.Y = 80.000000000000000000
       OnExit = edFamNameExit
     end
     object edNotes: TMemo
       Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
       DataDetectorTypes = []
       Position.X = 96.000000000000000000
-      Position.Y = 160.000000000000000000
+      Position.Y = 128.000000000000000000
       Size.Width = 233.000000000000000000
       Size.Height = 73.000000000000000000
       Size.PlatformDefault = False
@@ -93,25 +93,12 @@ object frmChangeTest: TfrmChangeTest
     object edPerName: TEdit
       Touch.InteractiveGestures = [LongTap, DoubleTap]
       Position.X = 96.000000000000000000
-      Position.Y = 88.000000000000000000
+      Position.Y = 56.000000000000000000
       OnExit = edPerNameExit
-    end
-    object edVersion: TLabel
-      Hint = 
-        'Shows which version you'#39're currently on.  Use the Undo and Redo ' +
-        'buttons in the bottom right corner.'
-      Position.X = 96.000000000000000000
-      Position.Y = 40.000000000000000000
-      Size.Width = 97.000000000000000000
-      Size.Height = 17.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'edVersion'
-      ParentShowHint = False
-      ShowHint = True
     end
     object labAge: TLabel
       Position.X = 24.000000000000000000
-      Position.Y = 64.000000000000000000
+      Position.Y = 32.000000000000000000
       Size.Width = 65.000000000000000000
       Size.Height = 17.000000000000000000
       Size.PlatformDefault = False
@@ -119,7 +106,7 @@ object frmChangeTest: TfrmChangeTest
     end
     object labCounter: TLabel
       Position.X = 24.000000000000000000
-      Position.Y = 136.000000000000000000
+      Position.Y = 104.000000000000000000
       Size.Width = 65.000000000000000000
       Size.Height = 17.000000000000000000
       Size.PlatformDefault = False
@@ -127,7 +114,7 @@ object frmChangeTest: TfrmChangeTest
     end
     object labFamName: TLabel
       Position.X = 24.000000000000000000
-      Position.Y = 112.000000000000000000
+      Position.Y = 80.000000000000000000
       Size.Width = 65.000000000000000000
       Size.Height = 17.000000000000000000
       Size.PlatformDefault = False
@@ -135,7 +122,7 @@ object frmChangeTest: TfrmChangeTest
     end
     object labNotes: TLabel
       Position.X = 24.000000000000000000
-      Position.Y = 160.000000000000000000
+      Position.Y = 128.000000000000000000
       Size.Width = 65.000000000000000000
       Size.Height = 17.000000000000000000
       Size.PlatformDefault = False
@@ -143,29 +130,25 @@ object frmChangeTest: TfrmChangeTest
     end
     object labPerName: TLabel
       Position.X = 24.000000000000000000
-      Position.Y = 88.000000000000000000
+      Position.Y = 56.000000000000000000
       Size.Width = 65.000000000000000000
       Size.Height = 17.000000000000000000
       Size.PlatformDefault = False
       Text = 'PerName'
     end
-    object labVersion: TLabel
-      Hint = 
-        'Shows which version you'#39're currently on.  Use the Undo and Redo ' +
-        'buttons in the bottom right corner.'
-      Position.X = 24.000000000000000000
-      Position.Y = 40.000000000000000000
-      Size.Width = 65.000000000000000000
-      Size.Height = 17.000000000000000000
+    object edRefCounter: TEdit
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      ReadOnly = True
+      Position.X = 115.000000000000000000
+      Position.Y = 104.000000000000000000
+      Size.Width = 81.000000000000000000
+      Size.Height = 22.000000000000000000
       Size.PlatformDefault = False
-      Text = 'Version'
-      ParentShowHint = False
-      ShowHint = True
     end
   end
   object panButtons: TPanel
     Align = Bottom
-    Position.Y = 350.000000000000000000
+    Position.Y = 317.000000000000000000
     Size.Width = 497.000000000000000000
     Size.Height = 145.000000000000000000
     Size.PlatformDefault = False
@@ -242,23 +225,6 @@ object frmChangeTest: TfrmChangeTest
       Text = 'Undo'
       OnClick = butUndoClick
     end
-    object edRefCounter: TEdit
-      Touch.InteractiveGestures = [LongTap, DoubleTap]
-      ReadOnly = True
-      Position.X = 400.000000000000000000
-      Position.Y = 40.000000000000000000
-      Size.Width = 81.000000000000000000
-      Size.Height = 22.000000000000000000
-      Size.PlatformDefault = False
-    end
-    object labRefCounter: TLabel
-      Position.X = 400.000000000000000000
-      Position.Y = 16.000000000000000000
-      Size.Width = 65.000000000000000000
-      Size.Height = 17.000000000000000000
-      Size.PlatformDefault = False
-      Text = 'RefCounter'
-    end
     object butToggle: TButton
       Hint = 
         'Choose between a backup memento (one version) or versioned memen' +
@@ -282,6 +248,32 @@ object frmChangeTest: TfrmChangeTest
       Size.Height = 17.000000000000000000
       Size.PlatformDefault = False
       Text = 'These buttons all have hints.  Read those hints.'
+    end
+    object edVersion: TLabel
+      Hint = 
+        'Shows which version you'#39're currently on.  Use the Undo and Redo ' +
+        'buttons in the bottom right corner.'
+      Position.X = 400.000000000000000000
+      Position.Y = 40.000000000000000000
+      Size.Width = 81.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'edVersion'
+      ParentShowHint = False
+      ShowHint = True
+    end
+    object labVersion: TLabel
+      Hint = 
+        'Shows which version you'#39're currently on.  Use the Undo and Redo ' +
+        'buttons in the bottom right corner.'
+      Position.X = 400.000000000000000000
+      Position.Y = 16.000000000000000000
+      Size.Width = 81.000000000000000000
+      Size.Height = 17.000000000000000000
+      Size.PlatformDefault = False
+      Text = 'Version'
+      ParentShowHint = False
+      ShowHint = True
     end
   end
 end
