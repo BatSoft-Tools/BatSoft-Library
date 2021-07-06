@@ -105,6 +105,8 @@ end;
 
 procedure TfrmDemoSettings.butSaveINIClick(Sender: TObject);
 begin
+  Settings.UserForm := Self.Bounds;
+  //  Set up the save dialog
   SaveDialog.DefaultExt   := SIni;
   SaveDialog.FilterIndex  := 1;
   if  SaveDialog.Execute  then
@@ -114,6 +116,8 @@ end;
 
 procedure TfrmDemoSettings.butSaveJSONClick(Sender: TObject);
 begin
+  Settings.UserForm := Self.Bounds;
+  //  Set up the save dialog
   SaveDialog.DefaultExt   := SJson;
   SaveDialog.FilterIndex  := 2;
   if  SaveDialog.Execute  then
@@ -228,6 +232,9 @@ begin
   finally
     cmbActiveUser.Items.EndUpdate;
   end;
+  //  Form position
+  Self.Bounds := Settings.UserForm;
+  //  Update UI state
   PopulateState;
 end;
 

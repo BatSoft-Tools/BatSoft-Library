@@ -32,7 +32,7 @@ type
     property  BDate : TDate   read fBDate write fBDate;
   end;
 
-  //  This is registered (as the bottom of this unit) as a list class.
+  //  This is registered (at the bottom of this unit) as a list class.
   //  In some formats (ex. JSON) a list is saved differently from an object,
   //  therefore properties will not be saved.
   //  So a registered list object (like this one) must not have any other settings.
