@@ -1,0 +1,102 @@
+object frmExample1: TfrmExample1
+  Left = 0
+  Top = 0
+  Caption = 'Example1'
+  ClientHeight = 480
+  ClientWidth = 281
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object loROEditors: TLayout
+    Align = Client
+    Size.Width = 281.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
+    object loEditorsControls: TLayout
+      Align = Top
+      Position.Y = 121.000000000000000000
+      Size.Width = 281.000000000000000000
+      Size.Height = 144.000000000000000000
+      Size.PlatformDefault = False
+      object edROEditorsCount: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Max = 1000000000.000000000000000000
+        Value = 1000000.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 32.000000000000000000
+        Size.Width = 249.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edROEditorsCountChange
+        object Label1: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Count'
+        end
+      end
+      object edROEditorsHeight: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Max = 1000.000000000000000000
+        Value = 20.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 80.000000000000000000
+        Size.Width = 249.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edROEditorsHeightChange
+        object Label2: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Height'
+        end
+      end
+      object chkScrollbar: TCheckBox
+        IsChecked = True
+        Position.X = 16.000000000000000000
+        Position.Y = 112.000000000000000000
+        Text = 'ShowScrollbar'
+        OnChange = chkScrollbarChange
+      end
+    end
+    object lstROEditors: TListSpinner
+      Align = Client
+      Margins.Left = 8.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 8.000000000000000000
+      Size.Width = 265.000000000000000000
+      Size.Height = 199.000000000000000000
+      Size.PlatformDefault = False
+      ShowScrollbar = True
+      ItemCount = 1000000
+      OnGetShowItem = lstROEditorsGetShowItem
+    end
+    object Memo1: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Lines.Strings = (
+        'Example 1'
+        'Simply shows read-only edit boxes.')
+      ReadOnly = True
+      ShowScrollBars = False
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.WordWrap = True
+      Align = Top
+      Size.Width = 281.000000000000000000
+      Size.Height = 121.000000000000000000
+      Size.PlatformDefault = False
+      Viewport.Width = 281.000000000000000000
+      Viewport.Height = 121.000000000000000000
+    end
+  end
+end

@@ -1,0 +1,117 @@
+object frmExample3: TfrmExample3
+  Left = 0
+  Top = 0
+  Caption = 'Example 3'
+  ClientHeight = 729
+  ClientWidth = 423
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  DesignerMasterStyle = 0
+  object loDifferent: TLayout
+    Align = Client
+    Size.Width = 423.000000000000000000
+    Size.Height = 729.000000000000000000
+    Size.PlatformDefault = False
+    object Layout4: TLayout
+      Align = Top
+      Position.Y = 121.000000000000000000
+      Size.Width = 423.000000000000000000
+      Size.Height = 184.000000000000000000
+      Size.PlatformDefault = False
+      object edDifferentHeight: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Max = 1000.000000000000000000
+        Value = 130.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 32.000000000000000000
+        Size.Width = 391.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edDifferentHeightChange
+        object Label6: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Height'
+        end
+      end
+      object edDifferentItemIndex: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Min = -1.000000000000000000
+        Max = 1000000001.000000000000000000
+        Value = -1.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 80.000000000000000000
+        Size.Width = 393.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edDifferentItemIndexChange
+        object Label8: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'ItemIndex'
+        end
+      end
+      object butJumpTo: TButton
+        Position.X = 16.000000000000000000
+        Position.Y = 120.000000000000000000
+        Size.Width = 249.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'JumpTo ItemIndex'
+        OnClick = butJumpToClick
+      end
+      object chkScrollbar: TCheckBox
+        Position.X = 24.000000000000000000
+        Position.Y = 152.000000000000000000
+        Text = 'ShowScrollbar'
+        OnChange = chkScrollbarChange
+      end
+    end
+    object lstDifferent: TListSpinner
+      Align = Client
+      Margins.Left = 8.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 8.000000000000000000
+      Size.Width = 407.000000000000000000
+      Size.Height = 408.000000000000000000
+      Size.PlatformDefault = False
+      ItemCount = 10
+      ItemHeight = 130
+      OnGetShowItem = lstDifferentGetShowItem
+      OnGetEditItem = lstDifferentGetEditItem
+    end
+    object Memo3: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Lines.Strings = (
+        'Example 3'
+        
+          'We can also display different editors for different items. Very ' +
+          'useful for lists of different types of objects.'
+        'These editors work.')
+      ReadOnly = True
+      ShowScrollBars = False
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.WordWrap = True
+      Align = Top
+      Size.Width = 423.000000000000000000
+      Size.Height = 121.000000000000000000
+      Size.PlatformDefault = False
+      Viewport.Width = 419.000000000000000000
+      Viewport.Height = 117.000000000000000000
+    end
+  end
+end

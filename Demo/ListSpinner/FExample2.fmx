@@ -1,0 +1,117 @@
+object frmExample2: TfrmExample2
+  Left = 0
+  Top = 0
+  Caption = 'Example 2'
+  ClientHeight = 610
+  ClientWidth = 366
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object loWritable: TLayout
+    Align = Client
+    Size.Width = 366.000000000000000000
+    Size.Height = 610.000000000000000000
+    Size.PlatformDefault = False
+    object Layout2: TLayout
+      Align = Top
+      Position.Y = 121.000000000000000000
+      Size.Width = 366.000000000000000000
+      Size.Height = 176.000000000000000000
+      Size.PlatformDefault = False
+      object edWritableCount: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Max = 1000000000.000000000000000000
+        Value = 10.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 32.000000000000000000
+        Size.Width = 334.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edWritableCountChange
+        object Label3: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Count'
+        end
+      end
+      object edWritableHeight: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Max = 1000.000000000000000000
+        Value = 20.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 80.000000000000000000
+        Size.Width = 334.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edWritableHeightChange
+        object Label4: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Height'
+        end
+      end
+      object edWritableItemIndex: TSpinBox
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Anchors = [akLeft, akTop, akRight]
+        Cursor = crIBeam
+        Min = -1.000000000000000000
+        Max = 1000000001.000000000000000000
+        Value = -1.000000000000000000
+        Position.X = 16.000000000000000000
+        Position.Y = 128.000000000000000000
+        Size.Width = 334.000000000000000000
+        Size.Height = 22.000000000000000000
+        Size.PlatformDefault = False
+        OnChange = edWritableItemIndexChange
+        object Label7: TLabel
+          Position.Y = -19.000000000000000000
+          Size.Width = 105.000000000000000000
+          Size.Height = 17.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'ItemIndex'
+        end
+      end
+    end
+    object lstWritable: TListSpinner
+      Align = Client
+      Margins.Left = 8.000000000000000000
+      Margins.Top = 8.000000000000000000
+      Margins.Right = 8.000000000000000000
+      Margins.Bottom = 8.000000000000000000
+      Size.Width = 350.000000000000000000
+      Size.Height = 297.000000000000000000
+      Size.PlatformDefault = False
+      ItemCount = 10
+      OnGetShowItem = lstWritableGetShowItem
+      OnGetEditItem = lstWritableGetEditItem
+    end
+    object Memo2: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Lines.Strings = (
+        'Example 2'
+        'Here we show an editable control.'
+        'In this example the editor does not do anything.')
+      ReadOnly = True
+      ShowScrollBars = False
+      StyledSettings = [Family, Style, FontColor]
+      TextSettings.Font.Size = 16.000000000000000000
+      TextSettings.WordWrap = True
+      Align = Top
+      Size.Width = 366.000000000000000000
+      Size.Height = 121.000000000000000000
+      Size.PlatformDefault = False
+      Viewport.Width = 366.000000000000000000
+      Viewport.Height = 121.000000000000000000
+    end
+  end
+end
