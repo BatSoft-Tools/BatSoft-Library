@@ -116,6 +116,7 @@ type
   private
     fItemIndex: integer;
     fEditor: TControl;
+    fOnChanged: TNotifyEvent;
     fOnGetEditItem: TListSpinnerEvent;
     procedure SetItemIndex(const Value: integer);
     procedure PlaceEditor;
@@ -124,6 +125,7 @@ type
     procedure MouseClick(Button: TMouseButton; Shift: TShiftState; X: Single; Y: Single); override;
   published
     property  ItemIndex     : integer           read fItemIndex       write SetItemIndex  default -1;
+    property  OnChanged     : TNotifyEvent      read fOnChanged       write fOnChanged;
     property  OnGetEditItem : TListSpinnerEvent read fOnGetEditItem   write fOnGetEditItem;
   end;
 
@@ -345,11 +347,14 @@ var
   Top: integer;
   ItemWidth: Single;
   Item: TControl;
+  WasVisible: Boolean;
 begin
   if  Assigned(fOnPaintBegin) then
     fOnPaintBegin(Self);
   try
     inherited;
+    if (csDesigning in ComponentState) and not Locked then
+      DrawDesignBorder;
     Index := Trunc(fCalcs.ViewportPosition.Y / fItemHeight);
     Top   := Trunc(Index * fItemHeight - fCalcs.ViewportPosition.Y);
     ItemWidth := GetItemWidth;
@@ -361,9 +366,16 @@ begin
             Item  := fOnGetShowItem(Self, Index);
         if  Assigned(Item)  then
           begin
-            Item.Width  := ItemWidth;
-            Item.Height := fItemHeight;
-            Item.PaintTo(Self.Canvas, RectF(0, Top, ItemWidth, Top + Item.Height), Self);
+            WasVisible  := Item.Visible;
+            try
+              Item.Visible  := True;
+              ApplyStyleLookupToAll(Item);
+              Item.Width    := ItemWidth;
+              Item.Height   := fItemHeight;
+              Item.PaintTo(Self.Canvas, RectF(0, Top, ItemWidth, Top + Item.Height), Self);
+            finally
+              Item.Visible  := WasVisible;
+            end;
           end;
         inc(Index);
         inc(Top, fItemHeight);
@@ -432,6 +444,8 @@ begin
     Exit;
   if  Assigned(fEditor) then
     fEditor.Visible := False;
+  if  Assigned(fOnChanged)  then
+    fOnChanged(Self);
   fItemIndex  := Value;
   if  ((fItemIndex < 0) or (fItemCount <= fItemIndex)) and Assigned(fEditor)  then
     fEditor.Visible := False;
