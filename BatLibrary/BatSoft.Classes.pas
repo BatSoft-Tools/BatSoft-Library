@@ -28,35 +28,13 @@ type
   //
   //  Add the following to your class declaration:
   //    private
-  //      fRefCounter: IInterface;
+  //      fRefCounter: TRefCountMyOwner;
   //    public
-  //      //  IInterface interface
-  //      function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
-  //      function _AddRef: Integer; stdcall;
-  //      function _Release: Integer; stdcall;
+  //      property  RefCounter: TRefCountMyOwner read fRefCounter implements IMyInterface;
   //
   //  In the constructor add:
   //    fRefCounter   := TRefCountMyOwner.Create(Self);
   //
-  //  Add the following implementationa:
-  //    function TMyClass.QueryInterface(const IID: TGUID; out Obj): HResult;
-  //    begin
-  //      if GetInterface(IID, Obj) then
-  //        Result := 0
-  //      else
-  //        Result := E_NOINTERFACE;
-  //    end;
-  //
-  //    function TMyClass._AddRef: Integer;
-  //    begin
-  //      Result  := fRefCounter._AddRef
-  //    end;
-  //
-  //    function TMyClass._Release: Integer;
-  //    begin
-  //      Result  := fRefCounter._Release
-  //    end;
-
   /// Add interfaces to a class that is not a TInterfacedObject.
   TRefCountMyOwner = class(TMinRefCountObject, IInterface)
   private
