@@ -118,7 +118,7 @@ type
     fEditor: TControl;
     fOnChanged: TNotifyEvent;
     fOnGetEditItem: TListSpinnerEvent;
-    procedure SetItemIndex(const Value: integer);
+    procedure SetItemIndex(Value: integer);
     procedure PlaceEditor;
   protected
     procedure Loaded; override;
@@ -438,18 +438,20 @@ begin
   RefreshFloorSize;
 end;
 
-procedure TListSpinner.SetItemIndex(const Value: integer);
+procedure TListSpinner.SetItemIndex(Value: integer);
 begin
+  if  (Value < 0) or (Value >= fItemCount)  then
+    Value := -1;
   if  Value = fItemIndex  then
     Exit;
   if  Assigned(fEditor) then
     fEditor.Visible := False;
+  fItemIndex  := Value;
   if  Assigned(fOnChanged)  then
     fOnChanged(Self);
-  fItemIndex  := Value;
   if  ((fItemIndex < 0) or (fItemCount <= fItemIndex)) and Assigned(fEditor)  then
     fEditor.Visible := False;
-  if  Assigned(fOnGetEditItem) then
+  if  Assigned(fOnGetEditItem) and (fItemIndex >= 0) and (fItemIndex < fItemCount)  then
     fEditor := fOnGetEditItem(Self, fItemIndex);
   if  (fItemIndex < 0) or (fItemCount <= fItemIndex)  then
     fEditor := nil;
