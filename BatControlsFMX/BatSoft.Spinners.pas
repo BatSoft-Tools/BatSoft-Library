@@ -72,6 +72,8 @@ type
     property  TouchTargetExpansion; //  Set of optional pixel values you can specify to expand the touch target of a FireMonkey styled control.
     property  Visible;  //  Specifies whether the component appears onscreen.
 //    property  Width;  //  Specifies the horizontal size of the control (in pixels).
+    property OnClick;
+    property OnDblClick;
   end;
 
   TListSpinner = class;
