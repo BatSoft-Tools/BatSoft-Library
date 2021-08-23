@@ -10,12 +10,6 @@ uses
 
 type
   TfrmItemControls = class(TForm)
-    edDisplayOnly: TEdit;
-    Label2: TLabel;
-    Label3: TLabel;
-    edEditable: TEdit;
-    Label1: TLabel;
-    labDisplayOnly: TLabel;
     frameEmpContractShow: TframeEmpContract;
     frameEmpFullTimeShow: TframeEmpFullTime;
     frameEmpPartTimeShow: TframeEmpPartTime;

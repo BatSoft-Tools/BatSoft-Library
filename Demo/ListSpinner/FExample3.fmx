@@ -110,8 +110,8 @@ object frmExample3: TfrmExample3
       Size.Width = 423.000000000000000000
       Size.Height = 121.000000000000000000
       Size.PlatformDefault = False
-      Viewport.Width = 419.000000000000000000
-      Viewport.Height = 117.000000000000000000
+      Viewport.Width = 423.000000000000000000
+      Viewport.Height = 121.000000000000000000
     end
   end
 end

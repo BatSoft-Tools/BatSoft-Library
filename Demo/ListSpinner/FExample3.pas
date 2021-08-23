@@ -86,6 +86,7 @@ begin
   //  Obtain the object
   Emp := fEmployments[Index] as TEmployment;
   //  Show the correct frame, and populate it
+  //  (Disclaimer: In production code I *never* write unmaintainable code like this.)
   Result  := nil;
   if  Emp is TContract  then
     begin
@@ -115,6 +116,7 @@ begin
   //  Obtain the object
   Emp := fEmployments[Index] as TEmployment;
   //  Show the correct frame, and populate it
+  //  (Disclaimer: In production code I *never* write unmaintainable code like this.)
   Result  := nil;
   if  Emp is TContract  then
     begin

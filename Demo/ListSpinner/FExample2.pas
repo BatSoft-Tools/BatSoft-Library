@@ -20,11 +20,16 @@ type
     Label7: TLabel;
     lstWritable: TListSpinner;
     Memo2: TMemo;
+    labDisplayOnly: TLabel;
+    edEditable: TEdit;
+    labComment1: TLabel;
+    labComment2: TLabel;
     procedure edWritableCountChange(Sender: TObject);
     procedure edWritableHeightChange(Sender: TObject);
     procedure edWritableItemIndexChange(Sender: TObject);
     function lstWritableGetEditItem(Sender: TListSpinner; Index: Integer): TControl;
     function lstWritableGetShowItem(Sender: TListSpinner; Index: Integer): TControl;
+    procedure FormCreate(Sender: TObject);
   end;
 
 var
@@ -33,9 +38,6 @@ var
 implementation
 
 {$R *.fmx}
-
-uses
-  FItemControls;
 
 { TfrmExample2 }
 
@@ -54,18 +56,30 @@ begin
   lstWritable.ItemIndex   := Trunc(edWritableItemIndex.Value);
 end;
 
+procedure TfrmExample2.FormCreate(Sender: TObject);
+begin
+  labComment1.Visible     := False;
+  labComment2.Visible     := False;
+  labDisplayOnly.Visible  := False;
+  edEditable.Visible      := False;
+end;
+
 function TfrmExample2.lstWritableGetEditItem(Sender: TListSpinner; Index: Integer): TControl;
 begin
-  Result  := frmItemControls.edEditable;
-  frmItemControls.edEditable.Text  := 'Editable ' + Index.ToString;
+  //  This is what we will use to edit
+  Result  := edEditable;
+  //  Populate it
+  edEditable.Text  := 'Editable ' + Index.ToString;
   //  Never mind this.  This is only for the demo.
   edWritableItemIndex.Value := Index;
 end;
 
 function TfrmExample2.lstWritableGetShowItem(Sender: TListSpinner; Index: Integer): TControl;
 begin
-  Result  := frmItemControls.labDisplayOnly;
-  frmItemControls.labDisplayOnly.Text := 'Display ' + Index.ToString;
+  //  This is what we will use to display
+  Result  := labDisplayOnly;
+  //  Populate it
+  labDisplayOnly.Text := 'Display ' + Index.ToString;
 end;
 
 end.

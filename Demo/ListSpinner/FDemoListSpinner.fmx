@@ -15,7 +15,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     Size.Width = 129.000000000000000000
     Size.Height = 22.000000000000000000
     Size.PlatformDefault = False
-    Text = 'butShowExample1'
+    Text = 'Example 1'
     OnClick = butShowExample1Click
   end
   object butShowExample2: TButton
@@ -24,7 +24,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     Size.Width = 129.000000000000000000
     Size.Height = 22.000000000000000000
     Size.PlatformDefault = False
-    Text = 'butShowExample1'
+    Text = 'Example 2'
     OnClick = butShowExample2Click
   end
   object butShowExample3: TButton
@@ -33,7 +33,7 @@ object frmDemoListSpinner: TfrmDemoListSpinner
     Size.Width = 129.000000000000000000
     Size.Height = 22.000000000000000000
     Size.PlatformDefault = False
-    Text = 'butShowExample3'
+    Text = 'Example 3'
     OnClick = butShowExample3Click
   end
 end

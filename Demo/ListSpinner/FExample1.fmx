@@ -7,6 +7,7 @@ object frmExample1: TfrmExample1
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
   DesignerMasterStyle = 0
   object loROEditors: TLayout
     Align = Client
@@ -79,6 +80,19 @@ object frmExample1: TfrmExample1
       ShowScrollbar = True
       ItemCount = 1000000
       OnGetShowItem = lstROEditorsGetShowItem
+      object edDisplayOnly: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Position.X = 8.000000000000000000
+        Position.Y = 40.000000000000000000
+      end
+      object labComment: TLabel
+        Position.X = 8.000000000000000000
+        Position.Y = 16.000000000000000000
+        Size.Width = 257.000000000000000000
+        Size.Height = 17.000000000000000000
+        Size.PlatformDefault = False
+        Text = 'This TEdit is used for read-only display.'
+      end
     end
     object Memo1: TMemo
       Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]

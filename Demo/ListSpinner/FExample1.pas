@@ -19,10 +19,13 @@ type
     chkScrollbar: TCheckBox;
     lstROEditors: TListSpinner;
     Memo1: TMemo;
+    edDisplayOnly: TEdit;
+    labComment: TLabel;
     procedure edROEditorsCountChange(Sender: TObject);
     procedure edROEditorsHeightChange(Sender: TObject);
     procedure chkScrollbarChange(Sender: TObject);
     function lstROEditorsGetShowItem(Sender: TListSpinner; Index: Integer): TControl;
+    procedure FormCreate(Sender: TObject);
   end;
 
 var
@@ -31,9 +34,6 @@ var
 implementation
 
 {$R *.fmx}
-
-uses
-  FItemControls;
 
 { TfrmExample1 }
 
@@ -52,10 +52,18 @@ begin
   lstROEditors.ItemHeight     := Trunc(edROEditorsHeight.Value);
 end;
 
+procedure TfrmExample1.FormCreate(Sender: TObject);
+begin
+  labComment.Visible    := False;
+  edDisplayOnly.Visible := False;
+end;
+
 function TfrmExample1.lstROEditorsGetShowItem(Sender: TListSpinner; Index: Integer): TControl;
 begin
-  Result  := frmItemControls.edDisplayOnly;
-  frmItemControls.edDisplayOnly.Text  := 'Display ' + Index.ToString;
+  //  This is what we will use to display
+  Result  := edDisplayOnly;
+  //  Populate it
+  edDisplayOnly.Text  := 'Display ' + Index.ToString;
 end;
 
 end.
