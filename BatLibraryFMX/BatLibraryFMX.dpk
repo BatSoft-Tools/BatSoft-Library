@@ -32,6 +32,7 @@ requires
   fmx;
 
 contains
-  BatSoft.Translator in 'BatSoft.Translator.pas';
+  BatSoft.Translator in 'BatSoft.Translator.pas',
+  BatSoft.Classes.FMX;
 
 end.

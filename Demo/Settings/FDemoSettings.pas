@@ -135,6 +135,7 @@ begin
   Settings.UserNames.Add('John Stag');
   Settings.UserNames.Add('Jane Doe');
   Settings.UserNames.Add('Sonny Skye');
+  Settings.UserForm := Self.Bounds;
   PopulateUsers;
 end;
 
@@ -233,7 +234,8 @@ begin
     cmbActiveUser.Items.EndUpdate;
   end;
   //  Form position
-  Self.Bounds := Settings.UserForm;
+  if not Settings.UserForm.IsEmpty then
+    Self.Bounds := Settings.UserForm;
   //  Update UI state
   PopulateState;
 end;

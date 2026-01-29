@@ -148,6 +148,7 @@
         <DCCReference Include="BatSoft.Settings.JSON.pas"/>
         <DCCReference Include="BatSoft.Settings.Types.pas"/>
         <DCCReference Include="BatSoft.Context.pas"/>
+        <DCCReference Include="BatSoft.Factories.pas"/>
         <DCCReference Include="BatSoft.Context.Objects.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

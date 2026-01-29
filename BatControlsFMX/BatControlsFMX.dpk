@@ -33,7 +33,9 @@ requires
   fmx,
   IndySystem,
   IndyProtocols,
-  IndyCore;
+  IndyCore,
+  BatLibrary,
+  BatLibraryFMX;
 
 contains
   BatSoft.Spinners in 'BatSoft.Spinners.pas',

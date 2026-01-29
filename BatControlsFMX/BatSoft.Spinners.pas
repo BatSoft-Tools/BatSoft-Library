@@ -243,18 +243,6 @@ type
     property OnResized;
   end;
 
-//  NOTE: Due to a "quirk" in the Delphi libraries, ApplyStyleLookup() *must*
-//  be called at least once before the OnGetShowItem() controls will show.
-//
-//  Some controls, such as TLabel, will do this when you set the Text property,
-//  but edit controls do not (TEdit, TDateEdit).
-//
-//  So, call ApplyStyleLookupToAll() once on objects that will be returned by
-//  OnGetShowItem() to ensure that they will be shown as intended.
-//  If you have them all on the same form, then to keep it simple, you can simply
-//  call this on the form itself in the FormCreate() event.
-procedure ApplyStyleLookupToAll(const Control: TFmxObject);
-
 procedure Register;
 
 implementation
@@ -266,17 +254,6 @@ procedure Register;
 begin
   RegisterComponents('BatSoft', [TListSpinner]);
   RegisterComponents('BatSoft', [TComboSpinner]);
-end;
-
-procedure ApplyStyleLookupToAll(const Control: TFmxObject);
-var
-  Child: TFmxObject;
-begin
-  if  Control is TStyledControl then
-    (Control as TStyledControl).ApplyStyleLookup;
-  if  Assigned(Control.Children)  then
-    for Child in Control.Children do
-      ApplyStyleLookupToAll(Child);
 end;
 
 { TSpinner }
@@ -476,7 +453,6 @@ var
   Top: integer;
   ItemWidth: Single;
   Item: TControl;
-  WasVisible: Boolean;
 begin
   if  Assigned(fOnPaintBegin) then
     fOnPaintBegin(Self);
@@ -495,16 +471,11 @@ begin
             Item  := fOnGetShowItem(Self, Index);
         if  Assigned(Item)  then
           begin
-            WasVisible  := Item.Visible;
-            try
-              Item.Visible  := True;
-              ApplyStyleLookupToAll(Item);
-              Item.Width    := ItemWidth;
-              Item.Height   := fItemHeight;
-              Item.PaintTo(Self.Canvas, RectF(0, Top, ItemWidth, Top + Item.Height), Self);
-            finally
-              Item.Visible  := WasVisible;
-            end;
+            if  Item is TStyledControl  then
+              TStyledControl(Item).ApplyStyleLookup;
+            Item.Width  := ItemWidth;
+            Item.Height := fItemHeight;
+            Item.PaintTo(Self.Canvas, RectF(0, Top, ItemWidth, Top + Item.Height), Self);
           end;
         inc(Index);
         inc(Top, fItemHeight);
@@ -522,7 +493,8 @@ var
 begin
   if  not Assigned(fEditor) then
     Exit;
-  //??  TStyledControl(fEditor).ApplyStyleLookup;
+  if fEditor is TStyledControl  then
+    TStyledControl(fEditor).ApplyStyleLookup;
   Top   := Trunc(ItemIndex * fItemHeight - fCalcs.ViewportPosition.Y);
   fEditor.Parent  := Self;
   fEditor.Position.Point  := TPointF.Create(0, Top);

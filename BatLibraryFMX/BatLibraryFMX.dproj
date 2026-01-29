@@ -138,6 +138,7 @@
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="fmx.dcp"/>
         <DCCReference Include="BatSoft.Translator.pas"/>
+        <DCCReference Include="BatSoft.Classes.FMX.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

@@ -7,7 +7,6 @@ object frmItemControls: TfrmItemControls
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
-  OnCreate = FormCreate
   DesignerMasterStyle = 0
   inline frameEmpContractShow: TframeEmpContract
     HitTest = False

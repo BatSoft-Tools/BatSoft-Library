@@ -51,104 +51,131 @@ uses
   System.Classes, Generics.Collections, BatSoft.Observer.Base;
 
 type
-  TManagedEventHandler = class;
+  TManagedEventHandler<TSubject: class> = class;
 
-  TEndSubscriptionEvent = procedure (const EventHandler: TManagedEventHandler) of object;
+  TEndSubscriptionEvent<TSubject: class> = procedure (const EventHandler: TManagedEventHandler<TSubject>) of object;
 
-  ISubscription = interface
+  ISubscription<TSubject: class> = interface
     ['{D85704DF-BDBB-4729-BDEC-8008FF94DEE7}']
-    function  GetEventHandler: TManagedEventHandler;
-    function  GetOnEnd: TEndSubscriptionEvent;
-    procedure SetOnEnd(const Value: TEndSubscriptionEvent);
+    function  GetEventHandler: TManagedEventHandler<TSubject>;
+    function  GetOnEnd: TEndSubscriptionEvent<TSubject>;
+    procedure SetOnEnd(const Value: TEndSubscriptionEvent<TSubject>);
 
     function  IsActive    : Boolean;
-    property  EventHandler: TManagedEventHandler  read GetEventHandler; //  Might be nil, meaning subscription has ended
-    property  OnEnd       : TEndSubscriptionEvent read GetOnEnd  write SetOnEnd;
+    property  EventHandler: TManagedEventHandler<TSubject>  read GetEventHandler; //  Might be nil, meaning subscription has ended
+    property  OnEnd       : TEndSubscriptionEvent<TSubject> read GetOnEnd  write SetOnEnd;
+  end;
+
+  ISubscription = interface(ISubscription<TObject>)
+    ['{72E8D170-CC4B-4591-B1C5-B71EF7FB92FE}']
   end;
 
   TCallCallback = reference to procedure(const Callback: TMethod);
 
-  TManagedEventHandler = class
+  TManagedEventHandler<TSubject: class> = class
   private type
 
-    TSubscription = class(TInterfacedObject, ISubscription)
+    TSubscription = class(TInterfacedObject, ISubscription<TSubject>)
     private
-      fEventHandler: TManagedEventHandler;
+      fEventHandler: TManagedEventHandler<TSubject>;
       fCallback: TMethod;
-      fOnEnd: TEndSubscriptionEvent;
+      fOnEnd: TEndSubscriptionEvent<TSubject>;
     public
-      constructor Create(const AManagedEvents: TManagedEventHandler; const ACallback: TMethod);
+      constructor Create(const AManagedEvents: TManagedEventHandler<TSubject>; const ACallback: TMethod);
       destructor  Destroy; override;
       //  ISubscription interface
       function  IsActive: Boolean; inline;
-      function  GetEventHandler: TManagedEventHandler; inline;
-      function  GetOnEnd: TEndSubscriptionEvent; inline;
-      procedure SetOnEnd(const Value: TEndSubscriptionEvent); inline;
+      function  GetEventHandler: TManagedEventHandler<TSubject>; inline;
+      function  GetOnEnd: TEndSubscriptionEvent<TSubject>; inline;
+      procedure SetOnEnd(const Value: TEndSubscriptionEvent<TSubject>); inline;
     end;
 
   private
-    fSubject: TObject;
+    fSubject: TSubject;
     fEnabled: Boolean;
     fSubscriptions: TList<TSubscription>;
     fEnumerators: TFlowingEnumerators<TSubscription>;
     function GetHasSubscriptions: Boolean;
   protected
-    function  BeginSubscription(const Callback: TMethod): ISubscription;
+    function  BeginSubscription(const Callback: TMethod): ISubscription<TSubject>;
     procedure EndSubscription(const Subscription: TSubscription);
     procedure EndAllSubscriptions;
     function  FindSubscription(const Callback: TMethod; out Subscription: TSubscription): Boolean;
     procedure CallEvents(const CallCallback: TCallCallback);
   public
-    constructor Create(const ASubject: TObject; const AThreadSafe: Boolean = False);
+    constructor Create(const ASubject: TSubject; const AThreadSafe: Boolean = False);
     destructor  Destroy; override;
-    property  Subject : TObject read fSubject;
-    property  Enabled : Boolean read fEnabled write fEnabled;
+    property  Subject : TSubject  read fSubject;
+    property  Enabled : Boolean   read fEnabled write fEnabled;
     property  HasSubscriptions: Boolean read GetHasSubscriptions;
     procedure Clear;
   end;
 
-  TNotifyEvents = class(TManagedEventHandler)
+  TNotifyEvents<TSubject: class> = class(TManagedEventHandler<TSubject>)
+  public type
+    TNotifyEvent = procedure(Subject: TSubject) of object;
   public
     procedure Call;
+    function  Subscribe(const Callback: TNotifyEvent): ISubscription<TSubject>;
+  end;
+
+  TNotifyEvents = class(TNotifyEvents<TObject>)
+  public
     function  Subscribe(const Callback: TNotifyEvent): ISubscription;
   end;
 
-  TEvent1Param<TParam1> = class(TManagedEventHandler)
+  TEvent1Param<TSubject: class; TParam1> = class(TManagedEventHandler<TSubject>)
   public type
-    TCallback1Param = procedure(Subject: TObject; Param: TParam1) of object;
+    TCallback1Param = procedure(Subject: TSubject; Param: TParam1) of object;
   public
     procedure Call(Param1: TParam1);
-    function  Subscribe(const Callback: TCallback1Param): ISubscription;
+    function  Subscribe(const Callback: TCallback1Param): ISubscription<TSubject>;
   end;
 
-  TEvent2Param<TParam1, TParam2> = class(TManagedEventHandler)
+  TEvent1Param<TParam1> = class(TEvent1Param<TObject, TParam1>);
+
+  TEvent2Param<TSubject: class; TParam1, TParam2> = class(TManagedEventHandler<TSubject>)
   public type
-    TCallback2Param = procedure(Subject: TObject; Param1: TParam1; Param2: TParam2) of object;
+    TCallback2Param = procedure(Subject: TSubject; Param1: TParam1; Param2: TParam2) of object;
   public
     procedure Call(Param1: TParam1; Param2: TParam2);
-    function  Subscribe(const Callback: TCallback2Param): ISubscription;
+    function  Subscribe(const Callback: TCallback2Param): ISubscription<TSubject>;
   end;
 
-  TEvent3Param<TParam1, TParam2, TParam3> = class(TManagedEventHandler)
+  TEvent2Param<TParam1, TParam2> = class(TManagedEventHandler<TObject>);
+
+  TEvent3Param<TSubject: class; TParam1, TParam2, TParam3> = class(TManagedEventHandler<TSubject>)
   public type
-    TCallback3Param = procedure(Subject: TObject; Param1: TParam1; Param2: TParam2; Param3: TParam3) of object;
+    TCallback3Param = procedure(Subject: TSubject; Param1: TParam1; Param2: TParam2; Param3: TParam3) of object;
   public
     procedure Call(Param1: TParam1; Param2: TParam2; Param3: TParam3);
-    function  Subscribe(const Callback: TCallback3Param): ISubscription;
+    function  Subscribe(const Callback: TCallback3Param): ISubscription<TSubject>;
   end;
+
+  TEvent3Param<TParam1, TParam2, TParam3> = class(TManagedEventHandler<TObject>);
+
+  TEvent4Param<TSubject: class; TParam1, TParam2, TParam3, TParam4> = class(TManagedEventHandler<TSubject>)
+  public type
+    TCallback4Param = procedure(Subject: TSubject; Param1: TParam1; Param2: TParam2; Param3: TParam3; Param4: TParam4) of object;
+  public
+    procedure Call(Param1: TParam1; Param2: TParam2; Param3: TParam3; Param4: TParam4);
+    function  Subscribe(const Callback: TCallback4Param): ISubscription<TSubject>;
+  end;
+
+  TEvent4Param<TParam1, TParam2, TParam3> = class(TManagedEventHandler<TObject>);
 
 implementation
 
-{ TManagedEventHandler.TSubscription }
+{ TManagedEventHandler<TSubject>.TSubscription }
 
-constructor TManagedEventHandler.TSubscription.Create(const AManagedEvents: TManagedEventHandler; const ACallback: TMethod);
+constructor TManagedEventHandler<TSubject>.TSubscription.Create(const AManagedEvents: TManagedEventHandler<TSubject>; const ACallback: TMethod);
 begin
   inherited Create;
-  fEventHandler  := AManagedEvents;
-  fCallback       := ACallback;
+  fEventHandler := AManagedEvents;
+  fCallback     := ACallback;
 end;
 
-destructor TManagedEventHandler.TSubscription.Destroy;
+destructor TManagedEventHandler<TSubject>.TSubscription.Destroy;
 begin
   if  Assigned(fEventHandler)  then
     fEventHandler.EndSubscription(Self);
@@ -158,29 +185,29 @@ begin
   inherited;
 end;
 
-function TManagedEventHandler.TSubscription.GetEventHandler: TManagedEventHandler;
+function TManagedEventHandler<TSubject>.TSubscription.GetEventHandler: TManagedEventHandler<TSubject>;
 begin
   Result  := fEventHandler;
 end;
 
-function TManagedEventHandler.TSubscription.GetOnEnd: TEndSubscriptionEvent;
+function TManagedEventHandler<TSubject>.TSubscription.GetOnEnd: TEndSubscriptionEvent<TSubject>;
 begin
   Result  := fOnEnd
 end;
 
-function TManagedEventHandler.TSubscription.IsActive: Boolean;
+function TManagedEventHandler<TSubject>.TSubscription.IsActive: Boolean;
 begin
   Result  := Assigned(fEventHandler)
 end;
 
-procedure TManagedEventHandler.TSubscription.SetOnEnd(const Value: TEndSubscriptionEvent);
+procedure TManagedEventHandler<TSubject>.TSubscription.SetOnEnd(const Value: TEndSubscriptionEvent<TSubject>);
 begin
   fOnEnd := Value
 end;
 
-{ TManagedEventHandler }
+{ TManagedEventHandler<TSubject> }
 
-function TManagedEventHandler.BeginSubscription(const Callback: TMethod): ISubscription;
+function TManagedEventHandler<TSubject>.BeginSubscription(const Callback: TMethod): ISubscription<TSubject>;
 var
   Subscription: TSubscription;
 begin
@@ -192,7 +219,7 @@ begin
   Result  := Subscription;
 end;
 
-procedure TManagedEventHandler.CallEvents(const CallCallback: TCallCallback);
+procedure TManagedEventHandler<TSubject>.CallEvents(const CallCallback: TCallCallback);
 var
   Subscription: TSubscription;
 begin
@@ -201,12 +228,12 @@ begin
       CallCallback(Subscription.fCallback);
 end;
 
-procedure TManagedEventHandler.Clear;
+procedure TManagedEventHandler<TSubject>.Clear;
 begin
   fSubscriptions.Clear;
 end;
 
-constructor TManagedEventHandler.Create(const ASubject: TObject; const AThreadSafe: Boolean);
+constructor TManagedEventHandler<TSubject>.Create(const ASubject: TSubject; const AThreadSafe: Boolean);
 begin
   inherited Create;
   fSubject        := ASubject;
@@ -215,7 +242,7 @@ begin
   fEnabled        := True;
 end;
 
-destructor TManagedEventHandler.Destroy;
+destructor TManagedEventHandler<TSubject>.Destroy;
 begin
   EndAllSubscriptions;
   fEnumerators.Free;
@@ -223,19 +250,19 @@ begin
   inherited;
 end;
 
-procedure TManagedEventHandler.EndAllSubscriptions;
+procedure TManagedEventHandler<TSubject>.EndAllSubscriptions;
 var
   i: Integer;
 begin
   //  Indicate to all subscribers that their subscriptions are inactive
   //  Note: An exception in Subscription.OnEnd() will rightly abort this loop.
-  //        It's better that you write stable code than that I second guess some
+  //        It's better that you write stable code than I second guess some
   //        preferred behaviour that might be unsuitable.
   for i := fSubscriptions.Count - 1 downto 0 do
     EndSubscription(fSubscriptions[i]);
 end;
 
-procedure TManagedEventHandler.EndSubscription(const Subscription: TSubscription);
+procedure TManagedEventHandler<TSubject>.EndSubscription(const Subscription: TSubscription);
 begin
   //  Indicate to observer that this subscription is inactive
   Subscription.fEventHandler  := nil;
@@ -246,7 +273,7 @@ begin
     Subscription.fOnEnd(Self);
 end;
 
-function TManagedEventHandler.FindSubscription(const Callback: TMethod; out Subscription: TSubscription): Boolean;
+function TManagedEventHandler<TSubject>.FindSubscription(const Callback: TMethod; out Subscription: TSubscription): Boolean;
 var
   Index: integer;
 begin
@@ -259,14 +286,14 @@ begin
       end;
 end;
 
-function TManagedEventHandler.GetHasSubscriptions: Boolean;
+function TManagedEventHandler<TSubject>.GetHasSubscriptions: Boolean;
 begin
   Result  := fSubscriptions.Count > 0
 end;
 
-{ TNotifyEvents }
+{ TNotifyEvents<TSubject> }
 
-procedure TNotifyEvents.Call;
+procedure TNotifyEvents<TSubject>.Call;
 begin
   CallEvents(
     procedure (const Callback: TMethod)
@@ -275,14 +302,22 @@ begin
     end)
 end;
 
-function TNotifyEvents.Subscribe(const Callback: TNotifyEvent): ISubscription;
+function TNotifyEvents<TSubject>.Subscribe(const Callback: TNotifyEvent): ISubscription<TSubject>;
 begin
   Result  := BeginSubscription(TMethod(Callback))
 end;
 
-{ TEvent1Param<TParam1> }
 
-procedure TEvent1Param<TParam1>.Call(Param1: TParam1);
+{ TNotifyEvents }
+
+function TNotifyEvents.Subscribe(const Callback: TNotifyEvent): ISubscription;
+begin
+  Result  := BeginSubscription(TMethod(Callback)) as ISubscription
+end;
+
+{ TEvent1Param<TSubject, TParam1> }
+
+procedure TEvent1Param<TSubject, TParam1>.Call(Param1: TParam1);
 begin
   CallEvents(
     procedure (const Callback: TMethod)
@@ -291,14 +326,14 @@ begin
     end)
 end;
 
-function TEvent1Param<TParam1>.Subscribe(const Callback: TCallback1Param): ISubscription;
+function TEvent1Param<TSubject, TParam1>.Subscribe(const Callback: TCallback1Param): ISubscription<TSubject>;
 begin
   Result  := BeginSubscription(TMethod(Callback))
 end;
 
-{ TEvent2Param<TParam1, TParam2> }
+{ TEvent2Param<TSubject, TParam1, TParam2> }
 
-procedure TEvent2Param<TParam1, TParam2>.Call(Param1: TParam1; Param2: TParam2);
+procedure TEvent2Param<TSubject, TParam1, TParam2>.Call(Param1: TParam1; Param2: TParam2);
 begin
   CallEvents(
     procedure (const Callback: TMethod)
@@ -307,14 +342,14 @@ begin
     end)
 end;
 
-function TEvent2Param<TParam1, TParam2>.Subscribe(const Callback: TCallback2Param): ISubscription;
+function TEvent2Param<TSubject, TParam1, TParam2>.Subscribe(const Callback: TCallback2Param): ISubscription<TSubject>;
 begin
   Result  := BeginSubscription(TMethod(Callback))
 end;
 
-{ TEvent3Param<TParam1, TParam2, TParam3> }
+{ TEvent3Param<TSubject, TParam1, TParam2, TParam3> }
 
-procedure TEvent3Param<TParam1, TParam2, TParam3>.Call(Param1: TParam1; Param2: TParam2; Param3: TParam3);
+procedure TEvent3Param<TSubject, TParam1, TParam2, TParam3>.Call(Param1: TParam1; Param2: TParam2; Param3: TParam3);
 begin
   CallEvents(
     procedure (const Callback: TMethod)
@@ -323,9 +358,25 @@ begin
     end)
 end;
 
-function TEvent3Param<TParam1, TParam2, TParam3>.Subscribe(const Callback: TCallback3Param): ISubscription;
+function TEvent3Param<TSubject, TParam1, TParam2, TParam3>.Subscribe(const Callback: TCallback3Param): ISubscription<TSubject>;
 begin
   Result  := BeginSubscription(TMethod(Callback))
+end;
+
+{ TEvent4Param<TSubject, TParam1, TParam2, TParam3, TParam4> }
+
+procedure TEvent4Param<TSubject, TParam1, TParam2, TParam3, TParam4>.Call(Param1: TParam1; Param2: TParam2; Param3: TParam3; Param4: TParam4);
+begin
+  CallEvents(
+    procedure (const Callback: TMethod)
+    begin
+      TCallback4Param(Callback)(fSubject, Param1, Param2, Param3, Param4);
+    end)
+end;
+
+function TEvent4Param<TSubject, TParam1, TParam2, TParam3, TParam4>.Subscribe(const Callback: TCallback4Param): ISubscription<TSubject>;
+begin
+
 end;
 
 end.

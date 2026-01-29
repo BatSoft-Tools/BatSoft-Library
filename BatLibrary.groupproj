@@ -27,6 +27,12 @@
         <Projects Include="Test\Settings\TestSettings.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="Demo\Demo_of_Patterns_Using_BatSoft_Library\Demo_of_Patterns_Using_BatSoft_Library.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Demo\VectorArt\DemoVectorArt.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="Demo\Interfaces\DemoInterfaces.dproj">
             <Dependencies/>
         </Projects>
@@ -46,6 +52,15 @@
             <Dependencies/>
         </Projects>
         <Projects Include="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Demo\VectorArt2\VectorArt2.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Demo\Editors\DemoEditors.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Demo\Observers\DemoObservers.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -128,6 +143,24 @@
     <Target Name="TestSettings:Make">
         <MSBuild Projects="Test\Settings\TestSettings.dproj" Targets="Make"/>
     </Target>
+    <Target Name="Demo_of_Patterns_Using_BatSoft_Library">
+        <MSBuild Projects="Demo\Demo_of_Patterns_Using_BatSoft_Library\Demo_of_Patterns_Using_BatSoft_Library.dproj"/>
+    </Target>
+    <Target Name="Demo_of_Patterns_Using_BatSoft_Library:Clean">
+        <MSBuild Projects="Demo\Demo_of_Patterns_Using_BatSoft_Library\Demo_of_Patterns_Using_BatSoft_Library.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Demo_of_Patterns_Using_BatSoft_Library:Make">
+        <MSBuild Projects="Demo\Demo_of_Patterns_Using_BatSoft_Library\Demo_of_Patterns_Using_BatSoft_Library.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DemoVectorArt">
+        <MSBuild Projects="Demo\VectorArt\DemoVectorArt.dproj"/>
+    </Target>
+    <Target Name="DemoVectorArt:Clean">
+        <MSBuild Projects="Demo\VectorArt\DemoVectorArt.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DemoVectorArt:Make">
+        <MSBuild Projects="Demo\VectorArt\DemoVectorArt.dproj" Targets="Make"/>
+    </Target>
     <Target Name="DemoInterfaces">
         <MSBuild Projects="Demo\Interfaces\DemoInterfaces.dproj"/>
     </Target>
@@ -190,6 +223,33 @@
     </Target>
     <Target Name="BatSoftTranslatorEditor:Make">
         <MSBuild Projects="BatSoftTranslatorEditor\BatSoftTranslatorEditor.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VectorArt2">
+        <MSBuild Projects="Demo\VectorArt2\VectorArt2.dproj"/>
+    </Target>
+    <Target Name="VectorArt2:Clean">
+        <MSBuild Projects="Demo\VectorArt2\VectorArt2.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VectorArt2:Make">
+        <MSBuild Projects="Demo\VectorArt2\VectorArt2.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DemoEditors">
+        <MSBuild Projects="Demo\Editors\DemoEditors.dproj"/>
+    </Target>
+    <Target Name="DemoEditors:Clean">
+        <MSBuild Projects="Demo\Editors\DemoEditors.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DemoEditors:Make">
+        <MSBuild Projects="Demo\Editors\DemoEditors.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DemoObservers">
+        <MSBuild Projects="Demo\Observers\DemoObservers.dproj"/>
+    </Target>
+    <Target Name="DemoObservers:Clean">
+        <MSBuild Projects="Demo\Observers\DemoObservers.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DemoObservers:Make">
+        <MSBuild Projects="Demo\Observers\DemoObservers.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
         <CallTarget Targets="BatLibrary;BatLibraryFMX;BatControls;BatControlsFMX;TestBatLibrary;TestObserver;TestContext;TestSettings;DemoInterfaces;DemoMementos;DemoContext;DemoSettings;DemoListSpinner;BatSoftTranslatorDemo;BatSoftTranslatorEditor"/>
