@@ -13,7 +13,7 @@ type
 {$region 'Interfaces'}
 
   ///  Like TInterfacedObject but without reference counting.
-  TInterfacedObjectNoRefCount = System.Generics.Defaults.TSingletonImplementation;
+  TInterfacedObjectNoRefCount = System.TNoRefCountObject deprecated 'Use System.TNoRefCountObject';
 
   //  Sometimes I want interfaced objects to free when the RefCount is something
   //  other than 0, such as when writing factories that keep track of multitons.
