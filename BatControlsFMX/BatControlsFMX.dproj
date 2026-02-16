@@ -176,6 +176,7 @@
         <DCCReference Include="BatLibraryFMX.dcp"/>
         <DCCReference Include="BatSoft.Spinners.pas"/>
         <DCCReference Include="BatSoft.WebImage.pas"/>
+        <DCCReference Include="BatSoft.Editors.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

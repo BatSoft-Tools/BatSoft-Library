@@ -1,0 +1,26 @@
+object frmPerson: TfrmPerson
+  Left = 0
+  Top = 0
+  Caption = 'frmPerson'
+  ClientHeight = 112
+  ClientWidth = 373
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnClose = FormClose
+  DesignerMasterStyle = 0
+  object edName: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    Align = Top
+    TabOrder = 0
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    Margins.Left = 8.000000000000000000
+    Margins.Top = 8.000000000000000000
+    Margins.Right = 8.000000000000000000
+    Size.Width = 357.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    OnTyping = edNameTyping
+  end
+end

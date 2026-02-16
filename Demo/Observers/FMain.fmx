@@ -1,0 +1,43 @@
+object frmMain: TfrmMain
+  Left = 0
+  Top = 0
+  Caption = 'frmMain'
+  ClientHeight = 134
+  ClientWidth = 275
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object butShowPeople: TButton
+    Position.X = 32.000000000000000000
+    Position.Y = 40.000000000000000000
+    TabOrder = 1
+    Text = 'butShowPeople'
+    TextSettings.Trimming = None
+    OnClick = butShowPeopleClick
+  end
+  object butAddPerson: TButton
+    Position.X = 160.000000000000000000
+    Position.Y = 40.000000000000000000
+    TabOrder = 2
+    Text = 'butAddPerson'
+    TextSettings.Trimming = None
+    OnClick = butAddPersonClick
+  end
+  object butShowRooms: TButton
+    Position.X = 32.000000000000000000
+    Position.Y = 80.000000000000000000
+    TabOrder = 3
+    Text = 'butShowRooms'
+    TextSettings.Trimming = None
+    OnClick = butShowRoomsClick
+  end
+  object butAddRoom: TButton
+    Position.X = 160.000000000000000000
+    Position.Y = 80.000000000000000000
+    TabOrder = 4
+    Text = 'butAddRoom'
+    TextSettings.Trimming = None
+    OnClick = butAddRoomClick
+  end
+end

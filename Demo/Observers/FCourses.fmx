@@ -1,0 +1,42 @@
+object frmCourses: TfrmCourses
+  Left = 0
+  Top = 0
+  Caption = 'Courses'
+  ClientHeight = 244
+  ClientWidth = 471
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
+  DesignerMasterStyle = 0
+  object lstCourses: TListBox
+    Align = Client
+    Margins.Left = 8.000000000000000000
+    Margins.Top = 8.000000000000000000
+    Margins.Right = 8.000000000000000000
+    Margins.Bottom = 8.000000000000000000
+    Size.Width = 135.000000000000000000
+    Size.Height = 228.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
+    DisableFocusEffect = True
+    DefaultItemStyles.ItemStyle = ''
+    DefaultItemStyles.GroupHeaderStyle = ''
+    DefaultItemStyles.GroupFooterStyle = ''
+    OnChange = lstCoursesChange
+    Viewport.Width = 131.000000000000000000
+    Viewport.Height = 224.000000000000000000
+  end
+  inline frameCourse1: TframeCourse
+    Align = Right
+    Position.X = 151.000000000000000000
+    Size.Width = 320.000000000000000000
+    Size.Height = 244.000000000000000000
+    Size.PlatformDefault = False
+    inherited lstEnrolled: TListBox
+      Size.Height = 228.000000000000000000
+      Viewport.Width = 300.000000000000000000
+      Viewport.Height = 224.000000000000000000
+    end
+  end
+end

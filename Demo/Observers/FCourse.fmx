@@ -1,0 +1,53 @@
+object frmCourse: TfrmCourse
+  Left = 0
+  Top = 0
+  Caption = 'Course'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  inline frameCourse1: TframeCourse
+    Align = Top
+    Position.Y = 38.000000000000000000
+    Size.Width = 640.000000000000000000
+    Size.Height = 240.000000000000000000
+    Size.PlatformDefault = False
+    inherited lstEnrolled: TListBox
+      Size.Width = 624.000000000000000000
+      Viewport.Width = 620.000000000000000000
+      Viewport.Height = 220.000000000000000000
+    end
+  end
+  object edHistory: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    Align = Client
+    Margins.Left = 8.000000000000000000
+    Margins.Top = 8.000000000000000000
+    Margins.Right = 8.000000000000000000
+    Margins.Bottom = 8.000000000000000000
+    Size.Width = 624.000000000000000000
+    Size.Height = 186.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    Viewport.Width = 624.000000000000000000
+    Viewport.Height = 186.000000000000000000
+  end
+  object edCourseName: TEdit
+    Touch.InteractiveGestures = [LongTap, DoubleTap]
+    Align = MostTop
+    TabOrder = 2
+    ReadOnly = True
+    Position.X = 8.000000000000000000
+    Position.Y = 8.000000000000000000
+    Margins.Left = 8.000000000000000000
+    Margins.Top = 8.000000000000000000
+    Margins.Right = 8.000000000000000000
+    Margins.Bottom = 8.000000000000000000
+    Size.Width = 624.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+  end
+end
