@@ -19,6 +19,7 @@ type
     function  HasValue(const Name: string): Boolean; override;
     function  GetValue(const Name: string): TValue; override;
     function  SetValue(const Name: string; const Value: TValue): Boolean; override;
+    function  GetTypeOf(const Name: string): PTypeInfo; override;
     function  GetNames(const Names: TStrings): Boolean; override;
   end;
 
@@ -36,7 +37,7 @@ var
 begin
   inherited Create;
   fObject := AObject;
-  fProps  := TDictionary<string, TRttiProperty>.Create;
+  fProps  := TDictionary<string, TRttiProperty>.Create(CaseInsensitiveComparer);
   //  Collect a shortlist of the property accessors
   PropArr := RTTI.GetType(fObject.ClassType).GetProperties;
   for Prop in PropArr do
@@ -59,6 +60,16 @@ begin
   for Key in fProps.Keys do
     Names.Add(Key);
   Result  := True;
+end;
+
+function TContextObject.GetTypeOf(const Name: string): PTypeInfo;
+var
+  Prop: TRttiProperty;
+begin
+  if  fProps.TryGetValue(Name, Prop)  then
+    Result  := Prop.DataType.Handle
+  else
+    Result  := nil
 end;
 
 function TContextObject.GetValue(const Name: string): TValue;

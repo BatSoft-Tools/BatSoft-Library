@@ -23,12 +23,15 @@ type
     FlowLayout1: TFlowLayout;
     chkSystemValues: TCheckBox;
     chkForm: TCheckBox;
+    memMacroDescription: TMemo;
+    Splitter2: TSplitter;
     procedure butGetValueClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure butRunMacroClick(Sender: TObject);
     procedure lstMacrosDblClick(Sender: TObject);
     procedure lstNameValuesDblClick(Sender: TObject);
     procedure ContextChange(Sender: TObject);
+    procedure lstMacrosChange(Sender: TObject);
   private
     fContextValues: TContextValues;
     fContext: IContext;
@@ -43,8 +46,8 @@ implementation
 {$R *.fmx}
 
 uses
-  System.Rtti, System.TypInfo, System.Generics.Collections,
-  uContextObject, uContextSystem, uMacro, uMacroCommands;
+  System.Rtti, System.TypInfo, System.Generics.Collections, BatSoft.Classes,
+  BatSoft.Context.Objects, uContextSystem, uMacro, uMacroCommands;
 
 { TfrmContextDemo }
 
@@ -52,35 +55,12 @@ procedure TfrmContextDemo.butGetValueClick(Sender: TObject);
 var
   Name: string;
   Value: TValue;
-  ValueAsStr: string;
 begin
   if  lstNameValues.ItemIndex < 0 then
     Exit;
   Name  := lstNameValues.Items[lstNameValues.ItemIndex];
   Value := fContext.GetValue(Name);
-  case Value.Kind of
-    tkInteger :
-      ValueAsStr  := Value.AsInteger.ToString;
-    tkInt64 :
-      ValueAsStr  := Value.AsInt64.ToString;
-    tkFloat :
-      ValueAsStr  := Value.AsExtended.ToString;
-    tkChar, tkString, tkWChar, tkLString, tkWString, tkUString :
-      ValueAsStr  := Value.AsString;
-    tkVariant :
-      ValueAsStr  := VarToStr(Value.AsVariant);
-    tkClassRef :
-      ValueAsStr  := Value.AsClass.ClassName;
-    tkEnumeration :
-      ValueAsStr  := GetEnumName(Value.TypeInfo, Value.AsOrdinal);
-    tkSet :
-      ValueAsStr  := GetSetElementName(Value.TypeInfo, Value.AsOrdinal);
-  else
-      ValueAsStr  := 'Unhandled type';
-  //  tkUnknown, tkClass, tkMethod, tkArray, tkRecord,
-  //  tkInterface, tkDynArray, tkPointer, tkProcedure, tkMRecord
-  end;
-  ShowMessage(ValueAsStr);
+  ShowMessage(Value.ToString + nl + Value.TypeInfo.Name);
 end;
 
 procedure TfrmContextDemo.butRunMacroClick(Sender: TObject);
@@ -100,7 +80,7 @@ begin
     if  chkSystemValues.IsChecked then
       List.Add(TContextSystem.Create);
     if  chkForm.IsChecked then
-      List.Add(TContextObject.Create(Self, 'frm_'));
+      List.Add(TContextObject.Create(Self, 'frm.'));
     fContext  := TContexts.Create(List.ToArray);
   finally
     List.Free;
@@ -117,6 +97,14 @@ begin
   //  Context
   fContextValues  := TContextValues.Create;
   ContextChange(nil);
+end;
+
+procedure TfrmContextDemo.lstMacrosChange(Sender: TObject);
+begin
+  if  lstMacros.ItemIndex < 0 then
+    memMacroDescription.Lines.Clear
+  else
+    memMacroDescription.Lines.Text  := Macros.DescriptionOf(lstMacros.Items[lstMacros.ItemIndex])
 end;
 
 procedure TfrmContextDemo.lstMacrosDblClick(Sender: TObject);

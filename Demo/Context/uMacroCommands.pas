@@ -11,7 +11,8 @@ const
 implementation
 
 uses
-  System.Classes, System.Rtti, FMX.Dialogs, BatSoft.Context, uMacro;
+  System.SysUtils, System.Classes, System.Rtti, FMX.Dialogs, BatSoft.Classes,
+  BatSoft.Context, uMacro;
 
 function ReplaceContextVariables(Context: IContext; Param: string): TValue;
 var
@@ -39,8 +40,10 @@ end;
 
 procedure RegisterCommands;
 begin
+
   //  Show command
   Macros.Register(MACRO_SHOW,
+    'Shows a popup dialog.' + nl + 'Each parameter is a string in a string list.',
     procedure (Context: IContext; Params: TStrings)
     var
       i: Integer;
@@ -49,8 +52,12 @@ begin
         Params[i] := ReplaceContextVariables(Context, Params[i]).ToString;
       ShowMessage(Params.Text);
     end);
+
   //  Set value command
   Macros.Register(MACRO_SET,
+    'First parameter is the name of a variable.' + nl +
+    'The second parameter is either a value' + nl +
+    'or a parameter name inside <>.',
     procedure (Context: IContext; Params: TStrings)
     var
       Name: string;
@@ -58,8 +65,10 @@ begin
     begin
       Name  := ReplaceContextVariables(Context, Params[0]).AsString;
       Value := ReplaceContextVariables(Context, Params[1]);
+      Value := ChangeTypeOfValue(Context, Name, Value);
       Context.SetValue(Name, Value)
     end);
+
 end;
 
 end.

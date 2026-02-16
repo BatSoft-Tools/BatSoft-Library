@@ -12,13 +12,15 @@ type
   TMacros = class
   private
     fMacros: TDictionary<string, TMacroCommand>;
+    fDescriptions: TDictionary<string, string>;
   public
     constructor Create;
     destructor  Destroy; override;
-    procedure Register(MacroName: string; const Macro: TMacroCommand; const Force: Boolean = False);
+    procedure Register(MacroName, Description: string; const Macro: TMacroCommand; const Force: Boolean = False);
     procedure Run(const MacroLines: TStrings; Context: IContext); overload;
     procedure Run(const MacroLine: string; Context: IContext); overload;
     procedure ListCommands(const CommandNames: TStrings);
+    function  DescriptionOf(MacroName: string): string;
   end;
 
   EMacro = class(EBatSoft);
@@ -39,11 +41,18 @@ constructor TMacros.Create;
 begin
   inherited;
   fMacros := TDictionary<string, TMacroCommand>.Create;
+  fDescriptions := TDictionary<string, string>.Create;
+end;
+
+function TMacros.DescriptionOf(MacroName: string): string;
+begin
+  Result  := fDescriptions[MacroName]
 end;
 
 destructor TMacros.Destroy;
 begin
   fMacros.Free;
+  fDescriptions.Free;
   inherited;
 end;
 
@@ -56,14 +65,19 @@ begin
     CommandNames.Add(Pair.Key);
 end;
 
-procedure TMacros.Register(MacroName: string; const Macro: TMacroCommand; const Force: Boolean);
+procedure TMacros.Register(MacroName, Description: string; const Macro: TMacroCommand; const Force: Boolean);
 begin
   if  MacroName.IsEmpty then
     raise EMacro.Create(SEMacroUnnamed);
   MacroName := UpperCase(MacroName);
   if  Force then
-    fMacros.AddOrSetValue(MacroName, Macro)
-  else if not fMacros.TryAdd(MacroName, Macro)  then
+    begin
+      fMacros.AddOrSetValue(MacroName, Macro);
+      fDescriptions.AddOrSetValue(MacroName, Description);
+    end
+  else if fMacros.TryAdd(MacroName, Macro)  then
+    fDescriptions.AddOrSetValue(MacroName, Description)
+  else
     raise EMacro.Create(SEMacroRegistered, [MacroName]);
 end;
 

@@ -198,7 +198,6 @@
             <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="uContextSystem.pas"/>
-        <DCCReference Include="uContextObject.pas"/>
         <DCCReference Include="uMacro.pas"/>
         <DCCReference Include="uMacroCommands.pas"/>
         <BuildConfiguration Include="Base">
@@ -249,6 +248,12 @@
                     </Platform>
                 </DeployFile>
                 <DeployFile LocalName="Win32\Debug\DemoContext.exe" Configuration="Debug" Class="ProjectOutput"/>
+                <DeployFile LocalName="Win32\Debug\DemoContext.exe" Configuration="Debug" Class="ProjectOutput">
+                    <Platform Name="Win32">
+                        <RemoteName>DemoContext.exe</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployClass Name="AdditionalDebugSymbols">
                     <Platform Name="iOSSimulator">
                         <Operation>1</Operation>

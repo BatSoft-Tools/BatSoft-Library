@@ -31,7 +31,8 @@ interface
 ///   the call has been dealt with.
 
 uses
-  System.SysUtils, System.RTTI, System.Classes, System.Generics.Collections;
+  System.SysUtils, System.TypInfo, System.RTTI, System.Classes,
+  System.Generics.Collections, System.Generics.Defaults;
 
 type
   /// <summary>IContext objects provide values given some specific context. Use
@@ -43,6 +44,9 @@ type
     function  DelValue(const Name: string): Boolean;
     function  GetValue(const Name: string): TValue;
     function  SetValue(const Name: string; const Value: TValue): Boolean;
+    /// <summary>Return the type of the value, or nil.<br>
+    /// Note: For the sake of other IContext implementations, always return nil when the variable Name is not found.</summary>
+    function  GetTypeOf(const Name: string): PTypeInfo;
     /// <summary>Add names to list (without clearing the list).<br>
     /// Note: Contexts are NOT obliged to implement this method, but it sure helps.</summary>
     function  GetNames(const Names: TStrings): Boolean;
@@ -63,6 +67,7 @@ type
     function  DelValue(const Name: string): Boolean; virtual;
     function  GetValue(const Name: string): TValue; virtual;
     function  SetValue(const Name: string; const Value: TValue): Boolean; virtual;
+    function  GetTypeOf(const Name: string): PTypeInfo; virtual;
     function  GetNames(const Names: TStrings): Boolean; virtual;
   end;
 
@@ -78,6 +83,7 @@ type
     function  DelValue(const Name: string): Boolean; virtual;
     function  GetValue(const Name: string): TValue; virtual;
     function  SetValue(const Name: string; const Value: TValue): Boolean; virtual;
+    function  GetTypeOf(const Name: string): PTypeInfo;
     function  GetNames(const Names: TStrings): Boolean;
   end;
 
@@ -97,8 +103,21 @@ type
     function  DelValue(const Name: string): Boolean;
     function  GetValue(const Name: string): TValue;
     function  SetValue(const Name: string; const Value: TValue): Boolean;
+    function  GetTypeOf(const Name: string): PTypeInfo;
     function  GetNames(const Names: TStrings): Boolean;
   end;
+
+function ChangeTypeOfValue(const Context: IContext; const Name: string; const Value: TValue): TValue;
+
+type
+  TCaseInsensitiveComparer = class(TEqualityComparer<string>)
+  public
+    function Equals(const Left, Right: string): Boolean; override;
+    function GetHashCode(const Value: string): Integer; override;
+  end;
+
+var
+  CaseInsensitiveComparer: IEqualityComparer<string>;
 
 resourcestring
   SENotImplemented  = 'IContext method %s() is not implemented';
@@ -107,25 +126,50 @@ resourcestring
 implementation
 
 uses
-  System.Generics.Defaults;
+  BatSoft.Settings;
 
-type
-  TTextComparer = class(TEqualityComparer<string>)
-    function Equals(const Left, Right: string): Boolean; override;
-    function GetHashCode(const Value: string): Integer; override;
-  end;
-
+function ChangeTypeOfValue(const Context: IContext; const Name: string; const Value: TValue): TValue;
 var
-  TextComparer: IEqualityComparer<string>;
+  LeftSide: TValue;
+begin
+  if  Context.HasValue(Name)  then
+    begin
+      LeftSide  := Context.GetValue(Name);
+      if  not Value.TryCast(LeftSide.TypeInfo, Result)  then
+        case LeftSide.Kind of
+          tkInteger :
+            Result  := StrToInt(Value.AsString);
 
-{ TTextComparer }
+          tkInt64 :
+            Result  := StrToInt64(Value.AsString);
 
-function TTextComparer.Equals(const Left, Right: string): Boolean;
+          tkFloat :
+            Result  := StrToFloat(Value.AsString);
+
+          tkChar, tkString, tkWChar, tkLString, tkWString, tkUString :
+            Result  := Value.ToString;
+
+          tkEnumeration :
+            Result  := StrToEnum(Value.ToString, LeftSide.TypeInfo);
+
+          tkSet :
+            Result  := StrToEnumSet(Value.ToString, LeftSide.TypeInfo);
+        else
+          raise EContext.Create('Conversion failed.');
+        end;
+    end
+  else
+    Result  := Value
+end;
+
+{ TCaseInsensitiveComparer }
+
+function TCaseInsensitiveComparer.Equals(const Left, Right: string): Boolean;
 begin
   Result  := SameText(Left, Right)
 end;
 
-function TTextComparer.GetHashCode(const Value: string): Integer;
+function TCaseInsensitiveComparer.GetHashCode(const Value: string): Integer;
 begin
   Result  := UpperCase(Value).GetHashCode
 end;
@@ -159,6 +203,14 @@ begin
   Result  := False;
 end;
 
+function TContextBase.GetTypeOf(const Name: string): PTypeInfo;
+begin
+  if  HasValue(Name) then
+    Result  := GetValue(Name).TypeInfo
+  else
+    Result  := nil
+end;
+
 function TContextBase.GetValue(const Name: string): TValue;
 begin
   raise EContext.CreateNotImplemented(Self, 'GetValue')
@@ -183,9 +235,9 @@ begin
     fNameValues := TDictionary<string, TValue>.Create
   else  //  Not case sensitive
     begin
-      if  not Assigned(TextComparer)  then
-        TextComparer  := TTextComparer.Create;
-      fNameValues := TDictionary<string, TValue>.Create(TextComparer);
+      if  not Assigned(CaseInsensitiveComparer)  then
+        CaseInsensitiveComparer  := TCaseInsensitiveComparer.Create;
+      fNameValues := TDictionary<string, TValue>.Create(CaseInsensitiveComparer);
     end
 end;
 
@@ -206,6 +258,16 @@ function TContextValues.GetNames(const Names: TStrings): Boolean;
 begin
   Names.AddStrings(fNameValues.Keys.ToArray);
   Result  := True;
+end;
+
+function TContextValues.GetTypeOf(const Name: string): PTypeInfo;
+var
+  Value: TValue;
+begin
+  if  fNameValues.TryGetValue(Name, Value) then
+    Result  := Value.TypeInfo
+  else
+    Result  := nil
 end;
 
 function TContextValues.GetValue(const Name: string): TValue;
@@ -275,6 +337,16 @@ begin
   for SubContext in fChain  do
     SubContext.GetNames(Names);
   Result  := True;
+end;
+
+function TContexts.GetTypeOf(const Name: string): PTypeInfo;
+var
+  Contexts: IContext;
+begin
+  if  FindContextWith(Name, Contexts)  then
+    Result  := Contexts.GetTypeOf(Name)
+  else
+    Result  := nil
 end;
 
 function TContexts.GetValue(const Name: string): TValue;

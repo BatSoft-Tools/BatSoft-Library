@@ -3,7 +3,7 @@ object frmContextDemo: TfrmContextDemo
   Top = 0
   Caption = 'Context Demo'
   ClientHeight = 480
-  ClientWidth = 672
+  ClientWidth = 724
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -11,13 +11,14 @@ object frmContextDemo: TfrmContextDemo
   DesignerMasterStyle = 0
   object Layout1: TLayout
     Align = Left
-    Size.Width = 201.000000000000000000
+    Size.Width = 237.000000000000000000
     Size.Height = 480.000000000000000000
     Size.PlatformDefault = False
+    TabOrder = 0
     object panMacros: TGroupBox
       Align = Top
-      Size.Width = 201.000000000000000000
-      Size.Height = 121.000000000000000000
+      Size.Width = 237.000000000000000000
+      Size.Height = 193.000000000000000000
       Size.PlatformDefault = False
       Text = 'Registered Macros'
       object lstMacros: TListBox
@@ -26,22 +27,42 @@ object frmContextDemo: TfrmContextDemo
         Margins.Top = 24.000000000000000000
         Margins.Right = 8.000000000000000000
         Margins.Bottom = 8.000000000000000000
-        Size.Width = 185.000000000000000000
-        Size.Height = 89.000000000000000000
+        Size.Width = 221.000000000000000000
+        Size.Height = 88.000000000000000000
         Size.PlatformDefault = False
         OnDblClick = lstMacrosDblClick
         DisableFocusEffect = True
         DefaultItemStyles.ItemStyle = ''
         DefaultItemStyles.GroupHeaderStyle = ''
         DefaultItemStyles.GroupFooterStyle = ''
-        Viewport.Width = 181.000000000000000000
-        Viewport.Height = 85.000000000000000000
+        OnChange = lstMacrosChange
+        Viewport.Width = 217.000000000000000000
+        Viewport.Height = 84.000000000000000000
+      end
+      object memMacroDescription: TMemo
+        Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+        DataDetectorTypes = []
+        ReadOnly = True
+        ShowScrollBars = False
+        Align = Bottom
+        EnabledScroll = False
+        Margins.Left = 8.000000000000000000
+        Margins.Right = 8.000000000000000000
+        Margins.Bottom = 8.000000000000000000
+        Position.X = 8.000000000000000000
+        Position.Y = 120.000000000000000000
+        Size.Width = 221.000000000000000000
+        Size.Height = 65.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 38
+        Viewport.Width = 217.000000000000000000
+        Viewport.Height = 61.000000000000000000
       end
     end
     object panNameValues: TGroupBox
       Align = Client
-      Size.Width = 201.000000000000000000
-      Size.Height = 346.000000000000000000
+      Size.Width = 237.000000000000000000
+      Size.Height = 275.000000000000000000
       Size.PlatformDefault = False
       Text = 'Name Values'
       object lstNameValues: TListBox
@@ -49,16 +70,16 @@ object frmContextDemo: TfrmContextDemo
         Margins.Left = 8.000000000000000000
         Margins.Right = 8.000000000000000000
         Margins.Bottom = 8.000000000000000000
-        Size.Width = 185.000000000000000000
-        Size.Height = 230.000000000000000000
+        Size.Width = 221.000000000000000000
+        Size.Height = 159.000000000000000000
         Size.PlatformDefault = False
         OnDblClick = lstNameValuesDblClick
         DisableFocusEffect = True
         DefaultItemStyles.ItemStyle = ''
         DefaultItemStyles.GroupHeaderStyle = ''
         DefaultItemStyles.GroupFooterStyle = ''
-        Viewport.Width = 181.000000000000000000
-        Viewport.Height = 226.000000000000000000
+        Viewport.Width = 217.000000000000000000
+        Viewport.Height = 155.000000000000000000
       end
       object butGetValue: TButton
         Align = Bottom
@@ -66,11 +87,12 @@ object frmContextDemo: TfrmContextDemo
         Margins.Right = 8.000000000000000000
         Margins.Bottom = 8.000000000000000000
         Position.X = 8.000000000000000000
-        Position.Y = 316.000000000000000000
-        Size.Width = 185.000000000000000000
+        Position.Y = 245.000000000000000000
+        Size.Width = 221.000000000000000000
         Size.Height = 22.000000000000000000
         Size.PlatformDefault = False
         Text = 'Get Value'
+        TextSettings.Trimming = None
         OnClick = butGetValueClick
       end
       object chkSystemValues: TCheckBox
@@ -81,7 +103,7 @@ object frmContextDemo: TfrmContextDemo
         Margins.Bottom = 8.000000000000000000
         Position.X = 8.000000000000000000
         Position.Y = 24.000000000000000000
-        Size.Width = 185.000000000000000000
+        Size.Width = 221.000000000000000000
         Size.Height = 19.000000000000000000
         Size.PlatformDefault = False
         Text = 'System Values'
@@ -95,7 +117,7 @@ object frmContextDemo: TfrmContextDemo
         Margins.Bottom = 8.000000000000000000
         Position.X = 8.000000000000000000
         Position.Y = 51.000000000000000000
-        Size.Width = 185.000000000000000000
+        Size.Width = 221.000000000000000000
         Size.Height = 19.000000000000000000
         Size.PlatformDefault = False
         Text = 'This form'
@@ -106,43 +128,47 @@ object frmContextDemo: TfrmContextDemo
       Align = Top
       Cursor = crVSplit
       MinSize = 20.000000000000000000
-      Position.Y = 121.000000000000000000
-      Size.Width = 201.000000000000000000
-      Size.Height = 13.000000000000000000
+      Position.Y = 193.000000000000000000
+      Size.Width = 237.000000000000000000
+      Size.Height = 12.000000000000000000
       Size.PlatformDefault = False
     end
   end
   object panMacro: TGroupBox
     Align = Client
-    Size.Width = 471.000000000000000000
+    Size.Width = 475.000000000000000000
     Size.Height = 480.000000000000000000
     Size.PlatformDefault = False
     Text = 'Macro'
+    TabOrder = 1
     object memMacro: TMemo
       Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
       DataDetectorTypes = []
       Lines.Strings = (
-        'Show "Look at the form caption." "It is <frm_Caption>"'
+        'Show "Look at the form caption." "It is <frm.Caption>"'
         ''
         
-          'Set frm_Caption "Context demo - Size: <frm_ClientWidth>, <frm_Cl' +
+          'Set frm.Caption "Context demo - Size: <frm.ClientWidth>, <frm.Cl' +
           'ientHeight>"'
         'Show "Look again at the form caption." "See the change?"'
+        ''
+        'Show "Now we change the top."'
+        'Set frm.Top 200'
         ''
         'Set ABC "Alpha, Beta, Gamma"'
         'Show "ABC=<ABC>"'
         ''
-        'Set XYZ <frm_ChildrenCount>'
+        'Set XYZ <frm.ChildrenCount>'
         'Show "XYZ=<XYZ>"')
       Align = Client
       Margins.Left = 8.000000000000000000
       Margins.Top = 24.000000000000000000
       Margins.Right = 8.000000000000000000
       Margins.Bottom = 8.000000000000000000
-      Size.Width = 455.000000000000000000
+      Size.Width = 459.000000000000000000
       Size.Height = 418.000000000000000000
       Size.PlatformDefault = False
-      Viewport.Width = 451.000000000000000000
+      Viewport.Width = 455.000000000000000000
       Viewport.Height = 414.000000000000000000
     end
     object FlowLayout1: TFlowLayout
@@ -152,7 +178,7 @@ object frmContextDemo: TfrmContextDemo
       Margins.Bottom = 8.000000000000000000
       Position.X = 8.000000000000000000
       Position.Y = 450.000000000000000000
-      Size.Width = 455.000000000000000000
+      Size.Width = 459.000000000000000000
       Size.Height = 22.000000000000000000
       Size.PlatformDefault = False
       Justify = Left
@@ -161,8 +187,18 @@ object frmContextDemo: TfrmContextDemo
       object butRunMacro: TButton
         Align = Bottom
         Text = 'Run'
+        TextSettings.Trimming = None
         OnClick = butRunMacroClick
       end
     end
+  end
+  object Splitter2: TSplitter
+    Align = Left
+    Cursor = crHSplit
+    MinSize = 20.000000000000000000
+    Position.X = 237.000000000000000000
+    Size.Width = 12.000000000000000000
+    Size.Height = 480.000000000000000000
+    Size.PlatformDefault = False
   end
 end

@@ -3,7 +3,7 @@ unit uContextSystem;
 interface
 
 uses
-  System.Rtti, System.Classes, BatSoft.Context;
+  System.TypInfo, System.Rtti, System.Classes, BatSoft.Context;
 
 type
   //  This context gives access to information from the system
@@ -50,6 +50,7 @@ type
     //  IContext interface
     function  HasValue(const Name: string): Boolean; override;
     function  GetValue(const Name: string): TValue; override;
+    function  GetTypeOf(const Name: string): PTypeInfo; override;
     //  IContextNames interface
     function  GetNames(const Names: TStrings): Boolean; override;
   end;
@@ -70,6 +71,14 @@ begin
   Result  := True;
 end;
 
+function TContextSystem.GetTypeOf(const Name: string): PTypeInfo;
+begin
+  if  IsValidName(Name) then
+    Result  := TypeInfo(string)
+  else
+    Result  := nil
+end;
+
 function TContextSystem.GetValue(const Name: string): TValue;
 begin
   if  IsValidName(Name) then
@@ -87,10 +96,10 @@ function TContextSystem.IsValidName(const Name: string): Boolean;
 var
   VarName: string;
 begin
+  Result := False;
   for VarName in VarNames do
     if  SameText(VarName, Name) then
       Exit(True);
-  Exit(False);
 end;
 
 end.

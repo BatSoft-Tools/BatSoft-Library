@@ -152,6 +152,9 @@ procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
 
 function GetExeDir: string;
 
+const
+  nl  = #13#10;
+
 var
   /// Instead of re-writing instancing/tidy ups of TRttiContext all over the place, here is it, in one place.
   RTTI: TRttiContext;
