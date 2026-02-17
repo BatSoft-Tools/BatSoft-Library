@@ -96,10 +96,12 @@ end;
 procedure Register_GUID;
 begin
   SettingsTypes.Register(TypeInfo(TGUID), TypeInfo(string),
+    //  Convert from store to property
     function(const Value: TValue; const Info: PTypeInfo): TValue
     begin
       Result  := TValue.From(TGUID.Create(Value.AsString));
     end,
+    //  Convert from property to store
     function(const Value: TValue; const Info: PTypeInfo): TValue
     var
       GUID: TGUID;

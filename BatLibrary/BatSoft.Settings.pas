@@ -66,7 +66,30 @@ type
 
 {$endregion}
 type
-  ///  Implement ISettingsStoreReader to load settings from other store types.
+  /// <summary>Used for holding on to a settings store.</summary>
+  ISettingsStore<T: class> = interface
+    ['{3692006F-AEAC-4A20-A719-30A5FF9F936F}']
+    procedure Load(var Obj: T);
+    procedure Save(const Obj: T);
+  end;
+
+  ISettingsStoreReader = interface;
+  ISettingsStoreWriter = interface;
+
+  TSettingsStore<T: class> = class abstract(TInterfacedObject, ISettingsStore<T>)
+  protected
+    function CreateSettingsStoreReader: ISettingsStoreReader; virtual; abstract;
+    function CreateSettingsStoreWriter: ISettingsStoreWriter; virtual; abstract;
+  public
+    //  ISettings<T: class> interface
+    procedure Load(var Obj: T);
+    procedure Save(const Obj: T);
+  end;
+
+  //  The only class of interest below this point is SettingsTypes
+  //  From here onwards is just implementation, and can be ignored by most developers.
+
+  ///  Implement ISettingsStoreReader to load settings from different store types.
   ///  Use TSettingsStore as the base class.
   ISettingsStoreReader = interface
     ['{42508E64-EC8C-44C9-A2F6-9C666BE84230}']
@@ -88,7 +111,7 @@ type
     function  LoadValue(const Name: string; const TypeInfo: PTypeInfo): TValue;
   end;
 
-  ///  Implement ISettingsStoreWriter to save settings to other store types.
+  ///  Implement ISettingsStoreWriter to save settings to different store types.
   ///  Use TSettingsStore as the base class.
   ISettingsStoreWriter = interface
     ['{DE922225-D7A5-40DF-BAB4-CE84F522328D}']
@@ -110,20 +133,7 @@ type
     procedure SaveValue(const Name: string; const Value: TValue);
   end;
 
-  ///  Base class for implementations of ISettingsStoreReader and ISettingsStoreWriter.
-  TSettingsStore = class abstract (TInterfacedObject)
-  protected
-    fFileName: string;
-    fEnumsAsStrings: Boolean;
-  public
-    constructor Create(const AFileName: string; const AEnumsAsStrings: Boolean = True); virtual;
-    class procedure Load(var Obj: TObject; const AFileName: string; const AEnumsAsStrings: Boolean = True; const DefaultClass: TClass = nil); overload;
-    class procedure Load<T: class>(var Obj: T; const AFileName: string; const AEnumsAsStrings: Boolean = True); overload;
-    class procedure Save(const Obj: TObject; const AFileName: string; const AEnumsAsStrings: Boolean = True);
-  end;
-  TSettingsStoreClass = class of TSettingsStore;
-
-  ///  This contains the smarts for loading.  It uses implementations of ISettingsStoreReader to read from stores.
+  ///  This contains the smarts for loading.  It uses implementations of ISettingsStoreReader to read from specific stores types.
   TSettingsReader = class
   private
     fStore: ISettingsStoreReader;
@@ -144,7 +154,7 @@ type
     procedure Load(var Obj: TObject; const ObjClass: TClass);
   end;
 
-  ///  This contains the smarts for saving.  It uses implementations of ISettingsStoreWriter to write to stores.
+  ///  This contains the smarts for saving.  It uses implementations of ISettingsStoreWriter to write to specific stores types.
   TSettingsWriter = class
   private
     fStore: ISettingsStoreWriter;
@@ -389,43 +399,27 @@ begin
   TValue.Make(Value, Info, Result)
 end;
 
-{ TSettingsStoreBase }
+{ TSettingsStore<T> }
 
-constructor TSettingsStore.Create(const AFileName: string; const AEnumsAsStrings: Boolean);
-begin
-  inherited Create();
-  fFileName       := AFileName;
-  fEnumsAsStrings := AEnumsAsStrings;
-end;
-
-class procedure TSettingsStore.Load(var Obj: TObject; const AFileName: string; const AEnumsAsStrings: Boolean; const DefaultClass: TClass);
+procedure TSettingsStore<T>.Load(var Obj: T);
 var
-  Reader: TSettingsReader;
+  Reader  : TSettingsReader;
 begin
-  if  not Supports(Self, ISettingsStoreReader)  then
-    raise ESettings.Create(SENotImplements, ['ISettingsStoreReader']);
-  Reader  := TSettingsReader.Create(Self.Create(AFileName, AEnumsAsStrings) as ISettingsStoreReader);
+  Reader  := TSettingsReader.Create(CreateSettingsStoreReader);
   try
-    Reader.Load(TObject(Obj), DefaultClass);
+    Reader.Load(TObject(Obj), T);
   finally
     Reader.Free;
   end;
 end;
 
-class procedure TSettingsStore.Load<T>(var Obj: T; const AFileName: string; const AEnumsAsStrings: Boolean);
-begin
-  Load(TObject(Obj), AFileName, AEnumsAsStrings, T);
-end;
-
-class procedure TSettingsStore.Save(const Obj: TObject; const AFileName: string; const AEnumsAsStrings: Boolean);
+procedure TSettingsStore<T>.Save(const Obj: T);
 var
-  Writer: TSettingsWriter;
+  Writer  : TSettingsWriter;
 begin
-  if  not Supports(Self, ISettingsStoreWriter)  then
-    raise ESettings.Create(SENotImplements, ['ISettingsStoreWriter']);
-  Writer  := TSettingsWriter.Create(Self.Create(AFileName, AEnumsAsStrings) as ISettingsStoreWriter);
+  Writer  := TSettingsWriter.Create(CreateSettingsStoreWriter);
   try
-    Writer.Save(Obj);
+    Writer.Save(Obj, T);
   finally
     Writer.Free;
   end;

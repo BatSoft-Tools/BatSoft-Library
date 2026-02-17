@@ -32,6 +32,13 @@ type
     property  BDate : TDate   read fBDate write fBDate;
   end;
 
+  TUserSpecial = class(TUser)
+  private
+    fExtraInfo: string;
+  published
+    property  ExtraInfo : string  read fExtraInfo write fExtraInfo;
+  end;
+
   //  This is registered (at the bottom of this unit) as a list class.
   //  In some formats (ex. JSON) a list is saved differently from an object,
   //  therefore properties will not be saved.
@@ -74,6 +81,7 @@ type
     property  UserForm      : TRect   read fUserForm        write fUserForm;
 
     [SettingsDeep]
+    property  UserNamesDeep : TStrings  read fUserNames;
     property  UserNames     : TStrings  read fUserNames;
   end;
 

@@ -29,9 +29,9 @@ object frmDemoSettings: TfrmDemoSettings
       FooterAppearanceClassName = 'TListHeaderObjects'
       Align = Client
       Size.Width = 201.000000000000000000
-      Size.Height = 267.000000000000000000
+      Size.Height = 216.000000000000000000
       Size.PlatformDefault = False
-      OnDblClick = lstUsersDblClick
+      OnDblClick = butUserEditClick
       OnChange = lstUsersChange
     end
     object GridLayout1: TGridLayout
@@ -44,9 +44,9 @@ object frmDemoSettings: TfrmDemoSettings
       Padding.Bottom = 8.000000000000000000
       Orientation = Horizontal
       Position.X = 16.000000000000000000
-      Position.Y = 291.000000000000000000
+      Position.Y = 240.000000000000000000
       Size.Width = 201.000000000000000000
-      Size.Height = 68.000000000000000000
+      Size.Height = 119.000000000000000000
       Size.PlatformDefault = False
       object butUserAdd: TButton
         Margins.Right = 8.000000000000000000
@@ -80,6 +80,18 @@ object frmDemoSettings: TfrmDemoSettings
         Text = '-'
         TextSettings.Trimming = None
         OnClick = butUserDeleteClick
+      end
+      object butUserSpecialAdd: TButton
+        Margins.Right = 8.000000000000000000
+        Position.X = 8.000000000000000000
+        Position.Y = 58.000000000000000000
+        Size.Width = 50.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 5
+        Text = '+'
+        TextSettings.Trimming = None
+        OnClick = butUserSpecialAddClick
       end
     end
   end

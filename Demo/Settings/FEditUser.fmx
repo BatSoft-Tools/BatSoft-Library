@@ -2,8 +2,9 @@ object frmEditUser: TfrmEditUser
   Left = 0
   Top = 0
   Caption = 'User'
-  ClientHeight = 142
+  ClientHeight = 202
   ClientWidth = 346
+  Position = OwnerFormCenter
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -19,6 +20,7 @@ object frmEditUser: TfrmEditUser
     Size.Height = 97.000000000000000000
     Size.PlatformDefault = False
     Text = 'User'
+    TabOrder = 1
     object edUserName: TEdit
       Touch.InteractiveGestures = [LongTap, DoubleTap]
       Align = Top
@@ -45,16 +47,18 @@ object frmEditUser: TfrmEditUser
     Padding.Top = 8.000000000000000000
     Padding.Right = 16.000000000000000000
     Padding.Bottom = 8.000000000000000000
-    Position.Y = 101.000000000000000000
+    Position.Y = 161.000000000000000000
     Size.Width = 346.000000000000000000
     Size.Height = 41.000000000000000000
     Size.PlatformDefault = False
+    TabOrder = 2
     object butOK: TButton
       Default = True
       ModalResult = 1
       Position.X = 160.000000000000000000
       Position.Y = 8.000000000000000000
       Text = 'OK'
+      TextSettings.Trimming = None
     end
     object butCancel: TButton
       Cancel = True
@@ -62,6 +66,31 @@ object frmEditUser: TfrmEditUser
       Position.X = 256.000000000000000000
       Position.Y = 8.000000000000000000
       Text = 'Cancel'
+      TextSettings.Trimming = None
+    end
+  end
+  object panExtraInfo: TGroupBox
+    Align = Top
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Position.Y = 97.000000000000000000
+    Size.Width = 346.000000000000000000
+    Size.Height = 64.000000000000000000
+    Size.PlatformDefault = False
+    Text = 'ExtraInfo'
+    TabOrder = 0
+    object memExtraInfo: TMemo
+      Touch.InteractiveGestures = [LongTap, DoubleTap]
+      DataDetectorTypes = []
+      OnChange = memExtraInfoChange
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      Position.X = 16.000000000000000000
+      Position.Y = 22.000000000000000000
+      Size.Width = 314.000000000000000000
+      Size.Height = 22.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 37
+      Viewport.Width = 314.000000000000000000
+      Viewport.Height = 22.000000000000000000
     end
   end
 end

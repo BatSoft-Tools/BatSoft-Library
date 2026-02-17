@@ -21,10 +21,18 @@ unit BatSoft.Settings.Ini;
 //  {$M-}   <- Don't generate more RTTI than necessary.
 //
 //  Save settings:
-//    TSettingsIniSaver.Save(Settings, FileName, True)
+//  var
+//    SettingsStore: ISettingsStore<TMySettings>;
+//  begin
+//    SettingsStore := TSettingsStoreIni<TMySettings>.Create(FileName);
+//    SettingsStore.Save(Settings);
 //
 //  Load settings:
-//    TSettingsIniLoader.Load(Settings, FileName, True);
+//  var
+//    SettingsStore: ISettingsStore<TMySettings>;
+//  begin
+//    SettingsStore := TSettingsStoreIni<TMySettings>.Create(FileName);
+//    SettingsStore.Load(Settings);
 //
 //  It is possible to store object lists, string lists and other more complex or
 //  specific types.  To see how, look at the unit tests and the demos.
@@ -36,68 +44,82 @@ uses
   System.Generics.Collections, BatSoft.Settings;
 
 type
-  /// Base class.  Don't instantiate this.
-  TSettingsIni = class abstract(TSettingsStore)
+  TSettingsStoreIni<T: class> = class(TSettingsStore<T>)
   public
     const DefaultPathDelimiter  = '/';
-  private
-    fIni: TIniFile;
-    fPath: TStrings;
+  var
+    fFileName: string;
+    fEnumsAsStrings: Boolean;
     fPathDelimiter: Char;
-    function  CurrentSection: string; inline;
-    procedure StoreBegin;
-    procedure StoreEnd;
-  public
-    constructor Create(const AFileName: string; const AEnumsAsStrings: Boolean = True); overload; override;
-    constructor Create(const AFileName: string; const AEnumsAsStrings: Boolean; const APathDelimiter: Char); reintroduce; overload;
-    destructor  Destroy; override;
-  end;
+  type
 
-  TSettingsIniLoader = class(TSettingsIni, ISettingsStoreReader)
-  private
-    fIterators: TStack<TStrings>;
-    fElemName: string;
-  public
-    //  ISettingsStoreReader interface
-    //  Storage
-    procedure LoadBegin;
-    procedure LoadEnd;
-    //  Navigation
-    procedure NodeChildren(const Names: TStrings);
-    function  NodeEnter(const Name: string): Boolean;
-    procedure NodeLeave;
-    //  Arrays
-    function  ListBegin(const Name: string): Boolean;
-    procedure ListEnd;
-    //  Array elements
-    function  ElemEnter: Boolean;
-    procedure ElemLeave;
-    function  ElemNext: Boolean;
-    //  Simple values
-    function  LoadValue(const Name: string; const Info: PTypeInfo): TValue;
-  end;
+    TSettingsIniBase = class abstract(TInterfacedObject)
+    private
+      fFileName: string;
+      fEnumsAsStrings: Boolean;
+      fPathDelimiter: Char;
+      fIni: TIniFile;
+      fPath: TStrings;
+    protected
+      function  CurrentSection: string; inline;
+      procedure StoreBegin;
+      procedure StoreEnd;
+    public
+      constructor Create(const AFileName: string; const AEnumsAsStrings: Boolean; const APathDelimiter: Char); overload;
+      destructor  Destroy; override;
+    end;
 
-  TSettingsIniSaver = class(TSettingsIni, ISettingsStoreWriter)
+    TSettingsIniReader = class(TSettingsIniBase, ISettingsStoreReader)
+    private
+      fIterators: TStack<TStrings>;
+      fElemName: string;
+    public
+      //  ISettingsStoreReader interface
+      //  Storage
+      procedure LoadBegin;
+      procedure LoadEnd;
+      //  Navigation
+      procedure NodeChildren(const Names: TStrings);
+      function  NodeEnter(const Name: string): Boolean;
+      procedure NodeLeave;
+      //  Arrays
+      function  ListBegin(const Name: string): Boolean;
+      procedure ListEnd;
+      //  Array elements
+      function  ElemEnter: Boolean;
+      procedure ElemLeave;
+      function  ElemNext: Boolean;
+      //  Simple values
+      function  LoadValue(const Name: string; const Info: PTypeInfo): TValue;
+    end;
+
+    TSettingsIniWriter = class(TSettingsIniBase, ISettingsStoreWriter)
+    public
+      //  ISettingsStoreWriter interface
+      //  Storage
+      procedure SaveBegin;
+      procedure SaveEnd;
+      //  Navigation
+      procedure NodeClear(const Name: string);
+      procedure NodeEnter(const Name: string; const IsNil: Boolean);
+      procedure NodeLeave;
+      //  Arrays
+      procedure ListClear(const Name: string);
+      procedure ListBegin(const Name: string; const IsNil: Boolean);
+      procedure ListEnd;
+      //  Array elements
+      procedure ElemEnter(const Index: integer; const IsNil: Boolean);
+      procedure ElemLeave;
+      //  Simple values
+      procedure SaveValue(const Name: string; const Value: TValue); virtual;
+    end;
+
   protected
-    //  For use in subclasses' SaveValue() overrides
+    function CreateSettingsStoreReader: ISettingsStoreReader; override;
+    function CreateSettingsStoreWriter: ISettingsStoreWriter; override;
   public
-    //  ISettingsStoreWriter interface
-    //  Storage
-    procedure SaveBegin;
-    procedure SaveEnd;
-    //  Navigation
-    procedure NodeClear(const Name: string);
-    procedure NodeEnter(const Name: string; const IsNil: Boolean);
-    procedure NodeLeave;
-    //  Arrays
-    procedure ListClear(const Name: string);
-    procedure ListBegin(const Name: string; const IsNil: Boolean);
-    procedure ListEnd;
-    //  Array elements
-    procedure ElemEnter(const Index: integer; const IsNil: Boolean);
-    procedure ElemLeave;
-    //  Simple values
-    procedure SaveValue(const Name: string; const Value: TValue); virtual;
+    constructor Create(const AFileName: string; const AEnumsAsStrings: Boolean = True); overload;
+    constructor Create(const AFileName: string; const AEnumsAsStrings: Boolean; const APathDelimiter: Char); overload;
   end;
 
 implementation
@@ -105,56 +127,77 @@ implementation
 uses
   System.SysUtils, System.Variants;
 
-{ TSettingsIni }
+{ TSettingsStoreIni<T> }
 
-constructor TSettingsIni.Create(const AFileName: string; const AEnumsAsStrings: Boolean);
+constructor TSettingsStoreIni<T>.Create(const AFileName: string; const AEnumsAsStrings: Boolean);
 begin
   Create(AFileName, AEnumsAsStrings, DefaultPathDelimiter)
 end;
 
-constructor TSettingsIni.Create(const AFileName: string; const AEnumsAsStrings: Boolean; const APathDelimiter: Char);
+constructor TSettingsStoreIni<T>.Create(const AFileName: string; const AEnumsAsStrings: Boolean; const APathDelimiter: Char);
 begin
-  inherited Create(AFileName, AEnumsAsStrings);
-  fPath           := TStringList.Create;
-  fPathDelimiter  := APathDelimiter
+  inherited Create;
+  fFileName       := AFileName;
+  fEnumsAsStrings := AEnumsAsStrings;
+  fPathDelimiter  := APathDelimiter;
 end;
 
-function TSettingsIni.CurrentSection: string;
+function TSettingsStoreIni<T>.CreateSettingsStoreReader: ISettingsStoreReader;
+begin
+  Result  := TSettingsIniReader.Create(fFileName, fEnumsAsStrings, fPathDelimiter);
+end;
+
+function TSettingsStoreIni<T>.CreateSettingsStoreWriter: ISettingsStoreWriter;
+begin
+  Result  := TSettingsIniWriter.Create(fFileName, fEnumsAsStrings, fPathDelimiter);
+end;
+
+{ TSettingsIni<T>.TSettingsIniBase }
+
+constructor TSettingsStoreIni<T>.TSettingsIniBase.Create(const AFileName: string; const AEnumsAsStrings: Boolean; const APathDelimiter: Char);
+begin
+  inherited Create;
+  fFileName       := AFileName;
+  fEnumsAsStrings := AEnumsAsStrings;
+  fPathDelimiter  := APathDelimiter;
+end;
+
+function TSettingsStoreIni<T>.TSettingsIniBase.CurrentSection: string;
 begin
   Result  := fPath.DelimitedText
 end;
 
-destructor TSettingsIni.Destroy;
+destructor TSettingsStoreIni<T>.TSettingsIniBase.Destroy;
 begin
   fPath.Free;
   inherited;
 end;
 
-procedure TSettingsIni.StoreBegin;
+procedure TSettingsStoreIni<T>.TSettingsIniBase.StoreBegin;
 begin
   fIni  := TIniFile.Create(fFileName);
   fPath := TStringList.Create;
   fPath.Delimiter := fPathDelimiter;
 end;
 
-procedure TSettingsIni.StoreEnd;
+procedure TSettingsStoreIni<T>.TSettingsIniBase.StoreEnd;
 begin
   fIni.Free;
 end;
 
-{ TSettingsIniLoader }
+{ TSettingsIni<T>.TSettingsIniReader }
 
-function TSettingsIniLoader.ElemEnter: Boolean;
+function TSettingsStoreIni<T>.TSettingsIniReader.ElemEnter: Boolean;
 begin
   Result  := NodeEnter(fElemName)
 end;
 
-procedure TSettingsIniLoader.ElemLeave;
+procedure TSettingsStoreIni<T>.TSettingsIniReader.ElemLeave;
 begin
   NodeLeave;
 end;
 
-function TSettingsIniLoader.ElemNext: Boolean;
+function TSettingsStoreIni<T>.TSettingsIniReader.ElemNext: Boolean;
 begin
   //  Do we have a next element?
   Result  := fIterators.Peek.Count > 0;
@@ -167,7 +210,7 @@ begin
     end;
 end;
 
-function TSettingsIniLoader.ListBegin(const Name: string): Boolean;
+function TSettingsStoreIni<T>.TSettingsIniReader.ListBegin(const Name: string): Boolean;
 var
   Iterator: TStringList;
 begin
@@ -181,19 +224,19 @@ begin
     end;
 end;
 
-procedure TSettingsIniLoader.ListEnd;
+procedure TSettingsStoreIni<T>.TSettingsIniReader.ListEnd;
 begin
   fIterators.Pop.Free;
   fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsIniLoader.LoadBegin;
+procedure TSettingsStoreIni<T>.TSettingsIniReader.LoadBegin;
 begin
   StoreBegin;
   fIterators  := TStack<TStrings>.Create;
 end;
 
-procedure TSettingsIniLoader.LoadEnd;
+procedure TSettingsStoreIni<T>.TSettingsIniReader.LoadEnd;
 begin
   while fIterators.Count > 0 do
     fIterators.Pop.Free;
@@ -201,7 +244,7 @@ begin
   StoreEnd;
 end;
 
-function TSettingsIniLoader.LoadValue(const Name: string; const Info: PTypeInfo): TValue;
+function TSettingsStoreIni<T>.TSettingsIniReader.LoadValue(const Name: string; const Info: PTypeInfo): TValue;
 var
   Path: string;
 begin
@@ -233,7 +276,7 @@ begin
   end;
 end;
 
-function TSettingsIniLoader.NodeEnter(const Name: string): Boolean;
+function TSettingsStoreIni<T>.TSettingsIniReader.NodeEnter(const Name: string): Boolean;
 begin
   fPath.Add(Name);
   Result  := not SameText(fIni.ReadString(CurrentSection, SClass, string.Empty), SNil);
@@ -241,12 +284,12 @@ begin
     fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsIniLoader.NodeLeave;
+procedure TSettingsStoreIni<T>.TSettingsIniReader.NodeLeave;
 begin
   fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsIniLoader.NodeChildren(const Names: TStrings);
+procedure TSettingsStoreIni<T>.TSettingsIniReader.NodeChildren(const Names: TStrings);
 var
   i: integer;
   Path: TStringList;
@@ -276,34 +319,34 @@ begin
   end;
 end;
 
-{ TSettingsIniSaver }
+{ TSettingsIni<T>.TSettingsIniWriter }
 
-procedure TSettingsIniSaver.ElemEnter(const Index: integer; const IsNil: Boolean);
+procedure TSettingsStoreIni<T>.TSettingsIniWriter.ElemEnter(const Index: integer; const IsNil: Boolean);
 begin
   NodeEnter('(' + Index.ToString + ')', IsNil)
 end;
 
-procedure TSettingsIniSaver.ElemLeave;
+procedure TSettingsStoreIni<T>.TSettingsIniWriter.ElemLeave;
 begin
   fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsIniSaver.ListBegin(const Name: string; const IsNil: Boolean);
+procedure TSettingsStoreIni<T>.TSettingsIniWriter.ListBegin(const Name: string; const IsNil: Boolean);
 begin
   fPath.Add(Name);
 end;
 
-procedure TSettingsIniSaver.ListClear(const Name: string);
+procedure TSettingsStoreIni<T>.TSettingsIniWriter.ListClear(const Name: string);
 begin
   NodeClear(Name)
 end;
 
-procedure TSettingsIniSaver.ListEnd;
+procedure TSettingsStoreIni<T>.TSettingsIniWriter.ListEnd;
 begin
   fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsIniSaver.NodeClear(const Name: string);
+procedure TSettingsStoreIni<T>.TSettingsIniWriter.NodeClear(const Name: string);
 var
   Sections: TStrings;
   Section, Path: string;
@@ -327,7 +370,7 @@ begin
   end;
 end;
 
-procedure TSettingsIniSaver.NodeEnter(const Name: string; const IsNil: Boolean);
+procedure TSettingsStoreIni<T>.TSettingsIniWriter.NodeEnter(const Name: string; const IsNil: Boolean);
 begin
   fPath.Add(Name);
   if  IsNil then
@@ -336,22 +379,22 @@ begin
     fIni.DeleteKey(fPath.DelimitedText, SClass)
 end;
 
-procedure TSettingsIniSaver.NodeLeave;
+procedure TSettingsStoreIni<T>.TSettingsIniWriter.NodeLeave;
 begin
   fPath.Delete(fPath.Count - 1)
 end;
 
-procedure TSettingsIniSaver.SaveBegin;
+procedure TSettingsStoreIni<T>.TSettingsIniWriter.SaveBegin;
 begin
   StoreBegin
 end;
 
-procedure TSettingsIniSaver.SaveEnd;
+procedure TSettingsStoreIni<T>.TSettingsIniWriter.SaveEnd;
 begin
   StoreEnd
 end;
 
-procedure TSettingsIniSaver.SaveValue(const Name: string; const Value: TValue);
+procedure TSettingsStoreIni<T>.TSettingsIniWriter.SaveValue(const Name: string; const Value: TValue);
 var
   Path: string;
 begin

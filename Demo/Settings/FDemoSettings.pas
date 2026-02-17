@@ -30,6 +30,7 @@ type
     butUserEdit: TButton;
     butUserDelete: TButton;
     GridLayout1: TGridLayout;
+    butUserSpecialAdd: TButton;
     procedure butSaveINIClick(Sender: TObject);
     procedure butSaveJSONClick(Sender: TObject);
     procedure butLoadINIClick(Sender: TObject);
@@ -43,8 +44,9 @@ type
     procedure butUserEditClick(Sender: TObject);
     procedure lstUsersChange(Sender: TObject);
     procedure butUserDeleteClick(Sender: TObject);
-    procedure lstUsersDblClick(Sender: TObject);
+    procedure butUserSpecialAddClick(Sender: TObject);
   private
+    procedure EditNew(const NewUser: TUser);
     procedure ClearSettings;
     procedure PopulateState;
     procedure PopulateUsers;
@@ -59,7 +61,7 @@ implementation
 {$R *.fmx}
 
 uses
-  BatSoft.Settings.Ini, BatSoft.Settings.JSON, FEditUser;
+  BatSoft.Settings, BatSoft.Settings.Ini, BatSoft.Settings.JSON, FEditUser;
 
 const
   SIni  = '.ini';
@@ -74,6 +76,8 @@ begin
 end;
 
 procedure TfrmDemoSettings.butLoadINIClick(Sender: TObject);
+var
+  Store: ISettingsStore<TAppSettings>;
 begin
   OpenDialog.DefaultExt   := SIni;
   OpenDialog.FilterIndex  := 1;
@@ -83,12 +87,15 @@ begin
       //  In this demo we'll clear the settings first.
       ClearSettings;
       //  This is the line that loads from an ini file
-      TSettingsIniLoader.Load(Settings, OpenDialog.FileName, True);
+      Store := TSettingsStoreIni<TAppSettings>.Create(OpenDialog.FileName, True);
+      Store.Load(Settings);
     end;
   PopulateUsers;
 end;
 
 procedure TfrmDemoSettings.butLoadJSONClick(Sender: TObject);
+var
+  Store: ISettingsStore<TAppSettings>;
 begin
   OpenDialog.DefaultExt   := SJson;
   OpenDialog.FilterIndex  := 2;
@@ -98,23 +105,31 @@ begin
       //  In this demo we'll clear the settings first.
       ClearSettings;
       //  This is the line that loads from a JSON file
-      TSettingsJSONLoader.Load(Settings, OpenDialog.FileName, True);
+      Store := TSettingsStoreJSON<TAppSettings>.Create(OpenDialog.FileName, True);
+      Store.Load(Settings);
     end;
   PopulateUsers;
 end;
 
 procedure TfrmDemoSettings.butSaveINIClick(Sender: TObject);
+var
+  Store: ISettingsStore<TAppSettings>;
 begin
   Settings.UserForm := Self.Bounds;
   //  Set up the save dialog
   SaveDialog.DefaultExt   := SIni;
   SaveDialog.FilterIndex  := 1;
   if  SaveDialog.Execute  then
-    //  This is the line that saves to an ini file
-    TSettingsIniSaver.Save(Settings, SaveDialog.FileName, True)
+      //  This is the line that saves to an ini file
+    begin
+      Store := TSettingsStoreIni<TAppSettings>.Create(SaveDialog.FileName, True);
+      Store.Save(Settings);
+    end;
 end;
 
 procedure TfrmDemoSettings.butSaveJSONClick(Sender: TObject);
+var
+  Store: ISettingsStore<TAppSettings>;
 begin
   Settings.UserForm := Self.Bounds;
   //  Set up the save dialog
@@ -122,7 +137,10 @@ begin
   SaveDialog.FilterIndex  := 2;
   if  SaveDialog.Execute  then
     //  This is the line that saves to a JSON file
-    TSettingsJSONSaver.Save(Settings, SaveDialog.FileName, True)
+    begin
+      Store := TSettingsStoreJSON<TAppSettings>.Create(SaveDialog.FileName, True);
+      Store.Save(Settings);
+    end;
 end;
 
 procedure TfrmDemoSettings.butSeedDataClick(Sender: TObject);
@@ -130,7 +148,7 @@ begin
   Settings.Users.Add(TUser.CreateNew('John Stag'));
   Settings.Users.Add(TUser.CreateNew('Jane Doe'));
   Settings.Users.Add(TUser.CreateNew('Sonny Skye'));
-  Settings.Users.Add(TUser.CreateNew('Dawn Breaker'));
+  Settings.Users.Add(TUserSpecial.CreateNew('Dawn Breaker'));
   Settings.Users.Add(TUser.CreateNew('May-June Summers'));
   Settings.UserNames.Add('John Stag');
   Settings.UserNames.Add('Jane Doe');
@@ -140,12 +158,29 @@ begin
 end;
 
 procedure TfrmDemoSettings.butUserAddClick(Sender: TObject);
-var
-  NewUser: TUser;
 begin
-  if  TfrmEditUser.New(NewUser)  then
-    Settings.Users.Add(NewUser);
+  EditNew(TUser.CreateNew(''))
+end;
+
+procedure TfrmDemoSettings.butUserSpecialAddClick(Sender: TObject);
+begin
+  EditNew(TUserSpecial.CreateNew(''))
+end;
+
+procedure TfrmDemoSettings.EditNew(const NewUser: TUser);
+begin
+  if  TfrmEditUser.Edit(NewUser)  then
+    Settings.Users.Add(NewUser)
+  else
+    NewUser.Free;
   PopulateUsers;
+end;
+
+procedure TfrmDemoSettings.butUserEditClick(Sender: TObject);
+begin
+  if  lstUsers.ItemIndex >= 0 then
+    if  TfrmEditUser.Edit(SelectedUser) then
+      PopulateUsers;
 end;
 
 procedure TfrmDemoSettings.butUserDeleteClick(Sender: TObject);
@@ -155,12 +190,6 @@ begin
       Settings.Users.DeleteUser(SelectedUser.ID);
       PopulateUsers;
     end;
-end;
-
-procedure TfrmDemoSettings.butUserEditClick(Sender: TObject);
-begin
-  TfrmEditUser.Edit(SelectedUser);
-  PopulateUsers;
 end;
 
 procedure TfrmDemoSettings.ClearSettings;
@@ -191,12 +220,6 @@ end;
 procedure TfrmDemoSettings.lstUsersChange(Sender: TObject);
 begin
   PopulateState;
-end;
-
-procedure TfrmDemoSettings.lstUsersDblClick(Sender: TObject);
-begin
-  if  lstUsers.ItemIndex >= 0 then
-    TfrmEditUser.Edit(SelectedUser)
 end;
 
 procedure TfrmDemoSettings.PopulateState;
@@ -245,7 +268,7 @@ begin
   if  lstUsers.ItemIndex < 0  then
     Result  := nil
   else
-    Result  :=lstUsers.Items[lstUsers.ItemIndex].TagObject as TUser
+    Result  := lstUsers.Items[lstUsers.ItemIndex].TagObject as TUser
 end;
 
 end.

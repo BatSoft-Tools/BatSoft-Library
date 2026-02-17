@@ -20,11 +20,18 @@ unit BatSoft.Settings.JSON;
 //    end;
 //  {$M-}   <- Don't generate more RTTI than necessary.
 //
-//  Save settings:
-//    TSettingsJSONSaver.Save(Settings, FileName, True)
+//  var
+//    SettingsStore: ISettingsStore<TMySettings>;
+//  begin
+//    SettingsStore := TSettingsStoreJSON<TMySettings>.Create(FileName);
+//    SettingsStore.Save(Settings);
 //
 //  Load settings:
-//    TSettingsJSONLoader.Load(Settings, FileName, True);
+//  var
+//    SettingsStore: ISettingsStore<TMySettings>;
+//  begin
+//    SettingsStore := TSettingsStoreJSON<TMySettings>.Create(FileName);
+//    SettingsStore.Load(Settings);
 //
 //  It is possible to store object lists, string lists and other more complex or
 //  specific types.  To see how, look at the unit tests and the demos.
@@ -36,59 +43,75 @@ uses
   System.JSON, BatSoft.Settings;
 
 type
-  /// Base class.  Don't instantiate this.
-  TSettingsJSON = class abstract(TSettingsStore)
+  TSettingsStoreJSON<T: class> = class(TSettingsStore<T>)
+  var
+    fFileName: string;
+    fEnumsAsStrings: Boolean;
+  type
+
+    TSettingsJSONBase = class abstract(TInterfacedObject)
+    protected
+      fFileName: string;
+      fEnumsAsStrings: Boolean;
+      fRoot: TJSONObject;
+      fPath: TStack<TJSONValue>;
+      procedure StoreBegin;
+      procedure StoreEnd;
+      //  For use in subclasses' SaveValue() overrides
+      function  CurrentNode: TJSONObject; inline;
+    public
+      constructor Create(const AFileName: string; const AEnumsAsStrings: Boolean);
+    end;
+
+    TSettingsJSONReader = class(TSettingsJSONBase, ISettingsStoreReader)
+    private
+      fIterators: TStack<TJSONArray.TEnumerator>;
+    public
+      //  ISettingsStoreReader interface
+      //  Storage
+      procedure LoadBegin;
+      procedure LoadEnd;
+      //  Navigation
+      procedure NodeChildren(const Names: TStrings);
+      function  NodeEnter(const Name: string): Boolean;
+      procedure NodeLeave;
+      //  Arrays
+      function  ListBegin(const Name: string): Boolean;
+      procedure ListEnd;
+      //  Array elements
+      function  ElemEnter: Boolean;
+      procedure ElemLeave;
+      function  ElemNext: Boolean;
+      //  Simple values
+      function  LoadValue(const Name: string; const Info: PTypeInfo): TValue;
+    end;
+
+    TSettingsJSONWriter = class(TSettingsJSONBase, ISettingsStoreWriter)
+    public
+      //  ISettingsStoreWriter interface
+      //  Storage
+      procedure SaveBegin;
+      procedure SaveEnd;
+      //  Navigation
+      procedure NodeClear(const Name: string);
+      procedure NodeEnter(const Name: string; const IsNil: Boolean);
+      procedure NodeLeave;
+      //  Arrays
+      procedure ListClear(const Name: string);
+      procedure ListBegin(const Name: string; const IsNil: Boolean);
+      procedure ListEnd;
+      //  Array elements
+      procedure ElemEnter(const Index: integer; const IsNil: Boolean);
+      procedure ElemLeave;
+      //  Simple values
+      procedure SaveValue(const Name: string; const Value: TValue); virtual;
+    end;
+
   protected
-    fRoot: TJSONObject;
-    fPath: TStack<TJSONValue>;
-    procedure StoreBegin;
-    procedure StoreEnd;
-    //  For use in subclasses' SaveValue() overrides
-    function  CurrentNode: TJSONObject; inline;
-  end;
-
-  TSettingsJSONLoader = class(TSettingsJSON, ISettingsStoreReader)
-  private
-    fIterators: TStack<TJSONArray.TEnumerator>;
+    function CreateSettingsStoreReader: ISettingsStoreReader; override;
+    function CreateSettingsStoreWriter: ISettingsStoreWriter; override;
   public
-    //  ISettingsStoreReader interface
-    //  Storage
-    procedure LoadBegin;
-    procedure LoadEnd;
-    //  Navigation
-    procedure NodeChildren(const Names: TStrings);
-    function  NodeEnter(const Name: string): Boolean;
-    procedure NodeLeave;
-    //  Arrays
-    function  ListBegin(const Name: string): Boolean;
-    procedure ListEnd;
-    //  Array elements
-    function  ElemEnter: Boolean;
-    procedure ElemLeave;
-    function  ElemNext: Boolean;
-    //  Simple values
-    function  LoadValue(const Name: string; const Info: PTypeInfo): TValue;
-  end;
-
-  TSettingsJSONSaver = class(TSettingsJSON, ISettingsStoreWriter)
-  public
-    //  ISettingsStoreWriter interface
-    //  Storage
-    procedure SaveBegin;
-    procedure SaveEnd;
-    //  Navigation
-    procedure NodeClear(const Name: string);
-    procedure NodeEnter(const Name: string; const IsNil: Boolean);
-    procedure NodeLeave;
-    //  Arrays
-    procedure ListClear(const Name: string);
-    procedure ListBegin(const Name: string; const IsNil: Boolean);
-    procedure ListEnd;
-    //  Array elements
-    procedure ElemEnter(const Index: integer; const IsNil: Boolean);
-    procedure ElemLeave;
-    //  Simple values
-    procedure SaveValue(const Name: string; const Value: TValue); virtual;
+    constructor Create(const AFileName: string; const AEnumsAsStrings: Boolean = True);
   end;
 
 implementation
@@ -96,29 +119,55 @@ implementation
 uses
   System.SysUtils, System.IOUtils;
 
-{ TSettingsJSON }
+{ TSettingsStoreJSON<T> }
 
-function TSettingsJSON.CurrentNode: TJSONObject;
+constructor TSettingsStoreJSON<T>.Create(const AFileName: string; const AEnumsAsStrings: Boolean);
+begin
+  inherited Create;
+  fFileName       := AFileName;
+  fEnumsAsStrings := AEnumsAsStrings;
+end;
+
+function TSettingsStoreJSON<T>.CreateSettingsStoreReader: ISettingsStoreReader;
+begin
+  Result  := TSettingsJSONReader.Create(fFileName, fEnumsAsStrings);
+end;
+
+function TSettingsStoreJSON<T>.CreateSettingsStoreWriter: ISettingsStoreWriter;
+begin
+  Result  := TSettingsJSONWriter.Create(fFileName, fEnumsAsStrings);
+end;
+
+{ TSettingsJSON<T>.TSettingsJSONBase }
+
+constructor TSettingsStoreJSON<T>.TSettingsJSONBase.Create(const AFileName: string; const AEnumsAsStrings: Boolean);
+begin
+  inherited Create;
+  fFileName       := AFileName;
+  fEnumsAsStrings := AEnumsAsStrings;
+end;
+
+function TSettingsStoreJSON<T>.TSettingsJSONBase.CurrentNode: TJSONObject;
 begin
   Result  := fPath.Peek as TJSONObject
 end;
 
-procedure TSettingsJSON.StoreBegin;
+procedure TSettingsStoreJSON<T>.TSettingsJSONBase.StoreBegin;
 begin
   fRoot := TJSONObject.Create;
   fPath := TStack<TJSONValue>.Create;
   fPath.Push(fRoot);
 end;
 
-procedure TSettingsJSON.StoreEnd;
+procedure TSettingsStoreJSON<T>.TSettingsJSONBase.StoreEnd;
 begin
   fPath.Free;
   FreeAndNil(fRoot);
 end;
 
-{ TSettingsJSONLoader }
+{ TSettingsJSON<T>.TSettingsJSONReader }
 
-function TSettingsJSONLoader.ElemEnter: Boolean;
+function TSettingsStoreJSON<T>.TSettingsJSONReader.ElemEnter: Boolean;
 var
   Value: TJSONValue;
 begin
@@ -128,17 +177,17 @@ begin
     fPath.Push(Value);
 end;
 
-procedure TSettingsJSONLoader.ElemLeave;
+procedure TSettingsStoreJSON<T>.TSettingsJSONReader.ElemLeave;
 begin
   fPath.Pop
 end;
 
-function TSettingsJSONLoader.ElemNext: Boolean;
+function TSettingsStoreJSON<T>.TSettingsJSONReader.ElemNext: Boolean;
 begin
   Result  := fIterators.Peek.MoveNext
 end;
 
-function TSettingsJSONLoader.ListBegin(const Name: string): Boolean;
+function TSettingsStoreJSON<T>.TSettingsJSONReader.ListBegin(const Name: string): Boolean;
 var
   Pair: TJSONPair;
 begin
@@ -151,13 +200,13 @@ begin
     end;
 end;
 
-procedure TSettingsJSONLoader.ListEnd;
+procedure TSettingsStoreJSON<T>.TSettingsJSONReader.ListEnd;
 begin
   fPath.Pop;
   fIterators.Pop.Free;
 end;
 
-procedure TSettingsJSONLoader.LoadBegin;
+procedure TSettingsStoreJSON<T>.TSettingsJSONReader.LoadBegin;
 var
   JSONStr: string;
 begin
@@ -168,14 +217,14 @@ begin
   fPath.Push(TJSONObject.ParseJSONValue(JSONStr));
 end;
 
-procedure TSettingsJSONLoader.LoadEnd;
+procedure TSettingsStoreJSON<T>.TSettingsJSONReader.LoadEnd;
 begin
   while fIterators.Count > 0 do
     fIterators.Pop.Free;
   StoreEnd;
 end;
 
-function TSettingsJSONLoader.LoadValue(const Name: string; const Info: PTypeInfo): TValue;
+function TSettingsStoreJSON<T>.TSettingsJSONReader.LoadValue(const Name: string; const Info: PTypeInfo): TValue;
 var
   JSONVal: TJSONValue;
 begin
@@ -211,7 +260,7 @@ begin
     Result  := TValue.Empty;
 end;
 
-procedure TSettingsJSONLoader.NodeChildren(const Names: TStrings);
+procedure TSettingsStoreJSON<T>.TSettingsJSONReader.NodeChildren(const Names: TStrings);
 var
   i: integer;
 begin
@@ -220,7 +269,7 @@ begin
     Names.Add(CurrentNode.Pairs[i].JsonString.Value);
 end;
 
-function TSettingsJSONLoader.NodeEnter(const Name: string): Boolean;
+function TSettingsStoreJSON<T>.TSettingsJSONReader.NodeEnter(const Name: string): Boolean;
 var
   Pair: TJSONPair;
 begin
@@ -230,14 +279,14 @@ begin
     fPath.Push(Pair.JsonValue)
 end;
 
-procedure TSettingsJSONLoader.NodeLeave;
+procedure TSettingsStoreJSON<T>.TSettingsJSONReader.NodeLeave;
 begin
   fPath.Pop;
 end;
 
-{ TSettingsJSONSaver }
+{ TSettingsJSON<T>.TSettingsJSONWriter }
 
-procedure TSettingsJSONSaver.ElemEnter(const Index: integer; const IsNil: Boolean);
+procedure TSettingsStoreJSON<T>.TSettingsJSONWriter.ElemEnter(const Index: integer; const IsNil: Boolean);
 var
   Child: TJSONValue;
 begin
@@ -249,12 +298,12 @@ begin
   fPath.Push(Child);
 end;
 
-procedure TSettingsJSONSaver.ElemLeave;
+procedure TSettingsStoreJSON<T>.TSettingsJSONWriter.ElemLeave;
 begin
   fPath.Pop;
 end;
 
-procedure TSettingsJSONSaver.ListBegin(const Name: string; const IsNil: Boolean);
+procedure TSettingsStoreJSON<T>.TSettingsJSONWriter.ListBegin(const Name: string; const IsNil: Boolean);
 var
   Arr: TJSONArray;
 begin
@@ -266,22 +315,22 @@ begin
   fPath.Push(Arr);
 end;
 
-procedure TSettingsJSONSaver.ListClear(const Name: string);
+procedure TSettingsStoreJSON<T>.TSettingsJSONWriter.ListClear(const Name: string);
 begin
   //  Nothing to do
 end;
 
-procedure TSettingsJSONSaver.ListEnd;
+procedure TSettingsStoreJSON<T>.TSettingsJSONWriter.ListEnd;
 begin
   fPath.Pop;
 end;
 
-procedure TSettingsJSONSaver.NodeClear(const Name: string);
+procedure TSettingsStoreJSON<T>.TSettingsJSONWriter.NodeClear(const Name: string);
 begin
   //  Nothing to do
 end;
 
-procedure TSettingsJSONSaver.NodeEnter(const Name: string; const IsNil: Boolean);
+procedure TSettingsStoreJSON<T>.TSettingsJSONWriter.NodeEnter(const Name: string; const IsNil: Boolean);
 var
   Child: TJSONValue;
 begin
@@ -296,17 +345,17 @@ begin
   fPath.Push(Child);
 end;
 
-procedure TSettingsJSONSaver.NodeLeave;
+procedure TSettingsStoreJSON<T>.TSettingsJSONWriter.NodeLeave;
 begin
   fPath.Pop;
 end;
 
-procedure TSettingsJSONSaver.SaveBegin;
+procedure TSettingsStoreJSON<T>.TSettingsJSONWriter.SaveBegin;
 begin
   StoreBegin;
 end;
 
-procedure TSettingsJSONSaver.SaveEnd;
+procedure TSettingsStoreJSON<T>.TSettingsJSONWriter.SaveEnd;
 begin
   //  Save to file
   TFile.WriteAllText(fFileName, fRoot.ToJSON);
@@ -314,7 +363,7 @@ begin
   StoreEnd;
 end;
 
-procedure TSettingsJSONSaver.SaveValue(const Name: string; const Value: TValue);
+procedure TSettingsStoreJSON<T>.TSettingsJSONWriter.SaveValue(const Name: string; const Value: TValue);
 var
   JSONValue: TJSONValue;
 begin
