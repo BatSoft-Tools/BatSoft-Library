@@ -65,7 +65,7 @@ begin
     begin
       Name  := ReplaceContextVariables(Context, Params[0]).AsString;
       Value := ReplaceContextVariables(Context, Params[1]);
-      Value := ChangeTypeOfValue(Context, Name, Value);
+      Value := ConvertValue(Context.GetTypeOf(Name), Value);
       Context.SetValue(Name, Value)
     end);
 

@@ -159,7 +159,13 @@ object frmContextDemo: TfrmContextDemo
         'Show "ABC=<ABC>"'
         ''
         'Set XYZ <frm.ChildrenCount>'
-        'Show "XYZ=<XYZ>"')
+        'Show "XYZ=<XYZ>"'
+        ''
+        'show "Change XYZ to 2 to maximise window."'
+        'Set XYZ 0'
+        'Show <frm.WindowState>'
+        'set frm.WindowState <XYZ>'
+        'Show <frm.WindowState>')
       Align = Client
       Margins.Left = 8.000000000000000000
       Margins.Top = 24.000000000000000000

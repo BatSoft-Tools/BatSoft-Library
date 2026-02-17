@@ -55,6 +55,7 @@ type
   EContext = class(Exception)
   public
     constructor Create(const Message, Name: string); overload;
+    constructor Create(const Message: string; const Params: array of const); overload;
     constructor CreateNotImplemented(const AContext: TObject; const AMethodName: string);
     constructor CreateValueNotFound(const ValueName: string);
   end;
@@ -107,7 +108,7 @@ type
     function  GetNames(const Names: TStrings): Boolean;
   end;
 
-function ChangeTypeOfValue(const Context: IContext; const Name: string; const Value: TValue): TValue;
+function  ConvertValue(const WantType: PTypeInfo; const Value: TValue): TValue;
 
 type
   TCaseInsensitiveComparer = class(TEqualityComparer<string>)
@@ -122,44 +123,48 @@ var
 resourcestring
   SENotImplemented  = 'IContext method %s() is not implemented';
   SEValueNotFound   = 'Value not found for ''%s''.';
+  SEConversionFailed= 'Conversion failed from %s to %s.';
 
 implementation
 
 uses
   BatSoft.Settings;
 
-function ChangeTypeOfValue(const Context: IContext; const Name: string; const Value: TValue): TValue;
-var
-  LeftSide: TValue;
+function  ConvertValue(const WantType: PTypeInfo; const Value: TValue): TValue;
 begin
-  if  Context.HasValue(Name)  then
-    begin
-      LeftSide  := Context.GetValue(Name);
-      if  not Value.TryCast(LeftSide.TypeInfo, Result)  then
-        case LeftSide.Kind of
-          tkInteger :
-            Result  := StrToInt(Value.AsString);
+  //  Might not need type conversion
+  if  not Assigned(WantType) or (WantType = Value.TypeInfo) then
+    Exit(Value);
+  //  First try TValue conversion
+  if  not Value.TryCast(WantType, Result)  then
+    //  Resort to explicit type conversion
+    case  WantType.Kind of
+      tkInteger :
+        Result  := StrToInt(Value.AsString);
 
-          tkInt64 :
-            Result  := StrToInt64(Value.AsString);
+      tkInt64 :
+        Result  := StrToInt64(Value.AsString);
 
-          tkFloat :
-            Result  := StrToFloat(Value.AsString);
+      tkFloat :
+        Result  := StrToFloat(Value.AsString);
 
-          tkChar, tkString, tkWChar, tkLString, tkWString, tkUString :
-            Result  := Value.ToString;
+      tkChar, tkString, tkWChar, tkLString, tkWString, tkUString :
+        Result  := Value.ToString;
 
-          tkEnumeration :
-            Result  := StrToEnum(Value.ToString, LeftSide.TypeInfo);
-
-          tkSet :
-            Result  := StrToEnumSet(Value.ToString, LeftSide.TypeInfo);
+      tkEnumeration :
+        if Value.Kind = tkInteger then
+          Result  := OrdToEnum(Value.AsInteger, WantType)
         else
-          raise EContext.Create('Conversion failed.');
-        end;
-    end
-  else
-    Result  := Value
+          Result  := StrToEnum(Value.ToString, WantType);
+
+      tkSet :
+        if Value.Kind = tkInteger then
+          Result  := OrdToEnumSet(Value.AsInteger, WantType)
+        else
+          Result  := StrToEnumSet(Value.ToString, WantType);
+    else
+      raise EContext.Create(SEConversionFailed, [Value.TypeInfo.Name, WantType.Name]);
+    end;
 end;
 
 { TCaseInsensitiveComparer }
@@ -178,7 +183,12 @@ end;
 
 constructor EContext.Create(const Message, Name: string);
 begin
-  inherited Create(Format(Message, [Name]));
+  Create(Message, [Name]);
+end;
+
+constructor EContext.Create(const Message: string; const Params: array of const);
+begin
+  inherited Create(Format(SEConversionFailed, Params));
 end;
 
 constructor EContext.CreateNotImplemented(const AContext: TObject; const AMethodName: string);
@@ -341,10 +351,10 @@ end;
 
 function TContexts.GetTypeOf(const Name: string): PTypeInfo;
 var
-  Contexts: IContext;
+  Context: IContext;
 begin
-  if  FindContextWith(Name, Contexts)  then
-    Result  := Contexts.GetTypeOf(Name)
+  if  FindContextWith(Name, Context)  then
+    Result  := Context.GetTypeOf(Name)
   else
     Result  := nil
 end;
