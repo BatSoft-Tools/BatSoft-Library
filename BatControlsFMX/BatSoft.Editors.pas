@@ -27,6 +27,7 @@ type
     procedure SetEditObject(const Value: TObject);
     procedure OnEvent(Sender: TObject);
   protected
+    function  GetProperties: TArray<TRttiProperty>;
     procedure ClearControls;
     procedure BuildControls;
     function  CreateControl(const T: TControlClass; const Parent: TControl; const Align: TAlignLayout; const Margins: TRectF): TControl;
@@ -47,8 +48,8 @@ type
 
     TEditorInfo = class
       EditorClass: TControlClass;
-      GetValue: TEditorValueGetter;
-      SetValue: TEditorValueSetter;
+      GetEditValue: TEditorValueGetter;
+      SetEditValue: TEditorValueSetter;
       Event: TRttiProperty;
     end;
 
@@ -57,10 +58,10 @@ type
     fEditors: TDictionary<PTypeInfo, TEditorInfo>;
     function  FindEvent(const EditorClass: TControlClass; const EventName: string): TRttiProperty;
   protected
-    function  GetEditor(const TypeInfo: PTypeInfo): TControlClass;
     function  EditorValueGetter(const TypeInfo: PTypeInfo): TEditorValueGetter;
     function  EditorValueSetter(const TypeInfo: PTypeInfo): TEditorValueSetter;
-    function  GetInfo(const Prop: TRttiProperty): TEditorInfo;
+    function  GetEditorClass(const TypeInfo: PTypeInfo): TControlClass;
+    function  GetEditorInfo(const Prop: TRttiProperty): TEditorInfo;
   public
     constructor Create;
     destructor  Destroy; override;
@@ -113,6 +114,17 @@ begin
     end
   );
 
+  EditorTypes.Register(TypeInfo(Boolean), TCheckBox, 'OnChange',
+    function (const Editor: TControl): TValue
+    begin
+      Result  := TCheckBox(Editor).IsChecked
+    end,
+    procedure (const Editor: TControl; Value: TValue)
+    begin
+      (Editor as TCheckBox).IsChecked := Value.AsBoolean
+    end
+  );
+
 end;
 
 { TEditors.TPropInfo }
@@ -132,14 +144,14 @@ var
   Prop: TRttiProperty;
   PropInfo: TPropInfo;
   EditorInfo: TEditorTypes.TEditorInfo;
-  Height: Single;
+  RowHeight, TotalHeight, LabelWidth, MaxLabelWidth: Single;
 begin
-  Props := RTTI.GetType(fEditObject.ClassType).GetProperties;
+  Props := GetProperties;
+  TotalHeight   := 0;
+  MaxLabelWidth := 0;
   for Prop in Props do
     begin
-      if  not Prop.IsReadable or not Prop.IsWritable  then
-        Continue;
-      EditorInfo  := EditorTypes.GetInfo(Prop);
+      EditorInfo  := EditorTypes.GetEditorInfo(Prop);
       if  not Assigned(EditorInfo)  then
         Continue;
       PropInfo  := TEditors.TPropInfo.Create;
@@ -149,15 +161,24 @@ begin
       PropInfo.Label_.Text := Prop.Name;
       //  Create editor
       PropInfo.Editor := CreateControl(EditorInfo.EditorClass, fLayoutEditors, TAlignLayout.Top, ChildMargins.Rect);
+      EditorInfo.SetEditValue(PropInfo.Editor, Prop.GetValue(fEditObject));
       EditorInfo.Event.SetValue(PropInfo.Editor, TValue.From<TNotifyEvent>(OnEvent));
       //  Register them
       fProps.Add(PropInfo.Editor, PropInfo);
       fPropObjs.Add(PropInfo);
       //  Make their heights the same
-      Height  := Max(PropInfo.Label_.Height, PropInfo.Editor.Height);
-      PropInfo.Label_.Height  := Height;
-      PropInfo.Editor.Height  := Height;
+      RowHeight     := Max(PropInfo.Label_.Height, PropInfo.Editor.Height);
+      PropInfo.Label_.Height  := RowHeight;
+      PropInfo.Editor.Height  := RowHeight;
+      //  Keep track of max sizes
+      TotalHeight   := TotalHeight + RowHeight;
+      LabelWidth    := PropInfo.Label_.Canvas.TextWidth(PropInfo.Label_.Text);
+      if  MaxLabelWidth < LabelWidth  then
+        MaxLabelWidth := LabelWidth;
     end;
+  //  Scale according to contents
+  fLayoutLabels.Width := MaxLabelWidth + ChildMargins.Left + ChildMargins.Right;
+  Height := TotalHeight;
 end;
 
 procedure TEditors.ClearControls;
@@ -184,6 +205,7 @@ begin
   Result.Stored   := False;
   Result.Align    := Align;
   Result.Margins.Rect := Margins;
+  Result.Position.Y := MaxInt;
 end;
 
 destructor TEditors.Destroy;
@@ -195,6 +217,41 @@ begin
   inherited;
 end;
 
+function TEditors.GetProperties: TArray<TRttiProperty>;
+var
+  ByName: TStringList;
+  Prop: TRttiProperty;
+  i: Integer;
+  Name: string;
+begin
+  Result  := RTTI.GetType(fEditObject.ClassType).GetProperties;
+  ByName  := TStringList.Create;
+  try
+    //  Collect viable properties
+    for Prop in Result  do
+      if  Prop.IsReadable and Prop.IsWritable and (Prop.Visibility = mvPublished) then
+        ByName.AddObject(Prop.Name, Prop);
+    //  Sort and remove duplicates
+    ByName.Sort;
+    //  Remove duplicates (more efficient than using Duplicates property)
+    if  ByName.Count > 1  then
+      begin
+        Name  := ByName[ByName.Count - 1];
+        for i := ByName.Count - 2 downto 0 do
+          if  SameText(ByName[i], Name) then
+            ByName.Delete(i)
+          else
+            Name  := ByName[i];
+      end;
+    //  Produce result
+    SetLength(Result, ByName.Count);
+    for i := 0 to ByName.Count - 1 do
+      Result[i] := Pointer(ByName.Objects[i]);
+  finally
+    ByName.Free;
+  end;
+end;
+
 procedure TEditors.OnEvent(Sender: TObject);
 var
   Editor: TControl absolute Sender;
@@ -202,8 +259,8 @@ var
   EditorInfo: TEditorTypes.TEditorInfo;
 begin
   PropInfo    := fProps[Editor];
-  EditorInfo  := EditorTypes.GetInfo(PropInfo.Prop);
-  PropInfo.Prop.SetValue(fEditObject, EditorInfo.GetValue(Editor));
+  EditorInfo  := EditorTypes.GetEditorInfo(PropInfo.Prop);
+  PropInfo.Prop.SetValue(fEditObject, EditorInfo.GetEditValue(Editor));
 end;
 
 procedure TEditors.Populate;
@@ -218,9 +275,9 @@ begin
     begin
       Editor      := PropInfoPair.Key;
       PropInfo    := PropInfoPair.Value;
-      EditorInfo  := EditorTypes.GetInfo(PropInfo.Prop);
+      EditorInfo  := EditorTypes.GetEditorInfo(PropInfo.Prop);
       Value := PropInfo.Prop.GetValue(fEditObject);
-      EditorInfo.SetValue(Editor, Value);
+      EditorInfo.SetEditValue(Editor, Value);
     end;
 end;
 
@@ -253,12 +310,12 @@ end;
 
 function TEditorTypes.EditorValueGetter(const TypeInfo: PTypeInfo): TEditorValueGetter;
 begin
-  Result  := fEditors[TypeInfo].GetValue
+  Result  := fEditors[TypeInfo].GetEditValue
 end;
 
 function TEditorTypes.EditorValueSetter(const TypeInfo: PTypeInfo): TEditorValueSetter;
 begin
-  Result  := fEditors[TypeInfo].SetValue
+  Result  := fEditors[TypeInfo].SetEditValue
 end;
 
 function TEditorTypes.FindEvent(const EditorClass: TControlClass; const EventName: string): TRttiProperty;
@@ -273,12 +330,12 @@ begin
   raise EEditors.Create('Property %s.%s not found.', [EditorClass.ClassName, EventName]);
 end;
 
-function TEditorTypes.GetEditor(const TypeInfo: PTypeInfo): TControlClass;
+function TEditorTypes.GetEditorClass(const TypeInfo: PTypeInfo): TControlClass;
 begin
   Result  := fEditors[TypeInfo].EditorClass
 end;
 
-function TEditorTypes.GetInfo(const Prop: TRttiProperty): TEditorInfo;
+function TEditorTypes.GetEditorInfo(const Prop: TRttiProperty): TEditorInfo;
 begin
   if  not EditorTypes.fEditors.TryGetValue(Prop.PropertyType.Handle, Result)  then
     Result  := nil;
@@ -294,8 +351,8 @@ begin
   Info  := TEditorInfo.Create;
   try
     Info.EditorClass  := EditorClass;
-    Info.GetValue  := GetEditValue;
-    Info.SetValue  := SetEditValue;
+    Info.GetEditValue  := GetEditValue;
+    Info.SetEditValue  := SetEditValue;
     Info.Event := FindEvent(EditorClass, ChangeEventName);
   except
     Info.Free;

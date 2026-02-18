@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
   BatSoft.Editors, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Edit,
-  FMX.EditBox, FMX.SpinBox;
+  FMX.EditBox, FMX.SpinBox, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo;
 
 type
 {$M+}
@@ -25,9 +25,10 @@ type
   TfrmDemoEditors = class(TForm)
     Editors1: TEditors;
     Button1: TButton;
-    Edit1: TEdit;
-    SpinBox1: TSpinBox;
     Button2: TButton;
+    VertScrollBox1: TVertScrollBox;
+    GroupBox1: TGroupBox;
+    Memo1: TMemo;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -53,7 +54,7 @@ end;
 
 procedure TfrmDemoEditors.Button2Click(Sender: TObject);
 begin
-  Editors1.EditObject := frmDemoEditors;
+  Editors1.EditObject := GroupBox1;
 end;
 
 procedure TfrmDemoEditors.FormCreate(Sender: TObject);
@@ -61,7 +62,7 @@ begin
   fThing  := TSomeThing.Create;
   fThing.Str  := 'xyz';
   fThing.Int  := 3;
-  Editors1.EditObject := fThing;
+//  Editors1.EditObject := fThing;
 end;
 
 procedure TfrmDemoEditors.FormDestroy(Sender: TObject);

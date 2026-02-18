@@ -2,22 +2,14 @@ object frmDemoEditors: TfrmDemoEditors
   Left = 0
   Top = 0
   Caption = 'Form2'
-  ClientHeight = 480
-  ClientWidth = 640
+  ClientHeight = 328
+  ClientWidth = 550
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignerMasterStyle = 0
-  object Editors1: TEditors
-    Position.X = 64.000000000000000000
-    Position.Y = 24.000000000000000000
-    Size.Width = 329.000000000000000000
-    Size.Height = 377.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 0
-  end
   object Button1: TButton
     Position.X = 448.000000000000000000
     Position.Y = 56.000000000000000000
@@ -26,25 +18,50 @@ object frmDemoEditors: TfrmDemoEditors
     TextSettings.Trimming = None
     OnClick = Button1Click
   end
-  object Edit1: TEdit
-    Touch.InteractiveGestures = [LongTap, DoubleTap]
-    TabOrder = 2
-    Position.X = 432.000000000000000000
-    Position.Y = 160.000000000000000000
-  end
-  object SpinBox1: TSpinBox
-    Touch.InteractiveGestures = [LongTap, DoubleTap]
-    TabOrder = 3
-    Cursor = crIBeam
-    Position.X = 432.000000000000000000
-    Position.Y = 240.000000000000000000
-  end
   object Button2: TButton
     Position.X = 448.000000000000000000
     Position.Y = 80.000000000000000000
-    TabOrder = 5
+    TabOrder = 3
     Text = 'Button2'
     TextSettings.Trimming = None
     OnClick = Button2Click
+  end
+  object VertScrollBox1: TVertScrollBox
+    Anchors = [akLeft, akTop, akRight, akBottom]
+    Size.Width = 297.000000000000000000
+    Size.Height = 193.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 4
+    Viewport.Width = 297.000000000000000000
+    Viewport.Height = 193.000000000000000000
+  end
+  object GroupBox1: TGroupBox
+    Padding.Left = 8.000000000000000000
+    Padding.Top = 20.000000000000000000
+    Padding.Right = 8.000000000000000000
+    Padding.Bottom = 8.000000000000000000
+    Position.X = 376.000000000000000000
+    Position.Y = 152.000000000000000000
+    Text = 'GroupBox1'
+    TabOrder = 6
+    object Memo1: TMemo
+      Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+      DataDetectorTypes = []
+      Align = Client
+      Size.Width = 104.000000000000000000
+      Size.Height = 72.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 38
+      Viewport.Width = 100.000000000000000000
+      Viewport.Height = 68.000000000000000000
+    end
+  end
+  object Editors1: TEditors
+    Position.X = 32.000000000000000000
+    Position.Y = 16.000000000000000000
+    Size.Width = 321.000000000000000000
+    Size.Height = 281.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 0
   end
 end
