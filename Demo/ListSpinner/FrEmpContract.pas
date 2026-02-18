@@ -24,6 +24,7 @@ type
     Label3: TLabel;
     Label4: TLabel;
     Circle1: TCircle;
+    labIndex: TLabel;
     procedure edStartDateChange(Sender: TObject);
     procedure edDeadlineChange(Sender: TObject);
     procedure edHourlyRateChange(Sender: TObject);

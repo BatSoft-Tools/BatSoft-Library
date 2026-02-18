@@ -14,6 +14,7 @@ object frmExample2: TfrmExample2
     Size.Width = 366.000000000000000000
     Size.Height = 610.000000000000000000
     Size.PlatformDefault = False
+    TabOrder = 0
     object Layout2: TLayout
       Align = Top
       Position.Y = 121.000000000000000000
@@ -124,7 +125,7 @@ object frmExample2: TfrmExample2
           'diting, hence it'#39's another control.'
       end
     end
-    object Memo2: TMemo
+    object memDescription: TMemo
       Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
       DataDetectorTypes = []
       Lines.Strings = (
@@ -140,8 +141,8 @@ object frmExample2: TfrmExample2
       Size.Width = 366.000000000000000000
       Size.Height = 121.000000000000000000
       Size.PlatformDefault = False
-      Viewport.Width = 362.000000000000000000
-      Viewport.Height = 117.000000000000000000
+      Viewport.Width = 366.000000000000000000
+      Viewport.Height = 121.000000000000000000
     end
   end
 end

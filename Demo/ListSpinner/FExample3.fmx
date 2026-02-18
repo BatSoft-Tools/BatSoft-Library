@@ -15,6 +15,7 @@ object frmExample3: TfrmExample3
     Size.Width = 423.000000000000000000
     Size.Height = 729.000000000000000000
     Size.PlatformDefault = False
+    TabOrder = 0
     object Layout4: TLayout
       Align = Top
       Position.Y = 121.000000000000000000
@@ -69,6 +70,7 @@ object frmExample3: TfrmExample3
         Size.Height = 22.000000000000000000
         Size.PlatformDefault = False
         Text = 'JumpTo ItemIndex'
+        TextSettings.Trimming = None
         OnClick = butJumpToClick
       end
       object chkScrollbar: TCheckBox
@@ -91,8 +93,20 @@ object frmExample3: TfrmExample3
       ItemHeight = 130
       OnGetShowItem = lstDifferentGetShowItem
       OnGetEditItem = lstDifferentGetEditItem
+      object labComment1: TLabel
+        Position.X = 13.000000000000000000
+        Position.Y = 112.000000000000000000
+        Size.Width = 340.000000000000000000
+        Size.Height = 65.000000000000000000
+        Size.PlatformDefault = False
+        Text = 
+          'This example contains different types of editable data items. Th' +
+          'e list spinner shows a different panel for each type of item. Th' +
+          'e panels are found in TfrmItemControls in FItemControls.pas.'
+        TabOrder = 0
+      end
     end
-    object Memo3: TMemo
+    object memDescription: TMemo
       Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
       DataDetectorTypes = []
       Lines.Strings = (
@@ -110,8 +124,8 @@ object frmExample3: TfrmExample3
       Size.Width = 423.000000000000000000
       Size.Height = 121.000000000000000000
       Size.PlatformDefault = False
-      Viewport.Width = 423.000000000000000000
-      Viewport.Height = 121.000000000000000000
+      Viewport.Width = 419.000000000000000000
+      Viewport.Height = 117.000000000000000000
     end
   end
 end

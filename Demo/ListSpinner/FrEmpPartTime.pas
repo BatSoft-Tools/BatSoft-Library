@@ -20,6 +20,7 @@ type
     Line1: TLine;
     Label4: TLabel;
     Circle1: TCircle;
+    labIndex: TLabel;
     procedure edHourlyRateChange(Sender: TObject);
     procedure edHoursPerWeekChange(Sender: TObject);
   private

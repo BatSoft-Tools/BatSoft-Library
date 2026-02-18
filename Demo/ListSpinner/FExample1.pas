@@ -18,7 +18,7 @@ type
     Label2: TLabel;
     chkScrollbar: TCheckBox;
     lstROEditors: TListSpinner;
-    Memo1: TMemo;
+    memDescription: TMemo;
     edDisplayOnly: TEdit;
     labComment: TLabel;
     procedure edROEditorsCountChange(Sender: TObject);

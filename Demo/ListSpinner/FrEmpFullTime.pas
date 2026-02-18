@@ -22,6 +22,7 @@ type
     Label2: TLabel;
     Label4: TLabel;
     Circle1: TCircle;
+    labIndex: TLabel;
     procedure edStartDateChange(Sender: TObject);
     procedure edSalaryChange(Sender: TObject);
   private

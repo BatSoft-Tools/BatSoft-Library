@@ -8,6 +8,9 @@ uses
   FMX.ScrollBox, FMX.Memo, FMX.StdCtrls, FMX.Controls.Presentation, FMX.Edit,
   FMX.EditBox, FMX.SpinBox, FMX.Layouts, BatSoft.Spinners, uEmployment;
 
+const
+  NumberOfItemsInList = 100;
+
 type
   TfrmExample3 = class(TForm)
     loDifferent: TLayout;
@@ -19,7 +22,8 @@ type
     butJumpTo: TButton;
     chkScrollbar: TCheckBox;
     lstDifferent: TListSpinner;
-    Memo3: TMemo;
+    memDescription: TMemo;
+    labComment1: TLabel;
     procedure edDifferentHeightChange(Sender: TObject);
     procedure edDifferentItemIndexChange(Sender: TObject);
     procedure butJumpToClick(Sender: TObject);
@@ -30,6 +34,7 @@ type
     procedure FormDestroy(Sender: TObject);
   private
     fEmployments: TEmploymentList;
+    procedure SetLabelText(const Parent: TComponent; const Text: string);
   end;
 
 var
@@ -46,7 +51,7 @@ uses
 
 procedure TfrmExample3.butJumpToClick(Sender: TObject);
 begin
-  lstDifferent.JumpTo(lstDifferent.ItemIndex, TTextAlign.Center);
+  lstDifferent.JumpTo(Round(edDifferentItemIndex.Value), TTextAlign.Center);
 end;
 
 procedure TfrmExample3.chkScrollbarChange(Sender: TObject);
@@ -66,9 +71,11 @@ end;
 
 procedure TfrmExample3.FormCreate(Sender: TObject);
 begin
+  memDescription.Lines.Append('This list has ' + NumberOfItemsInList.ToString + ' items.');
+  labComment1.Visible     := False;
   //  Create some demo data
   fEmployments  := TEmploymentList.Create;
-  fEmployments.Populate(100);
+  fEmployments.Populate(NumberOfItemsInList);
   lstDifferent.ItemCount  := fEmployments.Count;
 end;
 
@@ -105,6 +112,7 @@ begin
     end;
   //  Never mind this.  This is only for the demo.
   edDifferentItemIndex.Value  := Index;
+  SetLabelText(Result, Index.ToString);
 end;
 
 function TfrmExample3.lstDifferentGetShowItem(Sender: TListSpinner; Index: Integer): TControl;
@@ -121,18 +129,33 @@ begin
   if  Emp is TContract  then
     begin
       Result  := frmItemControls.frameEmpContractShow;
-      frmItemControls.frameEmpContractShow.Contract   := Emp as TContract;
+      frmItemControls.frameEmpContractShow.Contract       := Emp as TContract;
     end;
   if  Emp is TFullTime  then
     begin
       Result  := frmItemControls.frameEmpFullTimeShow;
-      frmItemControls.frameEmpFullTimeShow.FullTime   := Emp as TFullTime;
+      frmItemControls.frameEmpFullTimeShow.FullTime       := Emp as TFullTime;
     end;
   if  Emp is TPartTime  then
     begin
       Result  := frmItemControls.frameEmpPartTimeShow;
-      frmItemControls.frameEmpPartTimeShow.PartTime   := Emp as TPartTime;
+      frmItemControls.frameEmpPartTimeShow.PartTime       := Emp as TPartTime;
     end;
+  //  Never mind this.  This is only for the demo.
+  SetLabelText(Result, Index.ToString);
+end;
+
+procedure TfrmExample3.SetLabelText(const Parent: TComponent; const Text: string);
+var
+  i: Integer;
+begin
+  if  Assigned(Parent)  then
+    for i := 0 to Parent.ComponentCount - 1 do
+      if SameText('labIndex', Parent.Components[i].Name) then
+        begin
+          (Parent.Components[i] as TLabel).Text := Text;
+          break;
+        end;
 end;
 
 end.

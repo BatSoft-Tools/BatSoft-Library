@@ -14,6 +14,7 @@ object frmExample1: TfrmExample1
     Size.Width = 281.000000000000000000
     Size.Height = 480.000000000000000000
     Size.PlatformDefault = False
+    TabOrder = 0
     object loEditorsControls: TLayout
       Align = Top
       Position.Y = 121.000000000000000000
@@ -94,7 +95,7 @@ object frmExample1: TfrmExample1
         Text = 'This TEdit is used for read-only display.'
       end
     end
-    object Memo1: TMemo
+    object memDescription: TMemo
       Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
       DataDetectorTypes = []
       Lines.Strings = (

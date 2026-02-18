@@ -76,6 +76,16 @@ object frameEmpPartTime: TframeEmpPartTime
     Size.Height = 25.000000000000000000
     Size.PlatformDefault = False
     Text = 'Part time'
+    object labIndex: TLabel
+      Align = Right
+      Position.X = 195.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 25.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.HorzAlign = Trailing
+      Text = 'labIndex'
+      TabOrder = 3
+    end
   end
   object Circle1: TCircle
     Fill.Color = claRed

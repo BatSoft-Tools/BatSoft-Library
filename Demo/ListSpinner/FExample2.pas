@@ -19,7 +19,7 @@ type
     edWritableItemIndex: TSpinBox;
     Label7: TLabel;
     lstWritable: TListSpinner;
-    Memo2: TMemo;
+    memDescription: TMemo;
     labDisplayOnly: TLabel;
     edEditable: TEdit;
     labComment1: TLabel;

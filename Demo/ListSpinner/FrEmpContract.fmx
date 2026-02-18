@@ -97,6 +97,16 @@ object frameEmpContract: TframeEmpContract
     Size.Height = 25.000000000000000000
     Size.PlatformDefault = False
     Text = 'Contract'
+    object labIndex: TLabel
+      Align = Right
+      Position.X = 195.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 25.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.HorzAlign = Trailing
+      Text = 'labIndex'
+      TabOrder = 4
+    end
   end
   object Circle1: TCircle
     Fill.Color = claRed
