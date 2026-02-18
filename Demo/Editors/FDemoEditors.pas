@@ -26,13 +26,14 @@ type
     Editors1: TEditors;
     Button1: TButton;
     Button2: TButton;
-    VertScrollBox1: TVertScrollBox;
     GroupBox1: TGroupBox;
     Memo1: TMemo;
+    Button0: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
+    procedure Button0Click(Sender: TObject);
   private
     fThing: TSomeThing;
   end;
@@ -46,9 +47,13 @@ implementation
 
 { TfrmDemoEditors }
 
-procedure TfrmDemoEditors.Button1Click(Sender: TObject);
+procedure TfrmDemoEditors.Button0Click(Sender: TObject);
 begin
   Editors1.EditObject := nil;
+end;
+
+procedure TfrmDemoEditors.Button1Click(Sender: TObject);
+begin
   Editors1.EditObject := fThing;
 end;
 

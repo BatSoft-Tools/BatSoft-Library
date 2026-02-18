@@ -2,8 +2,8 @@ object frmDemoEditors: TfrmDemoEditors
   Left = 0
   Top = 0
   Caption = 'Form2'
-  ClientHeight = 328
-  ClientWidth = 550
+  ClientHeight = 322
+  ClientWidth = 553
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -26,15 +26,6 @@ object frmDemoEditors: TfrmDemoEditors
     TextSettings.Trimming = None
     OnClick = Button2Click
   end
-  object VertScrollBox1: TVertScrollBox
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    Size.Width = 297.000000000000000000
-    Size.Height = 193.000000000000000000
-    Size.PlatformDefault = False
-    TabOrder = 4
-    Viewport.Width = 297.000000000000000000
-    Viewport.Height = 193.000000000000000000
-  end
   object GroupBox1: TGroupBox
     Padding.Left = 8.000000000000000000
     Padding.Top = 20.000000000000000000
@@ -43,7 +34,7 @@ object frmDemoEditors: TfrmDemoEditors
     Position.X = 376.000000000000000000
     Position.Y = 152.000000000000000000
     Text = 'GroupBox1'
-    TabOrder = 6
+    TabOrder = 5
     object Memo1: TMemo
       Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
       DataDetectorTypes = []
@@ -57,11 +48,25 @@ object frmDemoEditors: TfrmDemoEditors
     end
   end
   object Editors1: TEditors
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Position.X = 32.000000000000000000
     Position.Y = 16.000000000000000000
     Size.Width = 321.000000000000000000
     Size.Height = 281.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
+    Viewport.Width = 321.000000000000000000
+    Viewport.Height = 281.000000000000000000
+  end
+  object Button0: TButton
+    Position.X = 448.000000000000000000
+    Position.Y = 32.000000000000000000
+    Size.Width = 80.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 7
+    Text = 'Button0'
+    TextSettings.Trimming = None
+    OnClick = Button0Click
   end
 end

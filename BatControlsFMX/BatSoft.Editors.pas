@@ -7,7 +7,7 @@ uses
   FMX.Types, FMX.Layouts, FMX.StdCtrls, FMX.Controls, BatSoft.Classes, BatSoft.Classes.FMX;
 
 type
-  TEditors = class(TLayout)
+  TEditors = class(TVertScrollBox)
   private type
 
     TPropInfo = class
@@ -21,7 +21,7 @@ type
     fEditObject: TObject;
     fPropObjs: TObjectList<TPropInfo>;
     fProps: TDictionary<TControl, TPropInfo>;
-    fLayoutLabels, fLayoutEditors: TLayout;
+    fLayoutLabels, fLayoutEditors, fPusher: TLayout;
     fSplitter: TSplitter;
     fChildMargins: TBounds;
     procedure SetEditObject(const Value: TObject);
@@ -80,7 +80,7 @@ procedure RegisterStandardEditors;
 implementation
 
 uses
-  System.SysUtils, System.Math, FMX.Objects, FMX.Edit, FMX.SpinBox;
+  System.SysUtils, System.Math, FMX.Graphics, FMX.Objects, FMX.Edit, FMX.SpinBox;
 
 const
   NoBounds  : TRect = (Left:0; Top:0; Right:0; Bottom:0);
@@ -146,39 +146,53 @@ var
   EditorInfo: TEditorTypes.TEditorInfo;
   RowHeight, TotalHeight, LabelWidth, MaxLabelWidth: Single;
 begin
-  Props := GetProperties;
-  TotalHeight   := 0;
-  MaxLabelWidth := 0;
-  for Prop in Props do
-    begin
-      EditorInfo  := EditorTypes.GetEditorInfo(Prop);
-      if  not Assigned(EditorInfo)  then
-        Continue;
-      PropInfo  := TEditors.TPropInfo.Create;
-      PropInfo.Prop := Prop;
-      //  Create label
-      PropInfo.Label_ := CreateControl(TLabel, fLayoutLabels, TAlignLayout.Top, ChildMargins.Rect) as TLabel;
-      PropInfo.Label_.Text := Prop.Name;
-      //  Create editor
-      PropInfo.Editor := CreateControl(EditorInfo.EditorClass, fLayoutEditors, TAlignLayout.Top, ChildMargins.Rect);
-      EditorInfo.SetEditValue(PropInfo.Editor, Prop.GetValue(fEditObject));
-      EditorInfo.Event.SetValue(PropInfo.Editor, TValue.From<TNotifyEvent>(OnEvent));
-      //  Register them
-      fProps.Add(PropInfo.Editor, PropInfo);
-      fPropObjs.Add(PropInfo);
-      //  Make their heights the same
-      RowHeight     := Max(PropInfo.Label_.Height, PropInfo.Editor.Height);
-      PropInfo.Label_.Height  := RowHeight;
-      PropInfo.Editor.Height  := RowHeight;
-      //  Keep track of max sizes
-      TotalHeight   := TotalHeight + RowHeight;
-      LabelWidth    := PropInfo.Label_.Canvas.TextWidth(PropInfo.Label_.Text);
-      if  MaxLabelWidth < LabelWidth  then
-        MaxLabelWidth := LabelWidth;
-    end;
-  //  Scale according to contents
-  fLayoutLabels.Width := MaxLabelWidth + ChildMargins.Left + ChildMargins.Right;
-  Height := TotalHeight;
+  PropInfo  := nil;
+  BeginUpdate;
+  try
+    Props := GetProperties;
+    TotalHeight   := 0;
+    MaxLabelWidth := 0;
+    for Prop in Props do
+      begin
+        EditorInfo  := EditorTypes.GetEditorInfo(Prop);
+        if  not Assigned(EditorInfo)  then
+          Continue;
+        PropInfo  := TEditors.TPropInfo.Create;
+        PropInfo.Prop := Prop;
+        //  Create label
+        PropInfo.Label_ := CreateControl(TLabel, fLayoutLabels, TAlignLayout.Top, ChildMargins.Rect) as TLabel;
+        PropInfo.Label_.Text := Prop.Name;
+        //  Create editor
+        PropInfo.Editor := CreateControl(EditorInfo.EditorClass, fLayoutEditors, TAlignLayout.Top, ChildMargins.Rect);
+        EditorInfo.SetEditValue(PropInfo.Editor, Prop.GetValue(fEditObject));
+        EditorInfo.Event.SetValue(PropInfo.Editor, TValue.From<TNotifyEvent>(OnEvent));
+        //  Register them
+        fProps.Add(PropInfo.Editor, PropInfo);
+        fPropObjs.Add(PropInfo);
+        //  Make their heights the same
+        RowHeight     := Max(PropInfo.Label_.Height, PropInfo.Editor.Height);
+        PropInfo.Label_.Height  := RowHeight;
+        PropInfo.Editor.Height  := RowHeight;
+        //  Keep track of max sizes
+        TotalHeight   := TotalHeight + RowHeight;
+        LabelWidth    := PropInfo.Label_.Canvas.TextWidth(PropInfo.Label_.Text);
+        if  MaxLabelWidth < LabelWidth  then
+          MaxLabelWidth := LabelWidth;
+      end;
+    //  Scale according to contents
+    fLayoutLabels.Width := MaxLabelWidth + ChildMargins.Left + ChildMargins.Right;
+  finally
+    EndUpdate;
+  end;
+  BeginUpdate;
+  try
+    if  Assigned(PropInfo) then
+      fPusher.BoundsRect  := PropInfo.Label_.BoundsRect
+    else
+      fPusher.BoundsRect  := NoBounds;
+  finally
+    EndUpdate;
+  end;
 end;
 
 procedure TEditors.ClearControls;
@@ -196,6 +210,8 @@ begin
   fLayoutLabels   := CreateControl(TLayout,   Self, TAlignLayout.MostLeft,  NoBounds) as TLayout;
   fSplitter       := CreateControl(TSplitter, Self, TAlignLayout.Left,      NoBounds) as TSplitter;
   fLayoutEditors  := CreateControl(TLayout,   Self, TAlignLayout.Client,    NoBounds) as TLayout;
+  fPusher         := CreateControl(TLayout,   Self, TAlignLayout.None,      NoBounds) as TLayout;
+  fPusher.BoundsRect  := NoBounds;
 end;
 
 function TEditors.CreateControl(const T: TControlClass; const Parent: TControl; const Align: TAlignLayout; const Margins: TRectF): TControl;
@@ -289,7 +305,9 @@ begin
     begin
       BuildControls;
       Populate;
-    end;
+    end
+  else
+    fPusher.BoundsRect  := NoBounds;
 end;
 
 { TEditorTypes }
