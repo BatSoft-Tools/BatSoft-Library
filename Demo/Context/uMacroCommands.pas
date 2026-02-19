@@ -11,8 +11,8 @@ const
 implementation
 
 uses
-  System.SysUtils, System.Classes, System.Rtti, FMX.Dialogs, BatSoft.Classes,
-  BatSoft.Context, uMacro;
+  System.SysUtils, System.Classes, System.Rtti, FMX.Dialogs,
+  BatSoft.Common, BatSoft.Context, uMacro;
 
 function ReplaceContextVariables(Context: IContext; Param: string): TValue;
 var

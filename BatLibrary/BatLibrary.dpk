@@ -43,7 +43,8 @@ contains
   BatSoft.Settings.Types in 'BatSoft.Settings.Types.pas',
   BatSoft.Context in 'BatSoft.Context.pas',
   BatSoft.Factories in 'BatSoft.Factories.pas',
-  BatSoft.Context.Objects in 'BatSoft.Context.Objects.pas';
+  BatSoft.Context.Objects in 'BatSoft.Context.Objects.pas',
+  BatSoft.Common in 'BatSoft.Common.pas';
 
 end.
 

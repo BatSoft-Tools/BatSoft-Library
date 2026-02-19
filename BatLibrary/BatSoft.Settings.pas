@@ -8,7 +8,7 @@ interface
 
 uses
   System.SysUtils, System.TypInfo, System.RTTI, System.Classes, Generics.Collections,
-  BatSoft.Classes;
+  BatSoft.Common;
 
 {$region 'Settings attributes'}
 
@@ -240,7 +240,7 @@ resourcestring
 implementation
 
 uses
-  System.Generics.Defaults;
+  System.Generics.Defaults, BatSoft.Classes;
 
 var
   RTTI: TRttiContext;

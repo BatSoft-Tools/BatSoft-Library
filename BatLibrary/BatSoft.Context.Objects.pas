@@ -30,7 +30,7 @@ type
 implementation
 
 uses
-  System.SysUtils, BatSoft.Classes;
+  System.SysUtils, BatSoft.Common;
 
 { TContextObject }
 

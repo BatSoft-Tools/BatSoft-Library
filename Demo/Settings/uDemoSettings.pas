@@ -3,7 +3,7 @@ unit uDemoSettings;
 interface
 
 uses
-  System.Types, System.Classes, Generics.Collections, BatSoft.Classes, BatSoft.Settings,
+  System.Types, System.Classes, Generics.Collections, BatSoft.Settings,
   //  Note: By including BatSoft.Settings.Types in the project,
   //  we ensure that the default converters are registered and active.
   BatSoft.Settings.Types;
@@ -95,7 +95,7 @@ var
 implementation
 
 uses
-  System.SysUtils;
+  System.SysUtils, BatSoft.Classes;
 
 { TUser }
 

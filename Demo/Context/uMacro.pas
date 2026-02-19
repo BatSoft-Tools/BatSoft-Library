@@ -4,7 +4,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, Generics.Collections,
-  BatSoft.Classes, BatSoft.Context;
+  BatSoft.Common, BatSoft.Context;
 
 type
   TMacroCommand = reference to procedure (Context: IContext; Params: TStrings);

@@ -177,7 +177,7 @@ procedure ListFieldDifferences(const FieldPrefix: string; const Object1, Object2
 implementation
 
 uses
-  Classes, TypInfo, BatSoft.Classes;
+  Classes, TypInfo, BatSoft.Common;
 
 var
   Ctx: TRttiContext;

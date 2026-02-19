@@ -7,7 +7,7 @@ unit BatSoft.Classes;
 interface
 
 uses
-  System.SysUtils, System.Types, System.Generics.Defaults, Generics.Collections, System.TypInfo, System.Rtti;
+  System.SysUtils, System.Types, System.TypInfo, System.Rtti, System.Generics.Defaults, Generics.Collections;
 
 type
 {$region 'Interfaces'}
@@ -128,46 +128,16 @@ type
 
 {$endregion}
 
-{$region 'Attributes'}
-
-  TAttributeArrayHelper = record helper for TArray<TCustomAttribute>
-  public
-    class function Has(const AttributeClass: TClass): Boolean; overload;
-    class function Has<T: TCustomAttribute>(): Boolean; overload; inline;
-    class function Has<T: TCustomAttribute>(const [ref] FoundAttribute: TCustomAttribute): Boolean; overload;
-  end;
-
-{$endregion}
-
-  EBatSoft = class(Exception)
-  public
-    constructor Create(AMessage: string; const Params: array of const); overload;
-  end;
-
 /// <summary>Change the class of an object. Certain rules apply to reduce the risk of bugs.<br>
 /// Please be very careful with this.  Make certain you know what you're doing.</summary>
 procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
 
 //  Convenience section that contains things I often re-write.
 
-function GetExeDir: string;
-
-const
-  nl  = #13#10;
-
-var
-  /// Instead of re-writing instancing/tidy ups of TRttiContext all over the place, here is it, in one place.
-  RTTI: TRttiContext;
-
-resourcestring
-  SEBatSoftBug          = 'BatSoft bug that should never happen. Please notify at: peter@batsoft.com.au';
-  SEIncompatibleClasses = 'Incompatible classes.';
-  SEIntfNotRegistered   = 'Tried to obtain an interface that is not registered.';
-
 implementation
 
 uses
-  System.RTLConsts;
+  System.RTLConsts, BatSoft.Common;
 
 procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
 var
@@ -180,11 +150,6 @@ begin
     Pointer(Pointer(Obj)^)  := Pointer(ToClass)
   else
     raise EBatSoft.Create(SEIncompatibleClasses);
-end;
-
-function GetExeDir: string;
-begin
-  Result  := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)))
 end;
 
 { TMinRefCountObject }
@@ -461,51 +426,5 @@ procedure TBinaryList<T>.SetOnNotify(const Value: TCollectionNotifyEvent<T>);
 begin
   fList.OnNotify  := Value
 end;
-
-{ TAttributeArrayHelper }
-
-class function TAttributeArrayHelper.Has(const AttributeClass: TClass): Boolean;
-var
-  Attribute: TCustomAttribute;
-begin
-  Result := True;
-  for Attribute in Self do
-    if Attribute is AttributeClass then
-      Exit;
-  Result := False;
-end;
-
-class function TAttributeArrayHelper.Has<T>(const [ref] FoundAttribute: TCustomAttribute): Boolean;
-var
-  Attr: TCustomAttribute;
-begin
-  Result  := True;
-  for Attr in Self do
-    if Attr is T then
-      begin
-        TObject(Pointer(@FoundAttribute)^) := Attr;
-        Exit;
-      end;
-  Result  := False;
-  TObject(Pointer(@FoundAttribute)^) := nil;
-end;
-
-class function TAttributeArrayHelper.Has<T>(): Boolean;
-begin
-  Result  := Has(T);
-end;
-
-{ EBatSoft }
-
-constructor EBatSoft.Create(AMessage: string; const Params: array of const);
-begin
-  inherited Create(Format(AMessage, Params))
-end;
-
-initialization
-  RTTI  := TRttiContext.Create;
-
-finalization
-  RTTI.Free;
 
 end.

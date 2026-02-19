@@ -150,6 +150,7 @@
         <DCCReference Include="BatSoft.Context.pas"/>
         <DCCReference Include="BatSoft.Factories.pas"/>
         <DCCReference Include="BatSoft.Context.Objects.pas"/>
+        <DCCReference Include="BatSoft.Common.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

@@ -46,7 +46,7 @@ implementation
 {$R *.fmx}
 
 uses
-  System.Rtti, System.TypInfo, System.Generics.Collections, BatSoft.Classes,
+  System.Rtti, System.TypInfo, System.Generics.Collections, BatSoft.Common,
   BatSoft.Context.Objects, uContextSystem, uMacro, uMacroCommands;
 
 { TfrmContextDemo }

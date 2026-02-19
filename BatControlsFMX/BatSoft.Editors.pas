@@ -8,7 +8,7 @@ interface
 
 uses
   System.TypInfo, System.Types, System.Classes, System.Generics.Collections, System.Rtti,
-  FMX.Types, FMX.Layouts, FMX.StdCtrls, FMX.Controls, BatSoft.Classes, BatSoft.Classes.FMX;
+  FMX.Types, FMX.Layouts, FMX.StdCtrls, FMX.Controls, BatSoft.Common, BatSoft.Classes.FMX;
 
 type
   TEditors = class(TVertScrollBox)
