@@ -7,7 +7,7 @@ unit BatSoft.Common;
 interface
 
 uses
-  System.SysUtils, System.TypInfo, System.Rtti;
+  System.SysUtils, System.TypInfo, System.Rtti, System.Classes;
 
 type
   EBatSoft = class(Exception)
@@ -31,11 +31,15 @@ function GetExeDir: string;
 //  Conversion routines that are necessary in implementations of ISettingsStoreReader.LoadValue() and ISettingsStoreWriter.SaveValue().
 //  Not using some of these will cause problems when converting enums and sets, because of how TValue works.
 
+procedure ListEnumValues(const Strs: TStrings; const TypeInfo: PTypeInfo);
+
 function  EnumToStr(const Value: TValue): string;
 function  StrToEnum(const Value: string; const Info: PTypeInfo): TValue;
 
 function  EnumToOrd(const Value: TValue): integer;
 function  OrdToEnum(const Value: Int64; const Info: PTypeInfo): TValue;
+
+procedure ListEnumSetValues(const Strs: TStrings; const TypeInfo: PTypeInfo);
 
 function  EnumSetToStr(const Value: TValue): string;
 function  StrToEnumSet(const Value: string; const Info: PTypeInfo): TValue;
@@ -65,6 +69,22 @@ end;
 
 //  Enumeration strings
 
+procedure ListEnumValues(const Strs: TStrings; const TypeInfo: PTypeInfo);
+var
+  TypeData: PTypeData;
+  ord: integer;
+begin
+  TypeData := GetTypeData(TypeInfo);
+  Strs.BeginUpdate;
+  try
+    Strs.Clear;
+    for ord := TypeData.MinValue to TypeData.MaxValue do
+      Strs.AddObject(GetEnumName(TypeInfo, ord), Pointer(ord));
+  finally
+    Strs.EndUpdate;
+  end;
+end;
+
 function EnumToStr(const Value: TValue): string;
 begin
   Result  := GetEnumName(Value.TypeInfo, EnumToOrd(Value))
@@ -87,6 +107,16 @@ end;
 function  OrdToEnum(const Value: Int64; const Info: PTypeInfo): TValue;
 begin
   TValue.Make(Value, Info, Result)
+end;
+
+procedure ListEnumSetValues(const Strs: TStrings; const TypeInfo: PTypeInfo);
+var
+  TypeData: PTypeData;
+  EnumInfo: PTypeInfo;
+begin
+  TypeData := GetTypeData(TypeInfo);
+  EnumInfo := TypeData.CompType^;
+  ListEnumValues(Strs, EnumInfo);
 end;
 
 function EnumSetToStr(const Value: TValue): string;

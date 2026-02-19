@@ -5,6 +5,9 @@ interface
 uses
   System.TypInfo, System.Rtti, System.Classes, FMX.Controls, FMX.ListBox, BatSoft.Editors;
 
+const
+  DropDownRowCount = 20;
+
 type
 {$M+}
   TEnumEditor = class(TCustomComboBox, ITypeInfoEditor)
@@ -13,11 +16,26 @@ type
     procedure SetTypeInfo(const Value: PTypeInfo);
     function  GetValue: TValue;
     procedure SetValue(const Value: TValue);
-    procedure Populate;
   public
+    constructor Create(AOwner: TComponent);
     property  TypeInfo  : PTypeInfo read fTypeInfo  write SetTypeInfo;
     property  Value     : TValue    read GetValue   write SetValue;
     function  OrdAt(const Index: integer): Int64;
+  published
+    property  OnChange;
+  end;
+
+  TEnumSetEditor = class(TCustomComboBox, ITypeInfoEditor)
+  private
+    fTypeInfo: PTypeInfo;
+    fPopup: TListBox;
+    procedure SetTypeInfo(const Value: PTypeInfo);
+    function  GetValue: TValue;
+    procedure SetValue(const Value: TValue);
+  public
+    constructor Create(AOwner: TComponent);
+    property  TypeInfo  : PTypeInfo read fTypeInfo  write SetTypeInfo;
+    property  Value     : TValue    read GetValue   write SetValue;
   published
     property  OnChange;
   end;
@@ -30,6 +48,12 @@ uses
 
 { TEnumEditor }
 
+constructor TEnumEditor.Create(AOwner: TComponent);
+begin
+  inherited;
+  DropDownCount := DropDownRowCount;
+end;
+
 function TEnumEditor.GetValue: TValue;
 begin
   Result  := OrdToEnum(OrdAt(ItemIndex), fTypeInfo);
@@ -40,21 +64,10 @@ begin
   Result  := Int64(Items.Objects[Index])
 end;
 
-procedure TEnumEditor.Populate;
-var
-  TypeData: PTypeData;
-  ord: integer;
-begin
-  TypeData := GetTypeData(fTypeInfo);
-  Items.Clear;
-  for ord := TypeData.MinValue to TypeData.MaxValue do
-    Items.AddObject(GetEnumName(fTypeInfo, ord), Pointer(ord));
-end;
-
 procedure TEnumEditor.SetTypeInfo(const Value: PTypeInfo);
 begin
   fTypeInfo := Value;
-  Populate;
+  ListEnumValues(Items, fTypeInfo);
 end;
 
 procedure TEnumEditor.SetValue(const Value: TValue);
@@ -68,6 +81,30 @@ begin
     else
       dec(Index);
   ItemIndex := Index;
+end;
+
+{ TEnumSetEditor }
+
+constructor TEnumSetEditor.Create(AOwner: TComponent);
+begin
+  inherited;
+  DropDownCount := DropDownRowCount;
+end;
+
+function TEnumSetEditor.GetValue: TValue;
+begin
+  Result  := 0
+end;
+
+procedure TEnumSetEditor.SetTypeInfo(const Value: PTypeInfo);
+begin
+  fTypeInfo := Value;
+  ListEnumSetValues(Items, fTypeInfo);
+end;
+
+procedure TEnumSetEditor.SetValue(const Value: TValue);
+begin
+
 end;
 
 end.

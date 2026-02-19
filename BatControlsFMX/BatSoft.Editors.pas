@@ -368,6 +368,16 @@ begin
       begin
         (Editor as TEnumEditor).Value := Value
       end)
+  else if Prop.PropertyType.TypeKind = tkSet  then
+    Result  := Register(TypeInfo, TEnumSetEditor, 'OnChange',
+      function (const Editor: TControl): TValue
+      begin
+        Result  := TEnumSetEditor(Editor).Value
+      end,
+      procedure (const Editor: TControl; Value: TValue)
+      begin
+        (Editor as TEnumSetEditor).Value := Value
+      end)
   //  We might not be able to support this type
   else
     Result  := nil;
