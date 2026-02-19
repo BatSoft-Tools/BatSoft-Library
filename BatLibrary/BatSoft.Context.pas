@@ -128,7 +128,7 @@ resourcestring
 implementation
 
 uses
-  BatSoft.Settings;
+  BatSoft.Common, BatSoft.Settings;
 
 function  ConvertValue(const WantType: PTypeInfo; const Value: TValue): TValue;
 begin

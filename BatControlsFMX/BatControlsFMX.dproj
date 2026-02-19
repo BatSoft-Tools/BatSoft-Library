@@ -177,6 +177,7 @@
         <DCCReference Include="BatSoft.Spinners.pas"/>
         <DCCReference Include="BatSoft.WebImage.pas"/>
         <DCCReference Include="BatSoft.Editors.pas"/>
+        <DCCReference Include="BatSoft.Editors.Enum.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

@@ -125,7 +125,7 @@ type
 implementation
 
 uses
-  System.SysUtils, System.Variants;
+  System.SysUtils, System.Variants, BatSoft.Common;
 
 { TSettingsStoreIni<T> }
 

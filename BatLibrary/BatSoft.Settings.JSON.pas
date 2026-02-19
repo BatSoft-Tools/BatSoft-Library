@@ -117,7 +117,7 @@ type
 implementation
 
 uses
-  System.SysUtils, System.IOUtils;
+  System.SysUtils, System.IOUtils, BatSoft.Common;
 
 { TSettingsStoreJSON<T> }
 

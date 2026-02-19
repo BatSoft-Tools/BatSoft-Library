@@ -207,21 +207,6 @@ type
 
   ESettings = class(EBatSoft);
 
-//  Conversion routines that are necessary in implementations of ISettingsStoreReader.LoadValue() and ISettingsStoreWriter.SaveValue().
-//  Not using some of these will cause problems when converting enums and sets, because of how TValue works.
-
-function  EnumToStr(const Value: TValue): string;
-function  StrToEnum(const Value: string; const Info: PTypeInfo): TValue;
-
-function  EnumToOrd(const Value: TValue): integer;
-function  OrdToEnum(const Value: Int64; const Info: PTypeInfo): TValue;
-
-function  EnumSetToStr(const Value: TValue): string;
-function  StrToEnumSet(const Value: string; const Info: PTypeInfo): TValue;
-
-function  EnumSetToOrd(const Value: TValue): Int64;
-function  OrdToEnumSet(const Value: Int64; const Info: PTypeInfo): TValue;
-
 const
   SClass  = 'Class';
   SNil    = 'Null';
@@ -347,56 +332,6 @@ begin
     Result  := Attr.StoreName
   else
     Result  := Prop.Name;
-end;
-
-//  Enumeration strings
-
-function EnumToStr(const Value: TValue): string;
-begin
-  Result  := GetEnumName(Value.TypeInfo, EnumToOrd(Value))
-end;
-
-function  StrToEnum(const Value: string; const Info: PTypeInfo): TValue;
-var
-  Val: Int64;
-begin
-  Val := GetEnumValue(Info, Value);
-  Result  := TValue.FromOrdinal(Info, Val)
-end;
-
-function  EnumToOrd(const Value: TValue): integer;
-begin
-  Result  := 0;
-  Value.ExtractRawDataNoCopy(@Result);
-end;
-
-function  OrdToEnum(const Value: Int64; const Info: PTypeInfo): TValue;
-begin
-  TValue.Make(Value, Info, Result)
-end;
-
-function EnumSetToStr(const Value: TValue): string;
-begin
-  Result  := SetToString(Value.TypeInfo, EnumSetToOrd(Value))
-end;
-
-function  StrToEnumSet(const Value: string; const Info: PTypeInfo): TValue;
-var
-  Val: Int64;
-begin
-  Val := StringToSet(Info, Value);
-  TValue.Make(@Val, Info, Result);
-end;
-
-function  EnumSetToOrd(const Value: TValue): Int64;
-begin
-  Result  := 0;
-  Value.ExtractRawDataNoCopy(@Result);
-end;
-
-function  OrdToEnumSet(const Value: Int64; const Info: PTypeInfo): TValue;
-begin
-  TValue.Make(Value, Info, Result)
 end;
 
 { TSettingsStore<T> }

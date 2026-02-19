@@ -8,7 +8,7 @@ interface
 
 uses
   System.TypInfo, System.Types, System.Classes, System.Generics.Collections, System.Rtti,
-  FMX.Types, FMX.Layouts, FMX.StdCtrls, FMX.Controls, BatSoft.Common, BatSoft.Classes.FMX;
+  FMX.Types, FMX.Layouts, FMX.Controls, FMX.StdCtrls, BatSoft.Common, BatSoft.Classes.FMX;
 
 type
   TEditors = class(TVertScrollBox)
@@ -58,18 +58,20 @@ type
     end;
 
   private
-    fEditorTypes: TObjectList<TEditorInfo>;
-    fEditors: TDictionary<PTypeInfo, TEditorInfo>;
+    fEditorInfosLifetime: TObjectList<TEditorInfo>;
+    fEditorInfos: TDictionary<PTypeInfo, TEditorInfo>;
     function  FindEvent(const EditorClass: TControlClass; const EventName: string): TRttiProperty;
-  protected
-    function  EditorValueGetter(const TypeInfo: PTypeInfo): TEditorValueGetter;
-    function  EditorValueSetter(const TypeInfo: PTypeInfo): TEditorValueSetter;
-    function  GetEditorClass(const TypeInfo: PTypeInfo): TControlClass;
     function  GetEditorInfo(const Prop: TRttiProperty): TEditorInfo;
   public
     constructor Create;
     destructor  Destroy; override;
-    procedure Register(const TypeInfo: PTypeInfo; const EditorClass: TControlClass; const ChangeEventName: string; const GetEditValue: TEditorValueGetter; const SetEditValue: TEditorValueSetter);
+    function  Register(const TypeInfo: PTypeInfo; const EditorClass: TControlClass; const ChangeEventName: string; const GetEditValue: TEditorValueGetter; const SetEditValue: TEditorValueSetter): TEditorInfo;
+  end;
+
+  //  Implemented by editors that require TypeInfo
+  ITypeInfoEditor = interface
+    ['{0385518C-9A81-4A51-ACB1-C6153CBBB243}']
+    procedure SetTypeInfo(const Value: PTypeInfo);
   end;
 
   EEditors = class(EBatSoft);
@@ -84,7 +86,8 @@ procedure RegisterStandardEditors;
 implementation
 
 uses
-  System.SysUtils, System.Math, FMX.Graphics, FMX.Objects, FMX.Edit, FMX.SpinBox;
+  System.SysUtils, System.Math, FMX.Graphics, FMX.Objects, FMX.Edit, FMX.SpinBox,
+  BatSoft.Editors.Enum;
 
 const
   NoBounds  : TRect = (Left:0; Top:0; Right:0; Bottom:0);
@@ -149,6 +152,7 @@ var
   PropInfo: TPropInfo;
   EditorInfo: TEditorTypes.TEditorInfo;
   RowHeight, TotalHeight, LabelWidth, MaxLabelWidth: Single;
+  TypeInfoEditor: ITypeInfoEditor;
 begin
   PropInfo  := nil;
   BeginUpdate;
@@ -168,6 +172,8 @@ begin
         PropInfo.Label_.Text := Prop.Name;
         //  Create editor
         PropInfo.Editor := CreateControl(EditorInfo.EditorClass, fLayoutEditors, TAlignLayout.Top, ChildMargins.Rect);
+        if  Supports(PropInfo.Editor, ITypeInfoEditor, TypeInfoEditor) then
+          TypeInfoEditor.SetTypeInfo(Prop.PropertyType.Handle);
         EditorInfo.SetEditValue(PropInfo.Editor, Prop.GetValue(fEditObject));
         EditorInfo.Event.SetValue(PropInfo.Editor, TValue.From<TNotifyEvent>(OnEvent));
         //  Register them
@@ -216,6 +222,8 @@ begin
   fLayoutEditors  := CreateControl(TLayout,   Self, TAlignLayout.Client,    NoBounds) as TLayout;
   fPusher         := CreateControl(TLayout,   Self, TAlignLayout.None,      NoBounds) as TLayout;
   fPusher.BoundsRect  := NoBounds;
+  //  Debug tool to see where the fPusher is
+//  CreateControl(TButton, fPusher, TAlignLayout.Client, NoBounds);
 end;
 
 function TEditors.CreateControl(const T: TControlClass; const Parent: TControl; const Align: TAlignLayout; const Margins: TRectF): TControl;
@@ -319,25 +327,15 @@ end;
 constructor TEditorTypes.Create;
 begin
   inherited;
-  fEditorTypes  := TObjectList<TEditorInfo>.Create(True);
-  fEditors      := TDictionary<PTypeInfo, TEditorInfo>.Create;
+  fEditorInfosLifetime        := TObjectList<TEditorInfo>.Create(True);
+  fEditorInfos  := TDictionary<PTypeInfo, TEditorInfo>.Create;
 end;
 
 destructor TEditorTypes.Destroy;
 begin
-  fEditors.Free;
-  fEditorTypes.Free;
+  fEditorInfos.Free;
+  fEditorInfosLifetime.Free;
   inherited;
-end;
-
-function TEditorTypes.EditorValueGetter(const TypeInfo: PTypeInfo): TEditorValueGetter;
-begin
-  Result  := fEditors[TypeInfo].GetEditValue
-end;
-
-function TEditorTypes.EditorValueSetter(const TypeInfo: PTypeInfo): TEditorValueSetter;
-begin
-  Result  := fEditors[TypeInfo].SetEditValue
 end;
 
 function TEditorTypes.FindEvent(const EditorClass: TControlClass; const EventName: string): TRttiProperty;
@@ -352,21 +350,33 @@ begin
   raise EEditors.Create('Property %s.%s not found.', [EditorClass.ClassName, EventName]);
 end;
 
-function TEditorTypes.GetEditorClass(const TypeInfo: PTypeInfo): TControlClass;
-begin
-  Result  := fEditors[TypeInfo].EditorClass
-end;
-
 function TEditorTypes.GetEditorInfo(const Prop: TRttiProperty): TEditorInfo;
+var
+  TypeInfo: PTypeInfo;
 begin
-  if  not EditorTypes.fEditors.TryGetValue(Prop.PropertyType.Handle, Result)  then
+  TypeInfo  := Prop.PropertyType.Handle;
+  //  Try to find already registered editor
+  if  EditorTypes.fEditorInfos.TryGetValue(TypeInfo, Result)  then
+  //  ...otherwise try to create a suitable editor
+  else if Prop.PropertyType.TypeKind = tkEnumeration  then
+    Result  := Register(TypeInfo, TEnumEditor, 'OnChange',
+      function (const Editor: TControl): TValue
+      begin
+        Result  := TEnumEditor(Editor).Value
+      end,
+      procedure (const Editor: TControl; Value: TValue)
+      begin
+        (Editor as TEnumEditor).Value := Value
+      end)
+  //  We might not be able to support this type
+  else
     Result  := nil;
 end;
 
-procedure TEditorTypes.Register(const TypeInfo: PTypeInfo;
+function TEditorTypes.Register(const TypeInfo: PTypeInfo;
   const EditorClass: TControlClass; const ChangeEventName: string;
   const GetEditValue: TEditorValueGetter;
-  const SetEditValue: TEditorValueSetter);
+  const SetEditValue: TEditorValueSetter): TEditorInfo;
 var
   Info: TEditorInfo;
 begin
@@ -380,8 +390,9 @@ begin
     Info.Free;
     raise;
   end;
-  fEditorTypes.Add(Info);
-  fEditors.AddOrSetValue(TypeInfo, Info);
+  fEditorInfos.AddOrSetValue(TypeInfo, Info);
+  fEditorInfosLifetime.Add(Info);
+  Result  := Info;
 end;
 
 initialization
