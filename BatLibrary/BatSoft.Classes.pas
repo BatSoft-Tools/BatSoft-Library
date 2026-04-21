@@ -132,8 +132,6 @@ type
 /// Please be very careful with this.  Make certain you know what you're doing.</summary>
 procedure ChangeClass(const Obj: TObject; const ToClass: TClass);
 
-//  Convenience section that contains things I often re-write.
-
 implementation
 
 uses

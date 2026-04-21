@@ -3,8 +3,7 @@ program DemoEditors;
 uses
   System.StartUpCopy,
   FMX.Forms,
-  FDemoEditors in 'FDemoEditors.pas' {frmDemoEditors},
-  BatSoft.Editors in '..\..\BatControlsFMX\BatSoft.Editors.pas';
+  FDemoEditors in 'FDemoEditors.pas' {frmDemoEditors};
 
 {$R *.res}
 

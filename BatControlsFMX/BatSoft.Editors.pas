@@ -68,12 +68,6 @@ type
     function  Register(const TypeInfo: PTypeInfo; const EditorClass: TControlClass; const ChangeEventName: string; const GetEditValue: TEditorValueGetter; const SetEditValue: TEditorValueSetter): TEditorInfo;
   end;
 
-  //  Implemented by editors that require TypeInfo
-  ITypeInfoEditor = interface
-    ['{0385518C-9A81-4A51-ACB1-C6153CBBB243}']
-    procedure SetTypeInfo(const Value: PTypeInfo);
-  end;
-
   EEditors = class(EBatSoft);
 
 var
@@ -152,7 +146,6 @@ var
   PropInfo: TPropInfo;
   EditorInfo: TEditorTypes.TEditorInfo;
   RowHeight, TotalHeight, LabelWidth, MaxLabelWidth: Single;
-  TypeInfoEditor: ITypeInfoEditor;
 begin
   PropInfo  := nil;
   BeginUpdate;
@@ -172,8 +165,6 @@ begin
         PropInfo.Label_.Text := Prop.Name;
         //  Create editor
         PropInfo.Editor := CreateControl(EditorInfo.EditorClass, fLayoutEditors, TAlignLayout.Top, ChildMargins.Rect);
-        if  Supports(PropInfo.Editor, ITypeInfoEditor, TypeInfoEditor) then
-          TypeInfoEditor.SetTypeInfo(Prop.PropertyType.Handle);
         EditorInfo.SetEditValue(PropInfo.Editor, Prop.GetValue(fEditObject));
         EditorInfo.Event.SetValue(PropInfo.Editor, TValue.From<TNotifyEvent>(OnEvent));
         //  Register them

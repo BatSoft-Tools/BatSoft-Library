@@ -2,8 +2,8 @@ object frmDemoEditors: TfrmDemoEditors
   Left = 0
   Top = 0
   Caption = 'Form2'
-  ClientHeight = 322
-  ClientWidth = 553
+  ClientHeight = 360
+  ClientWidth = 1097
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -11,16 +11,16 @@ object frmDemoEditors: TfrmDemoEditors
   OnDestroy = FormDestroy
   DesignerMasterStyle = 0
   object Button1: TButton
-    Position.X = 448.000000000000000000
-    Position.Y = 56.000000000000000000
+    Position.X = 352.000000000000000000
+    Position.Y = 72.000000000000000000
     TabOrder = 1
     Text = 'Button1'
     TextSettings.Trimming = None
     OnClick = Button1Click
   end
   object Button2: TButton
-    Position.X = 448.000000000000000000
-    Position.Y = 80.000000000000000000
+    Position.X = 352.000000000000000000
+    Position.Y = 96.000000000000000000
     TabOrder = 3
     Text = 'Button2'
     TextSettings.Trimming = None
@@ -31,7 +31,7 @@ object frmDemoEditors: TfrmDemoEditors
     Padding.Top = 20.000000000000000000
     Padding.Right = 8.000000000000000000
     Padding.Bottom = 8.000000000000000000
-    Position.X = 376.000000000000000000
+    Position.X = 328.000000000000000000
     Position.Y = 152.000000000000000000
     Text = 'GroupBox1'
     TabOrder = 5
@@ -51,16 +51,16 @@ object frmDemoEditors: TfrmDemoEditors
     Anchors = [akLeft, akTop, akRight, akBottom]
     Position.X = 32.000000000000000000
     Position.Y = 16.000000000000000000
-    Size.Width = 321.000000000000000000
-    Size.Height = 281.000000000000000000
+    Size.Width = 232.000000000000000000
+    Size.Height = 319.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
-    Viewport.Width = 321.000000000000000000
-    Viewport.Height = 281.000000000000000000
+    Viewport.Width = 232.000000000000000000
+    Viewport.Height = 319.000000000000000000
   end
   object Button0: TButton
-    Position.X = 448.000000000000000000
-    Position.Y = 32.000000000000000000
+    Position.X = 352.000000000000000000
+    Position.Y = 48.000000000000000000
     Size.Width = 80.000000000000000000
     Size.Height = 22.000000000000000000
     Size.PlatformDefault = False
@@ -68,5 +68,108 @@ object frmDemoEditors: TfrmDemoEditors
     Text = 'Button0'
     TextSettings.Trimming = None
     OnClick = Button0Click
+  end
+  object Popup1: TPopup
+    Position.X = 376.000000000000000000
+    Position.Y = 256.000000000000000000
+    TabOrder = 9
+  end
+  object Layout1: TLayout
+    Position.X = 504.000000000000000000
+    Position.Y = 24.000000000000000000
+    Size.Width = 145.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 10
+    object EnumEditor1: TEnumEditor
+    end
+  end
+  object Layout2: TLayout
+    Position.X = 504.000000000000000000
+    Position.Y = 82.000000000000000000
+    Size.Width = 145.000000000000000000
+    Size.Height = 50.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 11
+  end
+  object EnumSetEditor1: TEnumSetEditor
+    Position.X = 504.000000000000000000
+    Position.Y = 184.000000000000000000
+    Size.Width = 233.000000000000000000
+    Size.Height = 22.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 13
+    Text = 'EnumSetEditor1'
+    TextSettings.Trimming = None
+    object TPopup
+      PlacementTarget = EnumSetEditor1
+      TabOrder = 1
+      object TListBox
+        TabOrder = 0
+        DisableFocusEffect = True
+        DefaultItemStyles.ItemStyle = ''
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        ShowCheckboxes = True
+        Viewport.Width = -1.000000000000000000
+        Viewport.Height = -1.000000000000000000
+      end
+    end
+    object TPopup
+      PlacementTarget = EnumSetEditor1
+      TabOrder = 2
+      object TListBox
+        TabOrder = 0
+        DisableFocusEffect = True
+        DefaultItemStyles.ItemStyle = ''
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        ShowCheckboxes = True
+        Viewport.Width = 196.000000000000000000
+        Viewport.Height = 196.000000000000000000
+      end
+    end
+    object TPopup
+      PlacementTarget = EnumSetEditor1
+      TabOrder = 3
+      object TListBox
+        TabOrder = 0
+        DisableFocusEffect = True
+        DefaultItemStyles.ItemStyle = ''
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        ShowCheckboxes = True
+        Viewport.Width = 196.000000000000000000
+        Viewport.Height = 196.000000000000000000
+      end
+    end
+    object TPopup
+      PlacementTarget = EnumSetEditor1
+      TabOrder = 5
+      object TListBox
+        TabOrder = 0
+        DisableFocusEffect = True
+        DefaultItemStyles.ItemStyle = ''
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        ShowCheckboxes = True
+        Viewport.Width = 196.000000000000000000
+        Viewport.Height = 196.000000000000000000
+      end
+    end
+    object TPopup
+      PlacementTarget = EnumSetEditor1
+      TabOrder = 0
+      object TListBox
+        TabOrder = 0
+        DisableFocusEffect = True
+        DefaultItemStyles.ItemStyle = ''
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        ShowCheckboxes = True
+        Viewport.Width = 196.000000000000000000
+        Viewport.Height = 196.000000000000000000
+      end
+    end
   end
 end

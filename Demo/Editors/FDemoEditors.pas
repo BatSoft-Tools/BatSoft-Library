@@ -6,7 +6,8 @@ uses
   System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
   FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Layouts,
   BatSoft.Editors, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Edit,
-  FMX.EditBox, FMX.SpinBox, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, FMX.ListBox;
+  FMX.EditBox, FMX.SpinBox, FMX.Memo.Types, FMX.ScrollBox, FMX.Memo, FMX.ListBox,
+  FMX.ExtCtrls, BatSoft.Editors.Enum;
 
 type
 {$M+}
@@ -15,10 +16,12 @@ type
     fStr: string;
     fInt: integer;
     fEnum: TAlignment;
+    fEnumSet: TAnchors;
   published
-    property  Str: string       read fStr   write fStr;
-    property  Int: integer      read fInt   write fInt;
-    property  Enum: TAlignment  read fEnum  write fEnum;
+    property  Str: string       read fStr     write fStr;
+    property  Int: integer      read fInt     write fInt;
+    property  Enum: TAlignment  read fEnum    write fEnum;
+    property  EnumSet: TAnchors read fEnumSet write fEnumSet;
   end;
 {$M-}
 
@@ -29,6 +32,11 @@ type
     GroupBox1: TGroupBox;
     Memo1: TMemo;
     Button0: TButton;
+    Popup1: TPopup;
+    EnumEditor1: TEnumEditor;
+    Layout1: TLayout;
+    Layout2: TLayout;
+    EnumSetEditor1: TEnumSetEditor;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure Button1Click(Sender: TObject);
@@ -44,6 +52,9 @@ var
 implementation
 
 {$R *.fmx}
+
+uses
+  System.Rtti;
 
 { TfrmDemoEditors }
 
@@ -67,7 +78,8 @@ begin
   fThing  := TSomeThing.Create;
   fThing.Str  := 'xyz';
   fThing.Int  := 3;
-//  Editors1.EditObject := fThing;
+  EnumEditor1.Value     := TValue.From<TAnchorKind>(TAnchorKind.akTop);
+  EnumSetEditor1.Value  := TValue.From<TAnchors>([TAnchorKind.akLeft, TAnchorKind.akRight]);
 end;
 
 procedure TfrmDemoEditors.FormDestroy(Sender: TObject);

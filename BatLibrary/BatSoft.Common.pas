@@ -7,9 +7,11 @@ unit BatSoft.Common;
 interface
 
 uses
-  System.SysUtils, System.TypInfo, System.Rtti, System.Classes;
+  System.SysUtils, System.TypInfo, System.Rtti, System.Classes, Generics.Collections;
 
 type
+  TIntegerList = class(TList<Integer>);
+
   EBatSoft = class(Exception)
   public
     constructor Create(AMessage: string; const Params: array of const); overload;
@@ -31,21 +33,25 @@ function GetExeDir: string;
 //  Conversion routines that are necessary in implementations of ISettingsStoreReader.LoadValue() and ISettingsStoreWriter.SaveValue().
 //  Not using some of these will cause problems when converting enums and sets, because of how TValue works.
 
-procedure ListEnumValues(const Strs: TStrings; const TypeInfo: PTypeInfo);
+procedure ListEnumValues(const AllValues: TIntegerList; const TypeInfo: PTypeInfo); overload;
+procedure ListEnumValues(const AllValues: TStrings; const TypeInfo: PTypeInfo); overload;
 
 function  EnumToStr(const Value: TValue): string;
-function  StrToEnum(const Value: string; const Info: PTypeInfo): TValue;
+function  StrToEnum(const Str: string; const Info: PTypeInfo): TValue;
 
 function  EnumToOrd(const Value: TValue): integer;
-function  OrdToEnum(const Value: Int64; const Info: PTypeInfo): TValue;
+function  OrdToEnum(const Ord: Int64; const Info: PTypeInfo): TValue;
 
-procedure ListEnumSetValues(const Strs: TStrings; const TypeInfo: PTypeInfo);
+procedure ListEnumSetValues(const AllValues: TStrings; const TypeInfo: PTypeInfo);
+
+procedure ListEnumSetSelected(const Value: TValue; const Selected: TIntegerList; const TypeInfo: PTypeInfo); overload;
+procedure ListEnumSetSelected(const Value: TValue; const Selected: TStrings); overload;
 
 function  EnumSetToStr(const Value: TValue): string;
-function  StrToEnumSet(const Value: string; const Info: PTypeInfo): TValue;
+function  StrToEnumSet(const Str: string; const Info: PTypeInfo): TValue;
 
 function  EnumSetToOrd(const Value: TValue): Int64;
-function  OrdToEnumSet(const Value: Int64; const Info: PTypeInfo): TValue;
+function  OrdToEnumSet(const Ord: Int64; const Info: PTypeInfo): TValue;
 
 const
   nl  = #13#10;
@@ -58,7 +64,7 @@ resourcestring
   SEBatSoftBug          = 'BatSoft bug that should never happen. Please notify at: peter@batsoft.com.au';
   SEIncompatibleClasses = 'Incompatible classes.';
   SEIntfNotRegistered   = 'Tried to obtain an interface that is not registered.';
-
+  SEIncompatibleTypes   = 'Tried to convert %s to %s.';
 
 implementation
 
@@ -69,19 +75,30 @@ end;
 
 //  Enumeration strings
 
-procedure ListEnumValues(const Strs: TStrings; const TypeInfo: PTypeInfo);
+procedure ListEnumValues(const AllValues: TIntegerList; const TypeInfo: PTypeInfo);
 var
   TypeData: PTypeData;
   ord: integer;
 begin
   TypeData := GetTypeData(TypeInfo);
-  Strs.BeginUpdate;
+  AllValues.Clear;
+  for ord := TypeData.MinValue to TypeData.MaxValue do
+    AllValues.Add(ord);
+end;
+
+procedure ListEnumValues(const AllValues: TStrings; const TypeInfo: PTypeInfo);
+var
+  TypeData: PTypeData;
+  ord: integer;
+begin
+  TypeData := GetTypeData(TypeInfo);
+  AllValues.BeginUpdate;
   try
-    Strs.Clear;
+    AllValues.Clear;
     for ord := TypeData.MinValue to TypeData.MaxValue do
-      Strs.AddObject(GetEnumName(TypeInfo, ord), Pointer(ord));
+      AllValues.AddObject(GetEnumName(TypeInfo, ord), Pointer(ord));
   finally
-    Strs.EndUpdate;
+    AllValues.EndUpdate;
   end;
 end;
 
@@ -90,11 +107,11 @@ begin
   Result  := GetEnumName(Value.TypeInfo, EnumToOrd(Value))
 end;
 
-function  StrToEnum(const Value: string; const Info: PTypeInfo): TValue;
+function  StrToEnum(const Str: string; const Info: PTypeInfo): TValue;
 var
   Val: Int64;
 begin
-  Val := GetEnumValue(Info, Value);
+  Val := GetEnumValue(Info, Str);
   Result  := TValue.FromOrdinal(Info, Val)
 end;
 
@@ -104,19 +121,55 @@ begin
   Value.ExtractRawDataNoCopy(@Result);
 end;
 
-function  OrdToEnum(const Value: Int64; const Info: PTypeInfo): TValue;
+function  OrdToEnum(const Ord: Int64; const Info: PTypeInfo): TValue;
 begin
-  TValue.Make(Value, Info, Result)
+  TValue.Make(Ord, Info, Result)
 end;
 
-procedure ListEnumSetValues(const Strs: TStrings; const TypeInfo: PTypeInfo);
+procedure ListEnumSetValues(const AllValues: TStrings; const TypeInfo: PTypeInfo);
 var
   TypeData: PTypeData;
   EnumInfo: PTypeInfo;
 begin
   TypeData := GetTypeData(TypeInfo);
   EnumInfo := TypeData.CompType^;
-  ListEnumValues(Strs, EnumInfo);
+  ListEnumValues(AllValues, EnumInfo);
+end;
+
+procedure ListEnumSetSelected(const Value: TValue; const Selected: TIntegerList; const TypeInfo: PTypeInfo);
+var
+  Buffer: set of Byte;
+  EnumTypeInfo: PTypeInfo;
+  EnumTypeData: PTypeData;
+  Enum: integer;
+begin
+  if  Value.Kind <> tkSet then
+    EBatSoft.Create(SEIncompatibleTypes, [Value.TypeInfo.Name, ' an enumerated set']);
+  Buffer  := [];
+  Value.ExtractRawData(@Buffer);
+  EnumTypeInfo  := Value.TypeInfo.TypeData.CompType^;
+  EnumTypeData  := EnumTypeInfo.TypeData;
+  for Enum := EnumTypeData.MinValue to EnumTypeData.MaxValue do
+    if Enum in buffer then
+      Selected.Add(Enum);
+end;
+
+procedure ListEnumSetSelected(const Value: TValue; const Selected: TStrings); overload;
+var
+  Buffer: set of Byte;
+  EnumTypeInfo: PTypeInfo;
+  EnumTypeData: PTypeData;
+  Enum: integer;
+begin
+  if  Value.Kind <> tkSet then
+    EBatSoft.Create(SEIncompatibleTypes, [Value.TypeInfo.Name, ' an enumerated set']);
+  Buffer  := [];
+  Value.ExtractRawData(@Buffer);
+  EnumTypeInfo  := Value.TypeInfo.TypeData.CompType^;
+  EnumTypeData  := EnumTypeInfo.TypeData;
+  for Enum := EnumTypeData.MinValue to EnumTypeData.MaxValue do
+    if Enum in Buffer then
+      Selected.AddObject(GetEnumName(EnumTypeInfo, Enum), Pointer(Enum));
 end;
 
 function EnumSetToStr(const Value: TValue): string;
@@ -124,11 +177,11 @@ begin
   Result  := SetToString(Value.TypeInfo, EnumSetToOrd(Value))
 end;
 
-function  StrToEnumSet(const Value: string; const Info: PTypeInfo): TValue;
+function  StrToEnumSet(const Str: string; const Info: PTypeInfo): TValue;
 var
   Val: Int64;
 begin
-  Val := StringToSet(Info, Value);
+  Val := StringToSet(Info, Str);
   TValue.Make(@Val, Info, Result);
 end;
 
@@ -138,9 +191,9 @@ begin
   Value.ExtractRawDataNoCopy(@Result);
 end;
 
-function  OrdToEnumSet(const Value: Int64; const Info: PTypeInfo): TValue;
+function  OrdToEnumSet(const Ord: Int64; const Info: PTypeInfo): TValue;
 begin
-  TValue.Make(Value, Info, Result)
+  TValue.Make(Ord, Info, Result)
 end;
 
 { EBatSoft }

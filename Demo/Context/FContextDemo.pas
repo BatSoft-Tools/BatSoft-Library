@@ -60,7 +60,7 @@ begin
     Exit;
   Name  := lstNameValues.Items[lstNameValues.ItemIndex];
   Value := fContext.GetValue(Name);
-  ShowMessage(Value.ToString + nl + Value.TypeInfo.Name);
+  ShowMessage(Value.ToString + nl + string(Value.TypeInfo.Name));
 end;
 
 procedure TfrmContextDemo.butRunMacroClick(Sender: TObject);
