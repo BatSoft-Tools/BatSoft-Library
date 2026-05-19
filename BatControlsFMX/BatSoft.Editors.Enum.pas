@@ -31,6 +31,18 @@ type
     property  Ordinal   : Int64     read GetOrdinal write SetOrdinal;
     function  OrdAt(const Index: integer): Int64;
   published
+    property  Align;
+    property  Anchors;
+    property  CanFocus;
+    property  Enabled;
+    property  Position;
+    property  Height;
+    property  Width;
+    property  StyleLookup;
+    property  StyleName;
+    property  TabOrder;
+    property  Tag;
+    property  Visible;
     property  OnChange;
   end;
 
@@ -57,6 +69,18 @@ type
     property  Value     : TValue        read GetValue   write SetValue;
     property  ExtraSize : TPoint        read fExtraSize write fExtraSize;
   published
+    property  Align;
+    property  Anchors;
+    property  CanFocus;
+    property  Enabled;
+    property  Position;
+    property  Height;
+    property  Width;
+    property  StyleLookup;
+    property  StyleName;
+    property  TabOrder;
+    property  Tag;
+    property  Visible;
     property  OnChange  : TNotifyEvent  read fOnChange  write fOnChange;
   end;
 {$M-}

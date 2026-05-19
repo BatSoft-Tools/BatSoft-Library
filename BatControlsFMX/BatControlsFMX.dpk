@@ -41,6 +41,7 @@ contains
   BatSoft.Spinners in 'BatSoft.Spinners.pas',
   BatSoft.WebImage in 'BatSoft.WebImage.pas',
   BatSoft.Editors in 'BatSoft.Editors.pas',
-  BatSoft.Editors.Enum in 'BatSoft.Editors.Enum.pas';
+  BatSoft.Editors.Enum in 'BatSoft.Editors.Enum.pas',
+  BatSoft.ObjectTreeView in 'BatSoft.ObjectTreeView.pas';
 
 end.

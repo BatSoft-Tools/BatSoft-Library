@@ -121,8 +121,13 @@ begin
       Result  := TSpinBox(Editor).Value
     end,
     procedure (const Editor: TControl; Value: TValue)
+    var
+      SpinBox: TSpinBox;
     begin
-      (Editor as TSpinBox).Value  := Value.AsExtended
+      SpinBox := Editor as TSpinBox;
+      SpinBox.Max   := +MaxInt;
+      SpinBox.Min   := -MaxInt;
+      SpinBox.Value := Value.AsExtended
     end
   );
 
