@@ -115,6 +115,17 @@ begin
     end
   );
 
+  EditorTypes.Register(TypeInfo(Single), TSpinBox, 'OnChange',
+    function (const Editor: TControl): TValue
+    begin
+      Result  := TSpinBox(Editor).Value
+    end,
+    procedure (const Editor: TControl; Value: TValue)
+    begin
+      (Editor as TSpinBox).Value  := Value.AsExtended
+    end
+  );
+
   EditorTypes.Register(TypeInfo(Boolean), TCheckBox, 'OnChange',
     function (const Editor: TControl): TValue
     begin

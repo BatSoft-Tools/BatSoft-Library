@@ -3,7 +3,7 @@ object frmDemoEditors: TfrmDemoEditors
   Top = 0
   Caption = 'Form2'
   ClientHeight = 360
-  ClientWidth = 1097
+  ClientWidth = 751
   FormFactor.Width = 320
   FormFactor.Height = 480
   FormFactor.Devices = [Desktop]
@@ -51,11 +51,11 @@ object frmDemoEditors: TfrmDemoEditors
     Anchors = [akLeft, akTop, akRight, akBottom]
     Position.X = 32.000000000000000000
     Position.Y = 16.000000000000000000
-    Size.Width = 232.000000000000000000
+    Size.Width = 265.000000000000000000
     Size.Height = 319.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
-    Viewport.Width = 232.000000000000000000
+    Viewport.Width = 265.000000000000000000
     Viewport.Height = 319.000000000000000000
   end
   object Button0: TButton
@@ -146,6 +146,48 @@ object frmDemoEditors: TfrmDemoEditors
     object TPopup
       PlacementTarget = EnumSetEditor1
       TabOrder = 5
+      object TListBox
+        TabOrder = 0
+        DisableFocusEffect = True
+        DefaultItemStyles.ItemStyle = ''
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        ShowCheckboxes = True
+        Viewport.Width = 196.000000000000000000
+        Viewport.Height = 196.000000000000000000
+      end
+    end
+    object TPopup
+      PlacementTarget = EnumSetEditor1
+      TabOrder = 7
+      object TListBox
+        TabOrder = 0
+        DisableFocusEffect = True
+        DefaultItemStyles.ItemStyle = ''
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        ShowCheckboxes = True
+        Viewport.Width = 196.000000000000000000
+        Viewport.Height = 196.000000000000000000
+      end
+    end
+    object TPopup
+      PlacementTarget = EnumSetEditor1
+      TabOrder = 9
+      object TListBox
+        TabOrder = 0
+        DisableFocusEffect = True
+        DefaultItemStyles.ItemStyle = ''
+        DefaultItemStyles.GroupHeaderStyle = ''
+        DefaultItemStyles.GroupFooterStyle = ''
+        ShowCheckboxes = True
+        Viewport.Width = 196.000000000000000000
+        Viewport.Height = 196.000000000000000000
+      end
+    end
+    object TPopup
+      PlacementTarget = EnumSetEditor1
+      TabOrder = 11
       object TListBox
         TabOrder = 0
         DisableFocusEffect = True

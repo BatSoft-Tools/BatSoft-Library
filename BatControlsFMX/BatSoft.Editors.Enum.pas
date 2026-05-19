@@ -163,33 +163,13 @@ end;
 function TEnumSetEditor.GetValue: TValue;
 var
   i: integer;
-  Ints: TIntegerList;
-//  Buffer: set of byte;
   Ord: Int64;
-  Values: array of TValue;
 begin
-//  Ints  := TIntegerList.Create;
-//  try
-//    for i := 0 to fListBox.Items.Count - 1 do
-//      if  fListBox.ListItems[i].IsChecked then
-//        Ints.Add(integer(fListBox.Items.Objects[i]));
-//    SetLength(Values, Ints.Count);
-//    for i := 0 to Ints.Count - 1 do
-//        Values[i] := Ints[i];
-//    Result  := TValue.FromArray(TypeInfo, Values)
-//  finally
-//    Ints.Free;
-//  end;
-
-
   Ord := 0;
   for i := 0 to fListBox.Items.Count - 1 do
     if  fListBox.ListItems[i].IsChecked then
       Ord := Ord or Round(Power(2, integer(fListBox.Items.Objects[i])));
   Result  := OrdToEnumSet(Ord, fTypeInfo);
-//    Result  := TValue.FromOrdinal(TypeInfo, Ord);
-//
-//  Buffer  :=
 end;
 
 procedure TEnumSetEditor.PopulateItems(const TypeInfo: PTypeInfo);
