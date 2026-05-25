@@ -105,7 +105,7 @@ object frameEmpContract: TframeEmpContract
       Size.PlatformDefault = False
       TextSettings.HorzAlign = Trailing
       Text = 'labIndex'
-      TabOrder = 4
+      TabOrder = 3
     end
   end
   object Circle1: TCircle

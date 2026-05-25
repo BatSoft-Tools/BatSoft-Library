@@ -33,6 +33,6 @@ requires
 
 contains
   BatSoft.Translator in 'BatSoft.Translator.pas',
-  BatSoft.Classes.FMX;
+  BatSoft.Classes.FMX in 'BatSoft.Classes.FMX.pas';
 
 end.
